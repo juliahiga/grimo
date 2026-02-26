@@ -45,3 +45,99 @@
 .personagens-novo-btn:hover {
   background-color: #7a5c3b;
 }
+
+.sistema-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: #14120E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding-top: 91px;
+  box-sizing: border-box;
+}
+
+.sistema-modal {
+  background-color: #1e1b14;
+  border: 1px solid #C79255;
+  border-radius: 12px;
+  width: 1150px;
+  max-width: 95vw;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 60px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.sistema-titulo {
+  color: #C79255;
+  font-family: 'Lora', serif;
+  font-size: 32px;
+  font-weight:500;
+  text-align: center;
+  margin: 0 0 50px 0;
+  letter-spacing: 1px;
+}
+
+.sistema-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 232px);
+  grid-template-rows: repeat(2, 200px);
+  gap: 24px;
+  justify-content: center;
+}
+
+.sistema-card {
+  width: 232px;
+  height: 200px;
+  border-radius: 8px;
+  border: 2px solid #3a3020;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transition: border-color 0.3s, transform 0.2s;
+  background-color: #14120e;
+}
+
+.sistema-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sistema-card span {
+  position: relative;
+  z-index: 2;
+  color: white;
+  font-family: 'Lora', serif;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  padding: 8px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  width: 100%;
+}
+
+.sistema-card.hovered {
+  border-color: #C79255;
+  transform: scale(1.03);
+}
+
+.sistema-card.empty {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.sistema-card.empty:hover {
+  border-color: #3a3020;
+  transform: none;
+}

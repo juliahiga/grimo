@@ -14,9 +14,19 @@ const Profile = () => {
     if (user?.picture) setPreview(user.picture);
   }, [user]);
 
-  const handleConfirmImage = (croppedImage) => {
+  const handleConfirmImage = async (croppedImage) => {
     setPreview(croppedImage);
     setUser((prev) => ({ ...prev, picture: croppedImage }));
+
+    try {
+      await fetch("http://localhost:3001/api/users/update-picture", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ google_id: user.google_id, custom_picture: croppedImage }),
+      });
+    } catch (err) {
+      console.log("Erro ao salvar foto:", err);
+    }
   };
 
   const handleSave = async () => {
