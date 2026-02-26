@@ -1,0 +1,124 @@
+.navbar {
+  width: 100%;
+  height: 86px;
+  background-color: #262119;
+  display: flex;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.navbar-left {
+  margin-left: 30px;
+}
+
+.logo {
+  height: 50px;
+}
+
+.navbar-center {
+  position: absolute; /* fixa no meio */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.navbar-center ul {
+  list-style: none;
+  display: flex;
+  gap: 50px;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-center li a {
+  color: #C79255;
+  text-decoration: none;
+  font-family: 'Lora', serif;
+  font-size: 36px;
+}
+
+.navbar-center li a:hover {
+  text-decoration: none;
+  transition: ease-in-out 0.2s;
+  color: #7a5c3b;
+}
+
+.navbar-right {
+  margin-right: 30px;
+  margin-left: auto; /* força para a direita */
+}
+
+.login-btn {
+  background-color: #C79255;
+  color: white;
+  font-weight: bolder;
+  border: none;
+  padding: 10px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Lora', serif;
+  font-size: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.login-btn:hover {
+  background-color: #7a5c3b;
+}
+
+.divider {
+  width: 100%;
+  height: 5px;
+  background: radial-gradient(circle, #46C64C 0%, #C79255 100%);
+  position: fixed;
+  top: 86px;
+  left: 0;
+  z-index: 999;
+}
+
+.user-avatar {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  border: 2px solid #C79255;
+  cursor: pointer;
+  object-fit: cover;
+  transition: border-color 0.3s ease;
+  margin-top: 4px;
+}
+
+.avatar-wrapper {
+  position: relative;
+}
+
+.avatar-menu {
+  position: absolute;
+  right: 0;
+  top: 60px;
+  background-color: #262119;
+  border: 1px solid #C79255;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 130px;
+  z-index: 999;
+}
+
+.avatar-menu button {
+  background: none;
+  border: none;
+  color: #C79255;
+  font-family: 'Lora', serif;
+  font-size: 18px;
+  padding: 12px 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.avatar-menu button:hover {
+  background-color: #7a5c3b;
+  color: white;
+}

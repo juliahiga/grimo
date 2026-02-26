@@ -1,0 +1,47 @@
+.personagens-page {
+  height: calc(100vh - 91px);
+  margin-top: 91px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #14120e;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  box-sizing: border-box;
+}
+
+.personagens-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.personagens-empty-text {
+  color: #C79255;
+  font-family: 'Lora', serif;
+  font-size: 30px;
+  letter-spacing: 2px;
+  margin: 0;
+  font-weight: bolder;
+  opacity: 1;
+}
+
+.personagens-novo-btn {
+  background-color: #C79255;
+  font-weight: bolder;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 35px;
+  font-family: 'Lora', serif;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.personagens-novo-btn:hover {
+  background-color: #7a5c3b;
+}
