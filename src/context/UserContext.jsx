@@ -5,26 +5,17 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUserState] = useState(null);
 
-  // Carrega do localStorage ao iniciar
   useEffect(() => {
-    const saved = localStorage.getItem("user");
-    if (saved) setUserState(JSON.parse(saved));
+    fetch("http://localhost:3001/api/users/me", { credentials: "include" })
+      .then(res => res.json())
+      .then(data => { if (data) setUserState(data); })
+      .catch(() => {});
   }, []);
 
-  // Salva no localStorage sempre que user mudar
   const setUser = (value) => {
     if (typeof value === "function") {
-      setUserState((prev) => {
-        const next = value(prev);
-        localStorage.setItem("user", JSON.stringify(next));
-        return next;
-      });
+      setUserState((prev) => value(prev));
     } else {
-      if (value === null) {
-        localStorage.removeItem("user");
-      } else {
-        localStorage.setItem("user", JSON.stringify(value));
-      }
       setUserState(value);
     }
   };

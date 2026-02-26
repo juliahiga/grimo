@@ -5,23 +5,24 @@ import "../styles/Profile.css";
 
 const Profile = () => {
   const { user, setUser } = useUser();
-  const [newName, setNewName] = useState(user?.name || "");
+  const [newName, setNewName] = useState("");
   const [saved, setSaved] = useState(false);
   const [preview, setPreview] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
+    if (user?.name) setNewName(user.name);
     if (user?.picture) setPreview(user.picture);
   }, [user]);
 
   const handleConfirmImage = async (croppedImage) => {
     setPreview(croppedImage);
     setUser((prev) => ({ ...prev, picture: croppedImage }));
-
     try {
       await fetch("http://localhost:3001/api/users/update-picture", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ google_id: user.google_id, custom_picture: croppedImage }),
       });
     } catch (err) {
@@ -34,6 +35,7 @@ const Profile = () => {
       await fetch("http://localhost:3001/api/users/update-name", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ google_id: user.google_id, name: newName }),
       });
       setUser((prev) => ({ ...prev, name: newName }));
@@ -44,12 +46,6 @@ const Profile = () => {
     }
   };
 
-  if (!user) return (
-    <p style={{ color: "white", marginTop: 120, textAlign: "center" }}>
-      Faça login para ver seu perfil.
-    </p>
-  );
-
   return (
     <div className="profile-page">
       <div className="profile-card">
@@ -57,7 +53,7 @@ const Profile = () => {
           <img src={preview} alt={user.name} className="profile-avatar" />
         </div>
         <div className="profile-info">
-          <label className="profile-label">Nome:</label>
+          <label className="profile-label">NOME:</label>
           <input
             className="profile-input"
             type="text"
@@ -65,11 +61,10 @@ const Profile = () => {
             onChange={(e) => setNewName(e.target.value)}
           />
           <button className="profile-save-btn" onClick={handleSave}>
-            {saved ? "Salvo!" : "Salvar"}
+            {saved ? "SALVO!" : "SALVAR"}
           </button>
         </div>
       </div>
-
       {modalOpen && (
         <ImageCropModal
           onConfirm={handleConfirmImage}

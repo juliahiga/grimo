@@ -35,7 +35,7 @@
 .navbar-center li a {
   color: #C79255;
   text-decoration: none;
-  font-family: 'Lora', serif;
+  font-family: 'Google Sans', sans-serif;
   font-size: 36px;
 }
 
@@ -58,7 +58,7 @@
   padding: 10px 30px;
   border-radius: 10px;
   cursor: pointer;
-  font-family: 'Lora', serif;
+  font-family: 'Google Sans', sans-serif;
   font-size: 20px;
   transition: background-color 0.3s ease;
 }
@@ -110,7 +110,7 @@
   background: none;
   border: none;
   color: #C79255;
-  font-family: 'Lora', serif;
+  font-family: 'Google Sans', sans-serif;
   font-size: 18px;
   padding: 12px 20px;
   cursor: pointer;

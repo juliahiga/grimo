@@ -8,6 +8,7 @@ import Personagens from "./pages/Personagens";
 import Campanhas from "./pages/Campanhas";
 import Sistemas from "./pages/Sistemas";
 import Profile from "./pages/Profile";
+import NovoTlouRpg from "./pages/NovoTlouRpg"; // import da nova página
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/campanhas" element={<Campanhas />} />
           <Route path="/sistemas" element={<Sistemas />} />
           <Route path="/perfil" element={<Profile />} />
+          <Route path="/novo-tlourpg" element={<NovoTlouRpg />} /> {/* nova rota */}
         </Routes>
       </Router>
     </GoogleOAuthProvider>

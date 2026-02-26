@@ -22,6 +22,7 @@ const Navbar = () => {
         const dbRes = await fetch("http://localhost:3001/api/users/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             google_id: profile.sub,
             name: profile.name,
@@ -35,14 +36,15 @@ const Navbar = () => {
           google_id: dbUser.google_id,
           name: dbUser.name,
           email: dbUser.email,
-          picture: dbUser.picture || profile.picture,
+          picture: dbUser.picture,
         });
-
       } catch (err) {
         console.log("Erro:", err);
       }
     },
     onError: () => console.log("Erro no login"),
+    prompt: "select_account",
+    flow: "implicit",
   });
 
   useEffect(() => {
@@ -83,7 +85,15 @@ const Navbar = () => {
                   <button onClick={() => { navigate("/perfil"); setMenuOpen(false); }}>
                     Perfil
                   </button>
-                  <button onClick={() => { setUser(null); setMenuOpen(false); }}>
+                  <button onClick={async () => {
+                    await fetch("http://localhost:3001/api/users/logout", {
+                      method: "POST",
+                      credentials: "include",
+                    });
+                    setUser(null);
+                    setMenuOpen(false);
+                    navigate("/");
+                  }}>
                     Deslogar
                   </button>
                 </div>
