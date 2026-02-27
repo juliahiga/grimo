@@ -1,17 +1,18 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // import para navegação
+import { useNavigate } from "react-router-dom";
 import "../styles/Personagens.css";
 import tlouImg from "../assets/tlouTTRPG.png";
+import { useUser } from "../context/UserContext";
 
 const sistemas = [
   { id: "tlou", nome: "The Last of Us TTRPG", imagem: tlouImg },
 ];
 
 const Personagens = () => {
+  const { user, triggerLogin } = useUser(); // <-- movido para dentro do componente
   const personagens = [];
   const [modalOpen, setModalOpen] = useState(false);
   const [hoveredSistema, setHoveredSistema] = useState(null);
-
   const navigate = useNavigate();
 
   return (
@@ -21,7 +22,13 @@ const Personagens = () => {
           <p className="personagens-empty-text">NENHUM PERSONAGEM ENCONTRADO!</p>
           <button
             className="personagens-novo-btn"
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              if (!user) {
+                triggerLogin();
+              } else {
+                setModalOpen(true);
+              }
+            }}
           >
             NOVO PERSONAGEM
           </button>
@@ -29,7 +36,6 @@ const Personagens = () => {
       ) : (
         <div className="personagens-lista" />
       )}
-
       {modalOpen && (
         <div className="sistema-overlay" onClick={() => setModalOpen(false)}>
           <div className="sistema-modal" onClick={(e) => e.stopPropagation()}>
@@ -40,18 +46,15 @@ const Personagens = () => {
               {sistemas.map((s) => (
                 <div
                   key={s.id}
-                  className={`sistema-card ${
-                    hoveredSistema === s.id ? "hovered" : ""
-                  }`}
+                  className={`sistema-card ${hoveredSistema === s.id ? "hovered" : ""}`}
                   onMouseEnter={() => setHoveredSistema(s.id)}
                   onMouseLeave={() => setHoveredSistema(null)}
-                  onClick={() => navigate("/novo-tlourpg")} // redireciona ao clicar
+                  onClick={() => navigate("/novo-tlourpg")}
                 >
                   <img src={s.imagem} alt={s.nome} />
                   <span>{s.nome}</span>
                 </div>
               ))}
-
               {Array.from({ length: 7 }).map((_, i) => (
                 <div key={`empty-${i}`} className="sistema-card empty">
                   <span>Em breve</span>

@@ -80,10 +80,10 @@
 }
 
 .user-avatar {
-  width: 65px;
-  height: 65px;
+  width: 55px;
+  height: 55px;
   border-radius: 50%;
-  border: 2px solid #C79255;
+  border: 3px solid #C79255;
   cursor: pointer;
   object-fit: cover;
   transition: border-color 0.3s ease;

@@ -1,18 +1,15 @@
-import { createContext, useContext, useState, useEffect } from "react";
-
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [user, setUserState] = useState(null);
+  const loginTriggerRef = useRef(null);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/users/me", { credentials: "include" })
       .then(res => res.json())
-      .then(data => {
-        console.log("Dados do /me:", data);
-        if (data) setUserState(data);
-      })
-      .catch(() => { });
+      .then(data => { if (data) setUserState(data); })
+      .catch(() => {});
   }, []);
 
   const setUser = (value) => {
@@ -23,8 +20,12 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const triggerLogin = () => {
+    if (loginTriggerRef.current) loginTriggerRef.current();
+  };
+
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{ user, setUser, triggerLogin, loginTriggerRef }}>
       {children}
     </UserContext.Provider>
   );

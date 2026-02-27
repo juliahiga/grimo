@@ -6,7 +6,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { useUser } from "../context/UserContext";
 
 const Navbar = () => {
-  const { user, setUser } = useUser();
+  const { user, setUser, loginTriggerRef } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef();
   const navigate = useNavigate();
@@ -18,7 +18,6 @@ const Navbar = () => {
           headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
         });
         const profile = await res.json();
-
         const dbRes = await fetch("http://localhost:3001/api/users/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -31,7 +30,6 @@ const Navbar = () => {
           }),
         });
         const dbUser = await dbRes.json();
-        console.log("Retorno do backend:", dbUser);
         setUser({
           google_id: dbUser.google_id,
           name: dbUser.name,
@@ -46,6 +44,10 @@ const Navbar = () => {
     prompt: "select_account",
     flow: "implicit",
   });
+
+  useEffect(() => {
+    loginTriggerRef.current = login;
+  }, [login, loginTriggerRef]);
 
   useEffect(() => {
     const handler = (e) => {
