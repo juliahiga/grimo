@@ -6,7 +6,6 @@ const NovaCampanhaTlouRpg = () => {
   const navigate = useNavigate();
   const [nome, setNome] = useState("");
   const [escudoPrivado, setEscudoPrivado] = useState(false);
-  const [aviso, setAviso] = useState(null);
   const descricaoRef = useRef(null);
 
   const formatarTexto = (comando) => {
@@ -14,16 +13,7 @@ const NovaCampanhaTlouRpg = () => {
     descricaoRef.current?.focus();
   };
 
-  const mostrarAviso = (msg) => {
-    setAviso(msg);
-    setTimeout(() => setAviso(null), 3500);
-  };
-
   const handleCriar = () => {
-    if (!nome.trim()) {
-      mostrarAviso("um nome");
-      return;
-    }
     // futuramente: salvar campanha
     navigate("/campanhas");
   };
@@ -89,18 +79,16 @@ const NovaCampanhaTlouRpg = () => {
           <button className="nc-cancelar-btn" onClick={() => navigate("/campanhas")}>
             Cancelar
           </button>
-          <button className="nc-criar-btn" onClick={handleCriar}>
+          <button
+            className={`nc-criar-btn ${!nome.trim() ? "disabled" : ""}`}
+            onClick={handleCriar}
+            disabled={!nome.trim()}
+          >
             Criar
           </button>
         </div>
 
       </div>
-
-      {aviso && (
-        <div className="aviso-toast">
-          Escolha {aviso} antes de criar a campanha!
-        </div>
-      )}
     </div>
   );
 };
