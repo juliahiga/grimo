@@ -13,7 +13,7 @@ router.get("/me", async (req, res) => {
     const u = result.recordset[0];
     res.json({
       google_id: u.google_id,
-      name: u.nome,
+      name: u.name,
       email: u.email,
       picture: u.custom_picture || u.picture,
     });
@@ -24,10 +24,6 @@ router.get("/me", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { google_id, name, email, picture } = req.body;
-
-  // Destroi sessão anterior antes de criar nova
-  await new Promise((resolve) => req.session.destroy(() => resolve()));
-
   try {
     const pool = await poolPromise;
     const result = await pool.request()
@@ -37,11 +33,11 @@ router.post("/login", async (req, res) => {
     if (result.recordset.length === 0) {
       await pool.request()
         .input("google_id", sql.VarChar, google_id)
-        .input("nome", sql.NVarChar, name)
+        .input("name", sql.NVarChar, name)
         .input("email", sql.VarChar, email)
         .input("picture", sql.VarChar, picture)
-        .query(`INSERT INTO users (google_id, nome, email, picture)
-                VALUES (@google_id, @nome, @email, @picture)`);
+        .query(`INSERT INTO users (google_id, name, email, picture)
+                VALUES (@google_id, @name, @email, @picture)`);
     } else {
       await pool.request()
         .input("google_id", sql.VarChar, google_id)
@@ -54,19 +50,15 @@ router.post("/login", async (req, res) => {
     const user = await pool.request()
       .input("google_id", sql.VarChar, google_id)
       .query("SELECT * FROM users WHERE google_id = @google_id");
-
     const u = user.recordset[0];
 
-    // Cria nova sessão com o google_id correto
-    req.session.regenerate((err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      req.session.google_id = u.google_id;
-      res.json({
-        google_id: u.google_id,
-        name: u.nome,
-        email: u.email,
-        picture: u.custom_picture || u.picture,
-      });
+    req.session.google_id = u.google_id; // salva na sessão direto
+
+    res.json({
+      google_id: u.google_id,
+      name: u.name,
+      email: u.email,
+      picture: u.custom_picture || u.picture,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -83,8 +75,8 @@ router.put("/update-name", async (req, res) => {
     const pool = await poolPromise;
     await pool.request()
       .input("google_id", sql.VarChar, google_id)
-      .input("nome", sql.NVarChar, name)
-      .query("UPDATE users SET nome = @nome WHERE google_id = @google_id");
+      .input("name", sql.NVarChar, name)
+      .query("UPDATE users SET name = @name WHERE google_id = @google_id");
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

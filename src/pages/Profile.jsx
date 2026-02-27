@@ -50,7 +50,7 @@ const Profile = () => {
     <div className="profile-page">
       <div className="profile-card">
         <div className="avatar-container" onClick={() => setModalOpen(true)}>
-          <img src={preview} alt={user.name} className="profile-avatar" />
+          <img src={preview} alt={user?.name} className="profile-avatar" />
         </div>
         <div className="profile-info">
           <label className="profile-label">NOME:</label>

@@ -31,7 +31,7 @@ const Navbar = () => {
           }),
         });
         const dbUser = await dbRes.json();
-
+        console.log("Retorno do backend:", dbUser);
         setUser({
           google_id: dbUser.google_id,
           name: dbUser.name,
@@ -90,9 +90,9 @@ const Navbar = () => {
                       method: "POST",
                       credentials: "include",
                     });
-                    setUser(null);
                     setMenuOpen(false);
                     navigate("/");
+                    setUser(null);
                   }}>
                     Deslogar
                   </button>

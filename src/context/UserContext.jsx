@@ -8,8 +8,11 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     fetch("http://localhost:3001/api/users/me", { credentials: "include" })
       .then(res => res.json())
-      .then(data => { if (data) setUserState(data); })
-      .catch(() => {});
+      .then(data => {
+        console.log("Dados do /me:", data);
+        if (data) setUserState(data);
+      })
+      .catch(() => { });
   }, []);
 
   const setUser = (value) => {

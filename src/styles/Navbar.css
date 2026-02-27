@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;0,700;1,400&display=swap');
+
 .navbar {
   width: 100%;
-  height: 86px;
+  height: 70px;
   background-color: #262119;
   display: flex;
   align-items: center;
@@ -15,11 +17,11 @@
 }
 
 .logo {
-  height: 50px;
+  height: 40px;
 }
 
 .navbar-center {
-  position: absolute; /* fixa no meio */
+  position: absolute;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -35,7 +37,7 @@
 .navbar-center li a {
   color: #C79255;
   text-decoration: none;
-  font-family: 'Google Sans', sans-serif;
+  font-family: "Cardo", serif;
   font-size: 36px;
 }
 
@@ -47,7 +49,7 @@
 
 .navbar-right {
   margin-right: 30px;
-  margin-left: auto; /* força para a direita */
+  margin-left: auto;
 }
 
 .login-btn {
@@ -72,7 +74,7 @@
   height: 5px;
   background: radial-gradient(circle, #46C64C 0%, #C79255 100%);
   position: fixed;
-  top: 86px;
+  top: 72px;
   left: 0;
   z-index: 999;
 }
