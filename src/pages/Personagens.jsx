@@ -43,7 +43,9 @@ const PersonagemCard = ({ p, onDeletar, onDuplicar }) => {
       </div>
 
       <div className="personagem-card-info">
-        <div className="personagem-card-nome">{p.nome_personagem}</div>
+        <div className="personagem-card-nome" title={p.nome_personagem}>
+          {p.nome_personagem}
+        </div>
         <div className="personagem-card-nivel">{p.nivel}</div>
         <div className="personagem-card-data">Registrado em {formatarData(p.criado_em)}</div>
         <div className="personagem-card-sistema">The Last of Us</div>
@@ -135,7 +137,19 @@ const Personagens = () => {
   const [modalSistema, setModalSistema] = useState(false);
   const [modalDeletar, setModalDeletar] = useState(null);
   const [hoveredSistema, setHoveredSistema] = useState(null);
+  const [aviso, setAviso] = useState(null);
   const navigate = useNavigate();
+
+  const mostrarAviso = (msg) => {
+    setAviso(msg);
+    setTimeout(() => setAviso(null), 3500);
+  };
+
+  const handleNovoPersonagem = () => {
+    if (!user) triggerLogin();
+    else if (personagens.length >= 12) mostrarAviso("Você atingiu o limite de 12 personagens!");
+    else setModalSistema(true);
+  };
 
   const buscarPersonagens = () => {
     if (!user) return;
@@ -171,11 +185,18 @@ const Personagens = () => {
         credentials: "include",
       });
       if (res.ok) buscarPersonagens();
-    } catch {}
+      else {
+        const err = await res.json();
+        if (err.error) mostrarAviso(err.error);
+      }
+    } catch { }
   };
 
   return (
-    <div className="personagens-page" style={personagens.length > 0 ? { alignItems: "flex-start", overflowY: "auto", paddingTop: "2rem", paddingLeft: "2rem", paddingRight: "2rem" } : {}}>
+    <div
+      className="personagens-page"
+      style={personagens.length > 0 ? { alignItems: "flex-start", overflowY: "auto", paddingTop: "8rem", paddingLeft: "2rem", paddingRight: "2rem" } : {}}
+    >
 
       {carregando ? (
         <p className="personagens-loading">Carregando personagens...</p>
@@ -183,17 +204,17 @@ const Personagens = () => {
       ) : personagens.length === 0 ? (
         <div className="personagens-empty">
           <p className="personagens-empty-text">NENHUM PERSONAGEM ENCONTRADO!</p>
-          <button className="personagens-novo-btn" onClick={() => { if (!user) triggerLogin(); else setModalSistema(true); }}>
-            Novo Personagem
+          <button className="personagens-novo-btn" onClick={handleNovoPersonagem}>
+            NOVO PERSONAGEM
           </button>
         </div>
 
       ) : (
         <div className="personagens-com-lista">
           <div className="personagens-topo">
-            <span className="personagens-contador">Personagens: {personagens.length}/15</span>
-            <button className="personagens-novo-btn" onClick={() => { if (!user) triggerLogin(); else setModalSistema(true); }}>
-              Novo Personagem
+            <span className="personagens-contador">Personagens: {personagens.length}/12</span>
+            <button className="personagens-novo-btn" onClick={handleNovoPersonagem}>
+              NOVO PERSONAGEM
             </button>
           </div>
 
@@ -243,6 +264,8 @@ const Personagens = () => {
           onCancelar={() => setModalDeletar(null)}
         />
       )}
+
+      {aviso && <div className="aviso-toast">{aviso}</div>}
     </div>
   );
 };

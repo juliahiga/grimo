@@ -79,6 +79,7 @@ router.get("/fichas", async (req, res) => {
           f.manutencao,
           f.medicina,
           f.criado_em,
+          f.imagem,
           n.nome  AS nivel,
           c.nome  AS classe,
           i.nome  AS idade_surto,
@@ -124,6 +125,14 @@ router.post("/fichas", async (req, res) => {
     const pool = await poolPromise;
     const user = await getUserId(pool, req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    const count = await pool.request()
+      .input("user_id", sql.Int, user.id)
+      .query("SELECT COUNT(*) AS total FROM tlou_fichas WHERE user_id = @user_id");
+
+    if (count.recordset[0].total >= 12) {
+      return res.status(400).json({ error: "Limite de 12 personagens atingido" });
+    }
 
     const pericias = calcularPericias(req.body);
 
@@ -242,6 +251,14 @@ router.post("/fichas/:id/duplicar", async (req, res) => {
     const pool = await poolPromise;
     const user = await getUserId(pool, req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    const count = await pool.request()
+      .input("user_id", sql.Int, user.id)
+      .query("SELECT COUNT(*) AS total FROM tlou_fichas WHERE user_id = @user_id");
+
+    if (count.recordset[0].total >= 12) {
+      return res.status(400).json({ error: "Limite de 12 personagens atingido" });
+    }
 
     const result = await pool.request()
       .input("id",      sql.Int, req.params.id)

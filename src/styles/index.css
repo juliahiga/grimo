@@ -5,12 +5,11 @@ html, body {
   margin: 0;
   padding: 0;
   background-color: #14120E;
-  overflow: hidden;
   height: 100%;
 }
 
 #root {
-  padding-top: 120px;
+  padding-top: 0;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
 }

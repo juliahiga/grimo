@@ -1,7 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Personagens from "./pages/Personagens";
@@ -10,6 +9,7 @@ import Sistemas from "./pages/Sistemas";
 import Profile from "./pages/Profile";
 import NovoTlouRpg from "./pages/NovoTlouRpg";
 import NovaCampanhaTlouRpg from "./pages/NovaCampanhaTlouRpg";
+import FichaPersonagem from "./pages/FichaPersonagem";
 
 function App() {
   return (
@@ -19,6 +19,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/personagens" element={<Personagens />} />
+          <Route path="/personagem/:id" element={<FichaPersonagem />} />
           <Route path="/campanhas" element={<Campanhas />} />
           <Route path="/sistemas" element={<Sistemas />} />
           <Route path="/perfil" element={<Profile />} />

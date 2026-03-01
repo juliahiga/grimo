@@ -1,13 +1,15 @@
 .personagens-page {
-  min-height: calc(100vh - 91px);
+  height: calc(100vh - 91px);
   margin-top: 91px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   background-color: #14120e;
+  overflow: hidden;
+  position: fixed;
   width: 100%;
+  top: 0;
   box-sizing: border-box;
-  padding: 2rem;
 }
 
 .personagens-loading {
@@ -21,7 +23,6 @@
   flex-direction: column;
   align-items: center;
   gap: 30px;
-  margin-top: -80px;
 }
 
 .personagens-empty-text {
@@ -31,6 +32,7 @@
   letter-spacing: 2px;
   margin: 0;
   font-weight: bolder;
+  opacity: 1;
 }
 
 .personagens-novo-btn {
@@ -38,10 +40,10 @@
   font-weight: bolder;
   color: white;
   border: none;
-  border-radius: 7px;
-  padding: 8px 14px;
+  border-radius: 10px;
+  padding: 12px 35px;
   font-family: 'Google Sans', sans-serif;
-  font-size: 16px;
+  font-size: 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -53,7 +55,7 @@
 /* ── COM LISTA ── */
 .personagens-com-lista {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1500px;
 }
 
 .personagens-topo {
@@ -122,12 +124,17 @@
   justify-content: center;
   padding: 0.85rem 1.5rem;
   gap: 3px;
-  min-width: 160px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .personagem-card-nome {
   font-size: 20px;
   color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .personagem-card-nivel {
@@ -153,9 +160,7 @@
   background: #C79255;
   color: #fff;
   border: none;
-  margin-top: 4.7rem;
-  margin: 4.8rem 0 0 -7rem;
-  padding: 0.5rem 0.5rem;
+  padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
   font-family: "Be Vietnam Pro", sans-serif;
@@ -163,6 +168,14 @@
   font-size: 12px;
   white-space: nowrap;
   transition: background-color 0.2s;
+  align-self: flex-end;
+}
+
+.personagem-card-acoes {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0.85rem;
 }
 
 .personagem-acessar-btn:hover {

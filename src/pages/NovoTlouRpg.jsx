@@ -212,7 +212,6 @@ const NovoTlouRpg = () => {
   const [imagemPreview, setImagemPreview] = useState(null);
   const [imagemBase64, setImagemBase64] = useState(null);
 
-  // Estado do crop modal
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [imagemParaCrop, setImagemParaCrop] = useState(null);
 
@@ -232,7 +231,6 @@ const NovoTlouRpg = () => {
     setTimeout(() => setAviso(null), 3500);
   };
 
-  // Ao selecionar arquivo, abre o crop modal em vez de salvar direto
   const handleImagemChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -249,11 +247,9 @@ const NovoTlouRpg = () => {
     };
     reader.readAsDataURL(file);
 
-    // Limpa o input para permitir re-upload da mesma imagem
     e.target.value = "";
   };
 
-  // Recebe a imagem já cropada do modal
   const handleConfirmCrop = (croppedImage) => {
     setImagemPreview(croppedImage);
     setImagemBase64(croppedImage);
