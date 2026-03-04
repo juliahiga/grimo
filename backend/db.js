@@ -16,4 +16,4 @@ poolPromise.getConnection()
   .then(conn => { console.log("Conectado ao MySQL"); conn.release(); })
   .catch(err => console.error("Erro na conexão:", err));
 
-module.exports = { poolPromise };
+module.exports = { poolPromise, pool: poolPromise };
