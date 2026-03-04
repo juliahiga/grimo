@@ -1,15 +1,20 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
+
 const UserContext = createContext();
+
+export const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 
 export const UserProvider = ({ children }) => {
   const [user, setUserState] = useState(null);
+  const [loading, setLoading] = useState(true);
   const loginTriggerRef = useRef(null);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/users/me", { credentials: "include" })
+    fetch(`${API_URL}/api/users/me`, { credentials: "include" })
       .then(res => res.json())
-      .then(data => { if (data) setUserState(data); })
-      .catch(() => {});
+      .then(data => { if (data && data.id) setUserState(data); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const setUser = (value) => {
@@ -25,7 +30,7 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, triggerLogin, loginTriggerRef }}>
+    <UserContext.Provider value={{ user, setUser, loading, triggerLogin, loginTriggerRef }}>
       {children}
     </UserContext.Provider>
   );
