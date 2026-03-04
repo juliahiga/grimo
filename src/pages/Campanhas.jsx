@@ -128,7 +128,7 @@ const Campanhas = () => {
 
   const buscarCampanhas = () => {
     setCarregando(true);
-    fetch("${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas", { credentials: "include" })
+    fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setCampanhas(Array.isArray(data) ? data : []))
       .catch(() => setCampanhas([]))

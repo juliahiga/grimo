@@ -18,7 +18,7 @@ const Navbar = () => {
           headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
         });
         const profile = await res.json();
-        const dbRes = await fetch("${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/login", {
+        const dbRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -93,7 +93,7 @@ const Navbar = () => {
                   <button
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={async () => {
-                      await fetch("${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/logout", {
+                      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/logout`, {
                         method: "POST",
                         credentials: "include",
                       });

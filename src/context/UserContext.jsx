@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from "react";
 
 const UserContext = createContext();
 
-export const API_URL = process.env.REACT_APP_API_URL || "${process.env.REACT_APP_API_URL || 'http://localhost:3001'}";
+export const API_URL = process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}` ;
 
 export const UserProvider = ({ children }) => {
   const [user, setUserState] = useState(null);

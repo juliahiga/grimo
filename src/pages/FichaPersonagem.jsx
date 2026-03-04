@@ -1151,7 +1151,7 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
     useEffect(() => {
         const prev = document.body.style.overflow;
         document.body.style.overflow = "hidden";
-        fetch("${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/loja", { credentials: "include" })
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/loja", { credentials: "include" })
             .then(r => r.json()).then(d => setLojaData(d)).catch(() => setLojaData(null)).finally(() => setCarregando(false));
         return () => { document.body.style.overflow = prev || ""; };
     }, []);
