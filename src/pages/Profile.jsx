@@ -19,7 +19,7 @@ const Profile = () => {
     setPreview(croppedImage);
     setUser((prev) => ({ ...prev, picture: croppedImage }));
     try {
-      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/update-picture", {
+      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/update-picture`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -32,7 +32,7 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/update-name", {
+      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/update-name`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

@@ -154,7 +154,7 @@ const Personagens = () => {
   const buscarPersonagens = useCallback(() => {
     if (!user) return;
     setCarregando(true);
-    fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas", { credentials: "include" })
+    fetch("${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setPersonagens(Array.isArray(data) ? data : []))
       .catch(() => setPersonagens([]))

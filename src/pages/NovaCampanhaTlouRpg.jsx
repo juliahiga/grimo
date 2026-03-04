@@ -41,7 +41,7 @@ const NovaCampanhaTLOU = () => {
     setEnviando(true);
     try {
       const descricaoHTML = editorRef.current?.innerHTML || "";
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

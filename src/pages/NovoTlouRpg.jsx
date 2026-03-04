@@ -216,7 +216,7 @@ const NovoTlouRpg = () => {
   const [imagemParaCrop, setImagemParaCrop] = useState(null);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/referencias")
+    fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/referencias`)
       .then((r) => r.json())
       .then(setRefs)
       .catch(() => mostrarAviso("Erro ao carregar dados do servidor."));
@@ -299,7 +299,7 @@ const NovoTlouRpg = () => {
 
     setSalvando(true);
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
