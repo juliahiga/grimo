@@ -408,7 +408,7 @@ const parsearFormula = (formula) => {
 };
 
 // ── ARMASLOT com suporte a armas equipadas da mochila ──
-const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, isMelee = false, onRolar, slotData = {}, onSlotChange }) => {
+const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRef, dadosRef, isMelee = false, onRolar, slotData = {}, onSlotChange }) => {
     const [dano,          setDanoLocal]     = useState(slotData.dano          ?? "");
     const [bonusDano,     setBonusDanoLocal]= useState(slotData.bonusDano     ?? "");
     const [pente,         setPenteLocal]    = useState(slotData.pente         ?? "");
@@ -525,8 +525,8 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, isMelee
         totalDano += bonusTotal;
         let tooltipDanoStr = partesDano.join("+");
         if (bonusTotal !== 0) tooltipDanoStr += `${bonusTotal >= 0 ? "+" : ""}${bonusTotal}`;
-        const dadoPericia  = dados?.["mira"] ?? "D10";
-        const bonusPericia = parseInt(bonus?.["mira"], 10) || 0;
+        const dadoPericia  = (dadosRef?.current ?? dados)?.["mira"] ?? "D10";
+        const bonusPericia = parseInt((bonusRef?.current ?? bonus)?.["mira"], 10) || 0;
         const facesPericia = parseInt(dadoPericia.replace("D", ""), 10);
         const rolagemAtaque = Math.floor(Math.random() * facesPericia) + 1;
         const ataqueTotal   = rolagemAtaque + bonusPericia;
@@ -880,7 +880,7 @@ const ModalLoja = ({ pilulas, onGastarPilulas, comprados, onComprar, onFechar })
     );
 };
 
-const AbaCombate = ({ onRolar, bonus, dados, ataques, setAtaques }) => {
+const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAtaques }) => {
     const [formula, setFormula] = useState("");
     const [erro, setErro] = useState(false);
     const [exp, setExp] = useState({});
@@ -903,7 +903,8 @@ const AbaCombate = ({ onRolar, bonus, dados, ataques, setAtaques }) => {
 
     const rolarArremesso = () => {
         if (arremQtd <= 0) return;
-        const bonusPericia = parseInt(bonus?.["mira"], 10) || 0;
+        const bonusAtual = bonusRef?.current ?? bonus;
+        const bonusPericia = parseInt(bonusAtual?.["mira"], 10) || 0;
         const facesPericia = parseInt(dadoArremesso.replace("D", ""), 10);
         const rolagemAtaque = Math.floor(Math.random() * facesPericia) + 1;
         const ataqueTotal = rolagemAtaque + bonusPericia;
@@ -921,17 +922,9 @@ const AbaCombate = ({ onRolar, bonus, dados, ataques, setAtaques }) => {
         });
     };
 
-    const rolarLivre = () => {
-        const parsed = parsearFormula(formula);
-        if (!parsed) { setErro(true); return; }
-        setErro(false);
-        const { qtd, faces, bonus: b, resto } = parsed;
-        let soma = 0;
-        for (let i = 0; i < qtd; i++) soma += Math.floor(Math.random() * faces) + 1;
-        onRolar({ label: formula.trim().toUpperCase(), dado: `${qtd}D${faces}`, valorDado: soma, bonus: b, formulaResto: resto || null, total: soma + b });
-    };
-
     const rolarAtaque = ataque => {
+        const bonusAtual = bonusRef?.current ?? bonus;
+        const dadosAtual = dadosRef?.current ?? dados;
         const m = (ataque.dano || "1d4").match(/(\d+)[dD](\d+)/);
         let danoVal = 0, dadoDano = (ataque.dano || "1d4").toUpperCase();
         const rolls = [];
@@ -945,9 +938,9 @@ const AbaCombate = ({ onRolar, bonus, dados, ataques, setAtaques }) => {
         } else {
             danoVal = 1; rolls.push(1);
         }
-        const bonusPericia = parseInt(bonus?.[ataque.pericia], 10) || 0;
+        const bonusPericia = parseInt(bonusAtual?.[ataque.pericia], 10) || 0;
         const ataqueBonus = parseInt(ataque.ataqueBonus, 10) || 0;
-        const dadoPericia = dados?.[ataque.pericia] ?? "D10";
+        const dadoPericia = dadosAtual?.[ataque.pericia] ?? "D10";
         const facesPericia = parseInt(dadoPericia.replace("D", ""), 10);
         const rolagemAtaque = Math.floor(Math.random() * facesPericia) + 1;
         const ataqueTotal = rolagemAtaque + bonusPericia;
@@ -960,6 +953,16 @@ const AbaCombate = ({ onRolar, bonus, dados, ataques, setAtaques }) => {
             bonusPericia, ataqueBonus, periciaNome: periciasConfig.find(p => p.key === ataque.pericia)?.label || "",
             isDano: true, critico10,
         });
+    };
+
+    const rolarLivre = () => {
+        const parsed = parsearFormula(formula);
+        if (!parsed) { setErro(true); return; }
+        setErro(false);
+        const { qtd, faces, bonus: b, resto } = parsed;
+        let soma = 0;
+        for (let i = 0; i < qtd; i++) soma += Math.floor(Math.random() * faces) + 1;
+        onRolar({ label: formula.trim().toUpperCase(), dado: `${qtd}D${faces}`, valorDado: soma, bonus: b, formulaResto: resto || null, total: soma + b });
     };
 
     const adicionar = (novoAtaque) => {
@@ -1979,19 +1982,28 @@ const FichaPersonagem = () => {
 
     const salvarTimer = useRef(null);
     const fichaCarregada = useRef(false);
-    const estadoAtual = useRef({});
 
     const bonusDeHabilidades = calcularBonusDeHabilidades(compradosGlobal);
     const bonus = Object.fromEntries(
         periciasConfig.map(p => [p.key, (parseInt(bonusBase[p.key], 10) || 0) + (bonusDeHabilidades[p.key] || 0)])
     );
 
+    // ref sempre atualizada — evita closure stale em callbacks de rolagem
+    const bonusRef = useRef(bonus);
+    const dadosRef = useRef(dados);
+    useEffect(() => { bonusRef.current = bonus; }, [bonus]);
+    useEffect(() => { dadosRef.current = dados; }, [dados]);
+
     const armasEquipadasLonga = itensMochila.filter(i => i.equipado && i.categoria === "Arma" && (i._arma?.tipoArma === "longa" || !i._arma));
     const armasEquipadasCurta = itensMochila.filter(i => i.equipado && i.categoria === "Arma" && i._arma?.tipoArma === "pistola");
     const armasEquipadasMelee = itensMochila.filter(i => i.equipado && i.categoria === "Arma" && i._arma?.tipoArma === "melee");
 
+    const payloadRef = useRef(null);
+
     useEffect(() => {
-        estadoAtual.current = {
+        if (!fichaCarregada.current) return;
+        // monta o objeto aqui dentro — garante que todos os valores são do mesmo render
+        const payload = {
             nome_personagem: nomePersonagem, nome_jogador: nomeJogador,
             vida_atual: vidaAtual, vida_maxima: vidaMax,
             pilulas: parseInt(pilulas, 10) || 0, sucata: parseInt(sucata, 10) || 0,
@@ -2002,7 +2014,6 @@ const FichaPersonagem = () => {
             manutencao: parseInt(bonusBase.manutencao, 10) || 0, medicina: parseInt(bonusBase.medicina, 10) || 0,
             dados_pericias: JSON.stringify(dados), habilidades_compradas: JSON.stringify(compradosGlobal),
             itens_mochila: JSON.stringify(itensMochila),
-            // Recursos salvos junto com a ficha
             recursos_fabricacao: JSON.stringify(recursos),
             historico_rolagens: JSON.stringify(historico),
             coldre_longo: coldreLongo,
@@ -2010,17 +2021,39 @@ const FichaPersonagem = () => {
             ataques_combate: JSON.stringify(ataquesCombate),
             coldres_slots: JSON.stringify(coldresSlots),
         };
-    }, [nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, historico, coldreLongo, coldreCurto, ataquesCombate, coldresSlots]);
-
-    useEffect(() => {
-        if (!fichaCarregada.current) return;
+        payloadRef.current = payload; // sempre atualizado para o flush no unmount
         clearTimeout(salvarTimer.current);
         salvarTimer.current = setTimeout(async () => {
             try {
-                await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(estadoAtual.current) });
+                await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, {
+                    method: "PUT", credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
             } catch (e) { console.error("Erro ao salvar:", e); }
         }, 1000);
     }, [id, nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, historico, coldreLongo, coldreCurto, ataquesCombate, coldresSlots]);
+
+    // salva imediatamente ao sair da página — evita perder dados com navegação rápida
+    useEffect(() => {
+        return () => {
+            clearTimeout(salvarTimer.current);
+            if (fichaCarregada.current && payloadRef.current) {
+                navigator.sendBeacon
+                    ? navigator.sendBeacon(
+                        `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`,
+                        new Blob([JSON.stringify(payloadRef.current)], { type: "application/json" })
+                      )
+                    : fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, {
+                        method: "PUT", credentials: "include",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payloadRef.current),
+                        keepalive: true,
+                      }).catch(() => {});
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
     useEffect(() => {
         fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}`, { credentials: "include" })
@@ -2160,21 +2193,21 @@ const FichaPersonagem = () => {
                             <div className="ficha-status-campo"><span className="ficha-field-label">NÍV. FERRAMENTA</span><input className="ficha-input ficha-status-input" value={nivFerramenta} onChange={e => setNivFerramenta(e.target.value)} /></div>
                             <div className="ficha-status-campo"><span className="ficha-field-label">REMÉDIO</span><input className="ficha-input ficha-status-input" value={medicinaVal} onChange={e => setMedicinaVal(e.target.value)} /></div>
                         </div>
-                        <ArmaSlot titulo="ARMA LONGA"  armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} onRolar={handleRolarComHistorico} slotData={coldresSlots["longa"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,longa:{...prev.longa,...p}}))} />
-                        <ArmaSlot titulo="ARMA CURTA"  armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} onRolar={handleRolarComHistorico} slotData={coldresSlots["curta"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,curta:{...prev.curta,...p}}))} />
+                        <ArmaSlot titulo="ARMA LONGA"  armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["longa"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,longa:{...prev.longa,...p}}))} />
+                        <ArmaSlot titulo="ARMA CURTA"  armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["curta"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,curta:{...prev.curta,...p}}))} />
                         {coldreLongo && (
                             <div className="ficha-coldre-slot-wrapper">
-                                <ArmaSlot titulo="COLDRE ARMA LONGA" armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_longa"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,coldre_longa:{...prev.coldre_longa,...p}}))} />
+                                <ArmaSlot titulo="COLDRE ARMA LONGA" armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_longa"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,coldre_longa:{...prev.coldre_longa,...p}}))} />
                                 <button className="ficha-coldre-remover-btn" onClick={() => setColdreLongo(false)} title="Remover coldre">✕</button>
                             </div>
                         )}
                         {coldreCurto && (
                             <div className="ficha-coldre-slot-wrapper">
-                                <ArmaSlot titulo="COLDRE ARMA CURTA" armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_curta"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,coldre_curta:{...prev.coldre_curta,...p}}))} />
+                                <ArmaSlot titulo="COLDRE ARMA CURTA" armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_curta"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,coldre_curta:{...prev.coldre_curta,...p}}))} />
                                 <button className="ficha-coldre-remover-btn" onClick={() => setColdreCurto(false)} title="Remover coldre">✕</button>
                             </div>
                         )}
-                        <ArmaSlot titulo="MELEE" armasEquipadas={armasEquipadasMelee} bonus={bonus} dados={dados} isMelee onRolar={handleRolarComHistorico} slotData={coldresSlots["melee"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,melee:{...prev.melee,...p}}))} />
+                        <ArmaSlot titulo="MELEE" armasEquipadas={armasEquipadasMelee} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} isMelee onRolar={handleRolarComHistorico} slotData={coldresSlots["melee"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,melee:{...prev.melee,...p}}))} />
                         <div className="ficha-coldre-adicionar">
                             {!coldreLongo && <div className="ficha-coldre-item"><span className="ficha-coldre-label">Adicionar Coldre de Arma Longa</span><button className="ficha-coldre-btn" onClick={() => setColdreLongo(true)}>+</button></div>}
                             {!coldreCurto && <div className="ficha-coldre-item"><span className="ficha-coldre-label">Adicionar Coldre de Arma Curta</span><button className="ficha-coldre-btn" onClick={() => setColdreCurto(true)}>+</button></div>}
@@ -2196,7 +2229,7 @@ const FichaPersonagem = () => {
                         </button>
                     </div>
                     <div className="ficha-aba-conteudo">
-                        {abaAtiva === "combate"     && <AbaCombate onRolar={handleRolarComHistorico} bonus={bonus} dados={dados} ataques={ataquesCombate} setAtaques={setAtaquesCombate} />}
+                        {abaAtiva === "combate"     && <AbaCombate onRolar={handleRolarComHistorico} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} ataques={ataquesCombate} setAtaques={setAtaquesCombate} />}
                         {abaAtiva === "habilidades" && <AbaHabilidades pilulas={pilulas} onGastarPilulas={handleGastarPilulas} onDevolverPilulas={handleDevolverPilulas} compradosGlobal={compradosGlobal} onCompradosChange={setCompradosGlobal} />}
                         {abaAtiva === "mochila"     && (
                             <AbaMochila
