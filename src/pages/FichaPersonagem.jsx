@@ -41,6 +41,100 @@ const rolarDado = (dadoStr) => {
     return Math.floor(Math.random() * faces) + 1;
 };
 
+// ── RECURSOS DE FABRICAÇÃO ──
+const RECURSOS_CONFIG = [
+    { key: "fita",      label: "FITA",      icon: "fa-solid fa-tape" },
+    { key: "garrafa",   label: "GARRAFA",   icon: "fa-solid fa-bottle-water" },
+    { key: "trapos",    label: "TRAPOS",    icon: "fa-solid fa-shirt" },
+    { key: "alcool",    label: "ÁLCOOL",    icon: "fa-solid fa-droplet" },
+    { key: "lamina",    label: "LÂMINA",    icon: "fa-solid fa-scissors" },
+    { key: "polvora",   label: "PÓLVORA",   icon: "fa-solid fa-burst" },
+    { key: "explosivo", label: "EXPLOSIVO", icon: "fa-solid fa-bomb" },
+];
+
+const RECEITAS = [
+    {
+        id: "molotov",
+        nome: "Molotov",
+        categoria: "Arma",
+        ingredientes: { trapos: 1, alcool: 1 },
+        _arma: { tipoArma: "melee", dano: "2D6", capacidade: "", cadencia: "", perfuracao: "" },
+        descricao: "Dano: 2D6 · Tipo: Explosivo",
+    },
+    {
+        id: "bomba_pregos",
+        nome: "Bomba de Pregos",
+        categoria: "Arma",
+        ingredientes: { lamina: 1, explosivo: 1 },
+        _arma: { tipoArma: "melee", dano: "3D6", capacidade: "", cadencia: "", perfuracao: "" },
+        descricao: "Dano: 3D6 · Tipo: Explosivo",
+    },
+    {
+        id: "bomba_improvisada",
+        nome: "Bomba Improvisada",
+        categoria: "Arma",
+        ingredientes: { explosivo: 2 },
+        _arma: { tipoArma: "melee", dano: "4D6", capacidade: "", cadencia: "", perfuracao: "" },
+        descricao: "Dano: 4D6 · Tipo: Explosivo",
+    },
+    {
+        id: "bomba_fumaca",
+        nome: "Bomba de Fumaça",
+        categoria: "Arma",
+        ingredientes: { polvora: 1, explosivo: 1 },
+        _arma: { tipoArma: "melee", dano: "0", capacidade: "", cadencia: "", perfuracao: "" },
+        descricao: "Tipo: Fumaça · Cria névoa densa",
+    },
+    {
+        id: "bomba_proximidade",
+        nome: "Bomba de Proximidade",
+        categoria: "Arma",
+        ingredientes: { explosivo: 3 },
+        _arma: { tipoArma: "melee", dano: "5D6", capacidade: "", cadencia: "", perfuracao: "" },
+        descricao: "Dano: 5D6 · Tipo: Explosivo · Ativa por proximidade",
+    },
+    {
+        id: "faca_improvisada",
+        nome: "Faca Improvisada",
+        categoria: "Arma",
+        ingredientes: { lamina: 1, fita: 1 },
+        _arma: { tipoArma: "melee", dano: "1D6", capacidade: "", cadencia: "2", perfuracao: "" },
+        descricao: "Dano: 1D6 · Durabilidade: 2",
+    },
+    {
+        id: "flecha",
+        nome: "Flecha",
+        categoria: "Munição",
+        ingredientes: { lamina: 1, fita: 1 },
+        descricao: "Munição para arco · Espaços: 1",
+        espacos: 1,
+    },
+    {
+        id: "flecha_fogo_fita",
+        nome: "Flecha de Fogo (Fita)",
+        categoria: "Munição",
+        ingredientes: { lamina: 1, fita: 2, trapos: 1, alcool: 1 },
+        descricao: "Munição incendiária para arco · Espaços: 1",
+        espacos: 1,
+    },
+    {
+        id: "flecha_fogo_explosivo",
+        nome: "Flecha de Fogo (Explosivo)",
+        categoria: "Munição",
+        ingredientes: { lamina: 1, fita: 1, explosivo: 1 },
+        descricao: "Munição explosiva para arco · Espaços: 1",
+        espacos: 1,
+    },
+    {
+        id: "kit_medico",
+        nome: "Kit Médico",
+        categoria: "Geral",
+        ingredientes: { trapos: 1, alcool: 1 },
+        descricao: "Recupera HP · Uso: Medicina",
+        espacos: "",
+    },
+];
+
 const LOJA = {
     habilidades: {
         label: "Habilidades",
@@ -132,6 +226,39 @@ const DadoSelector = ({ valor, onChange }) => {
     );
 };
 
+const TooltipCustom = ({ children, conteudo }) => {
+    const [vis, setVis] = useState(false);
+    return (
+        <div
+            style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 20px", background: "#0e0c08", cursor: "pointer" }}
+            onMouseEnter={() => setVis(true)}
+            onMouseLeave={() => setVis(false)}
+        >
+            {children}
+            {vis && (
+                <div style={{
+                    position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
+                    transform: "translateX(-50%)",
+                    background: "#1a1710", border: "1px solid #C79255",
+                    borderRadius: "6px", padding: "6px 12px",
+                    fontFamily: "'Google Sans', sans-serif", fontSize: "0.9rem",
+                    color: "#C79255", whiteSpace: "nowrap", zIndex: 10,
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.6)",
+                    pointerEvents: "none",
+                }}>
+                    {conteudo}
+                    <div style={{
+                        position: "absolute", top: "100%", left: "50%",
+                        transform: "translateX(-50%)",
+                        borderLeft: "5px solid transparent", borderRight: "5px solid transparent",
+                        borderTop: "5px solid #C79255",
+                    }} />
+                </div>
+            )}
+        </div>
+    );
+};
+
 const ResultadoRolagem = ({ resultado, onFechar }) => {
     const [animando, setAnimando] = useState(false);
     const prev = useRef(null);
@@ -143,13 +270,15 @@ const ResultadoRolagem = ({ resultado, onFechar }) => {
     }, [resultado]);
     if (!resultado) return null;
 
-    // Modo ataque com dano separado
     if (resultado.isDano) {
         const facesAtaque = parseInt((resultado.dadoPericia || "D10").replace("D", ""), 10);
         const clsAtaque = resultado.rolagemAtaque === facesAtaque ? "critico-max" : resultado.rolagemAtaque === 1 ? "critico-min" : "";
         const ataqueColor = clsAtaque === "critico-max" ? "#22c55e" : clsAtaque === "critico-min" ? "#ef4444" : "#C79255";
         const ataqueShadow = clsAtaque === "critico-max" ? "0 0 24px rgba(34,197,94,0.55)" : clsAtaque === "critico-min" ? "0 0 24px rgba(239,68,68,0.55)" : "none";
-
+        const tooltipAtaque = `${resultado.periciaNome} [${resultado.dadoPericia}] = [${resultado.rolagemAtaque}]${resultado.bonusPericia !== 0 ? `${resultado.bonusPericia >= 0 ? "+" : ""}${resultado.bonusPericia}` : ""}`;
+        const tooltipDano = resultado.tooltipDanoDetalhado
+            ? `${resultado.tooltipDanoDetalhado}${resultado.critico10 ? " ×2" : ""}`
+            : `${resultado.dado} = [${resultado.danoRolls?.length > 1 ? resultado.danoRolls.join(", ") : resultado.valorDado}]${resultado.ataqueBonus && parseInt(resultado.ataqueBonus) !== 0 ? `${parseInt(resultado.ataqueBonus) >= 0 ? "+" : ""}${resultado.ataqueBonus}` : ""}${resultado.critico10 ? " ×2" : ""}`;
         return (
             <div className="rolagem-overlay" onClick={onFechar}>
                 <div className={`rolagem-painel ${animando ? "rolagem-animando" : ""}`} onClick={e => e.stopPropagation()}>
@@ -161,29 +290,26 @@ const ResultadoRolagem = ({ resultado, onFechar }) => {
                     <div style={{
                         display: "flex", alignItems: "stretch", gap: 0,
                         margin: "10px 0 6px", border: `1px solid ${clsAtaque ? ataqueColor : "#3a3020"}`,
-                        borderRadius: 8, overflow: "hidden",
+                        borderRadius: 8, overflow: "visible",
                         boxShadow: clsAtaque ? ataqueShadow : "none",
                     }}>
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 20px", background: "#0e0c08" }}>
+                        <TooltipCustom conteudo={tooltipAtaque}>
                             <span style={{ fontFamily: "'Google Sans',sans-serif", fontSize: "2.4rem", fontWeight: 900, color: ataqueColor, lineHeight: 1, textShadow: clsAtaque ? ataqueShadow : "none" }}>
                                 {resultado.ataqueTotal}
                             </span>
                             <span style={{ fontFamily: "'Google Sans',sans-serif", fontSize: "0.6rem", color: "#666", letterSpacing: "2px", textTransform: "uppercase", marginTop: 6 }}>
                                 ATAQUE
                             </span>
-                        </div>
-                        <div style={{ width: 1, background: clsAtaque ? ataqueColor : "#3a3020" }} />
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 20px", background: "#0e0c08" }}>
+                        </TooltipCustom>
+                        <div style={{ width: 1, background: clsAtaque ? ataqueColor : "#3a3020", flexShrink: 0 }} />
+                        <TooltipCustom conteudo={tooltipDano}>
                             <span style={{ fontFamily: "'Google Sans',sans-serif", fontSize: "2.4rem", fontWeight: 900, color: "#fff", lineHeight: 1 }}>
                                 {resultado.total}
                             </span>
                             <span style={{ fontFamily: "'Google Sans',sans-serif", fontSize: "0.6rem", color: "#666", letterSpacing: "2px", textTransform: "uppercase", marginTop: 6 }}>
                                 DANO
                             </span>
-                        </div>
-                    </div>
-                    <div className="rolagem-formula-label">
-                        {resultado.periciaNome} · 1{resultado.dadoPericia}({resultado.rolagemAtaque}){resultado.bonusPericia !== 0 ? `${resultado.bonusPericia >= 0 ? "+" : ""}${resultado.bonusPericia}` : ""} = {resultado.ataqueTotal} · Dano: {resultado.dado}
+                        </TooltipCustom>
                     </div>
                 </div>
             </div>
@@ -203,37 +329,25 @@ const ResultadoRolagem = ({ resultado, onFechar }) => {
         <div className="rolagem-overlay" onClick={onFechar}>
             <div className={`rolagem-painel ${animando ? "rolagem-animando" : ""}`} onClick={e => e.stopPropagation()}>
                 <button className="rolagem-fechar" onClick={onFechar}>×</button>
-
                 <div className={`rolagem-icone ${cls}`}>
                     <i className="fas fa-dice-d20 rolagem-dado-svg" />
                 </div>
-
                 <div className="rolagem-nome">{label}</div>
-
                 <div className="rolagem-nova-formula">
-                    <div className={`rolagem-dado-destaque ${cls}`}>
-                        [{valorDado}]
-                    </div>
+                    <div className={`rolagem-dado-destaque ${cls}`}>[{valorDado}]</div>
                     {(bonusNum !== 0 || resultado.formulaResto) && (
                         <div className="rolagem-formula-resto">
-                            {resultado.formulaResto
-                                ? resultado.formulaResto.toUpperCase()
-                                : `${bonusNum >= 0 ? "+" : ""}${bonusNum}`
-                            }
+                            {resultado.formulaResto ? resultado.formulaResto.toUpperCase() : `${bonusNum >= 0 ? "+" : ""}${bonusNum}`}
                         </div>
                     )}
                     <div className="rolagem-igual">=</div>
                     <div className={`rolagem-total-novo ${cls}`}>{total}</div>
                 </div>
-
-                <div className="rolagem-formula-label">
-                    Rolagem de Dado
-                </div>
+                <div className="rolagem-formula-label">Rolagem de Dado</div>
             </div>
         </div>
     );
 };
-
 const VidaControl = ({ valor, max, onChange, onChangeMax }) => {
     const [eA, setEA] = useState(false); const [eM, setEM] = useState(false);
     const [iA, setIA] = useState(String(valor)); const [iM, setIM] = useState(String(max));
@@ -272,33 +386,255 @@ const VidaControl = ({ valor, max, onChange, onChangeMax }) => {
     );
 };
 
-const ArmaSlot = ({ titulo }) => (
-    <div className="ficha-arma-slot">
-        <div className="ficha-arma-titulo">{titulo}</div>
-        <div className="ficha-arma-row ficha-arma-row-top">
-            <div className="ficha-arma-field ficha-arma-nome"><span className="ficha-field-label">NOME</span><input className="ficha-input" /></div>
-            <div className="ficha-arma-field ficha-arma-small"><span className="ficha-field-label">DANO</span><input className="ficha-input" /></div>
-            <div className="ficha-arma-field ficha-arma-small"><span className="ficha-field-label">PENTE</span><input className="ficha-input" /></div>
-            <div className="ficha-arma-field ficha-arma-small"><span className="ficha-field-label">CAPACIDADE</span><input className="ficha-input" /></div>
+const parsearFormula = (formula) => {
+    const str = formula.trim().toLowerCase().replace(/\s/g, "");
+    const dadoMatch = str.match(/^(\d*)d(\d+)/);
+    if (!dadoMatch) return null;
+    const qtd = parseInt(dadoMatch[1] || "1", 10);
+    const faces = parseInt(dadoMatch[2], 10);
+    if (qtd < 1 || qtd > 20 || faces < 2) return null;
+    const resto = str.slice(dadoMatch[0].length);
+    let bonus = 0;
+    if (resto) {
+        try {
+            bonus = Math.round(Function(`"use strict"; return (${resto})`)());
+            if (!isFinite(bonus)) return null;
+        } catch { return null; }
+    }
+    return { qtd, faces, bonus, resto };
+};
+
+// ── ARMASLOT com suporte a armas equipadas da mochila ──
+const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, isMelee = false, onRolar }) => {
+    const [dano,          setDano]          = useState("");
+    const [pente,         setPente]         = useState("");
+    const [capacidade,    setCapacidade]    = useState("");
+    const [cadencia,      setCadencia]      = useState("");
+    const [perfuracao,    setPerfuracao]    = useState("");
+    const [nomeManual,    setNomeManual]    = useState("");
+
+    const [idSelecionado, setIdSelecionado] = useState(null);
+    const [dropAberto,    setDropAberto]    = useState(false);
+    const dropRef = useRef(null);
+
+    useEffect(() => {
+        const h = e => { if (dropRef.current && !dropRef.current.contains(e.target)) setDropAberto(false); };
+        document.addEventListener("mousedown", h);
+        return () => document.removeEventListener("mousedown", h);
+    }, []);
+
+    useEffect(() => {
+        if (!idSelecionado) return;
+        const item = armasEquipadas.find(a => a.id === idSelecionado);
+        if (!item) {
+            setIdSelecionado(null);
+            setNomeManual("");
+            setDano(""); setPente(""); setCapacidade(""); setCadencia(""); setPerfuracao("");
+            return;
+        }
+        if (item._arma) {
+            setDano(item._arma.dano         || extrairCampo(item.descricao, "Dano"));
+            const cap = item._arma.capacidade || extrairCampo(item.descricao, "Capacidade");
+            setPente(cap);
+            setCapacidade(cap);
+            setCadencia(item._arma.cadencia    || extrairCampo(item.descricao, "Taxa de Fogo") || extrairCampo(item.descricao, "Durabilidade"));
+            setPerfuracao(item._arma.perfuracao || extrairCampo(item.descricao, "Perfuração"));
+        }
+    }, [armasEquipadas, idSelecionado]);
+
+    const extrairCampo = (descricao, chave) => {
+        if (!descricao) return "";
+        const partes = descricao.split(" · ");
+        for (const p of partes) {
+            const sep = p.indexOf(": ");
+            if (sep !== -1 && p.slice(0, sep).toLowerCase() === chave.toLowerCase()) {
+                return p.slice(sep + 2).trim();
+            }
+        }
+        return "";
+    };
+
+    const selecionarArma = (item) => {
+        setIdSelecionado(item.id);
+        setNomeManual(item.nome);
+        if (item._arma) {
+            setDano(item._arma.dano         || extrairCampo(item.descricao, "Dano"));
+            const cap = item._arma.capacidade || extrairCampo(item.descricao, "Capacidade");
+            setPente(cap);
+            setCapacidade(cap);
+            setCadencia(item._arma.cadencia    || extrairCampo(item.descricao, "Taxa de Fogo") || extrairCampo(item.descricao, "Durabilidade"));
+            setPerfuracao(item._arma.perfuracao || extrairCampo(item.descricao, "Perfuração"));
+        } else {
+            setDano(extrairCampo(item.descricao, "Dano"));
+            const cap = extrairCampo(item.descricao, "Capacidade");
+            setPente(cap);
+            setCapacidade(cap);
+            setCadencia(extrairCampo(item.descricao, "Taxa de Fogo") || extrairCampo(item.descricao, "Durabilidade"));
+            setPerfuracao(extrairCampo(item.descricao, "Perfuração"));
+        }
+        setDropAberto(false);
+    };
+
+    const limpar = () => {
+        setIdSelecionado(null);
+        setNomeManual("");
+        setDano(""); setPente(""); setCapacidade(""); setCadencia(""); setPerfuracao("");
+        setDropAberto(false);
+    };
+
+    const rolarDanoArma = () => {
+        if (!dano) return;
+        const str = dano.trim().toUpperCase().replace(/\s/g, "");
+        const dadoRegex = /([0-9]*)D([0-9]+)/g;
+        let match;
+        let totalDano = 0;
+        const partesDano = [];
+        let processado = str;
+        while ((match = dadoRegex.exec(str)) !== null) {
+            const qtd = parseInt(match[1] || "1", 10);
+            const faces = parseInt(match[2], 10);
+            const rollsGrupo = [];
+            for (let i = 0; i < qtd; i++) rollsGrupo.push(Math.floor(Math.random() * faces) + 1);
+            const somaGrupo = rollsGrupo.reduce((a, b) => a + b, 0);
+            totalDano += somaGrupo;
+            processado = processado.replace(match[0], "");
+            const rollStr = qtd === 1 ? `${rollsGrupo[0]}` : rollsGrupo.join(",");
+            partesDano.push(`${qtd}D${faces}[${rollStr}]`);
+        }
+        const bonusMatch = processado.replace(/\s/g, "").match(/^([+-][0-9]+)$/);
+        const bonusNum = bonusMatch ? parseInt(bonusMatch[1], 10) : 0;
+        totalDano += bonusNum;
+        let tooltipDanoStr = partesDano.join("+");
+        if (bonusNum !== 0) tooltipDanoStr += `${bonusNum >= 0 ? "+" : ""}${bonusNum}`;
+        const dadoPericia  = dados?.["mira"] ?? "D10";
+        const bonusPericia = parseInt(bonus?.["mira"], 10) || 0;
+        const facesPericia = parseInt(dadoPericia.replace("D", ""), 10);
+        const rolagemAtaque = Math.floor(Math.random() * facesPericia) + 1;
+        const ataqueTotal   = rolagemAtaque + bonusPericia;
+        const critico10     = rolagemAtaque === facesPericia;
+        const danoFinal     = critico10 ? totalDano * 2 : totalDano;
+        if (onRolar) onRolar({
+            label: nomeManual || titulo,
+            isDano: true,
+            ataqueTotal,
+            rolagemAtaque,
+            dadoPericia,
+            bonusPericia,
+            periciaNome: "Mira",
+            dado: str,
+            danoRolls: [],
+            valorDado: totalDano,
+            ataqueBonus: 0,
+            total: danoFinal,
+            critico10,
+            tooltipDanoDetalhado: tooltipDanoStr,
+        });
+    };
+
+    const temArmas = armasEquipadas.length > 0;
+    const armaSelecionada = armasEquipadas.find(a => a.id === idSelecionado);
+    const labelPill = armaSelecionada
+        ? armaSelecionada.nome.length > 22
+            ? armaSelecionada.nome.slice(0, 20) + "…"
+            : armaSelecionada.nome
+        : nomeManual || "—";
+
+    return (
+        <div className="ficha-arma-slot">
+            <div className="ficha-arma-titulo">{titulo}</div>
+            <div className="ficha-arma-row ficha-arma-row-top">
+                <div className="ficha-arma-field ficha-arma-nome" style={{ position: "relative" }} ref={dropRef}>
+                    <span className="ficha-field-label">NOME</span>
+                    {temArmas ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <div
+                                onClick={() => setDropAberto(v => !v)}
+                                style={{
+                                    flex: 1, height: 30, background: "#0e0c08",
+                                    border: `1px solid ${dropAberto ? "#C79255" : idSelecionado ? "#C79255" : "#3a3020"}`,
+                                    borderRadius: 4, display: "flex", alignItems: "center",
+                                    justifyContent: "space-between", padding: "0 8px",
+                                    cursor: "pointer", transition: "border-color .2s", userSelect: "none", gap: 6,
+                                }}
+                            >
+                                <span style={{ fontFamily: "'Google Sans', sans-serif", fontSize: "0.8rem", color: idSelecionado ? "#C79255" : "#666", fontWeight: idSelecionado ? 700 : 400, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {labelPill}
+                                </span>
+                                <i className="fas fa-chevron-down" style={{ fontSize: "0.6rem", color: "#5a4a30", transform: dropAberto ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .2s", flexShrink: 0 }} />
+                            </div>
+                            {idSelecionado && (
+                                <button onClick={limpar} title="Limpar" style={{ background: "transparent", border: "1px solid #4a1a1a", borderRadius: 3, color: "#c0392b", cursor: "pointer", padding: "0 7px", height: 30, fontSize: "0.7rem", flexShrink: 0 }}>
+                                    <i className="fas fa-times" />
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        <input className="ficha-input" value={nomeManual} onChange={e => setNomeManual(e.target.value)} />
+                    )}
+                    {dropAberto && (
+                        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 300, background: "#1e1b14", border: "1px solid #C79255", borderRadius: 6, minWidth: "100%", boxShadow: "0 6px 24px rgba(0,0,0,0.7)", overflow: "hidden" }}>
+                            {armasEquipadas.map(a => {
+                                const ativo = a.id === idSelecionado;
+                                return (
+                                    <div key={a.id} onClick={() => selecionarArma(a)}
+                                        style={{ padding: "7px 14px 7px 10px", cursor: "pointer", fontFamily: "'Google Sans', sans-serif", fontSize: "0.82rem", color: ativo ? "#C79255" : "#ccc", background: ativo ? "#2a2215" : "transparent", borderBottom: "1px solid #2a2218", borderLeft: ativo ? "3px solid #C79255" : "3px solid transparent", transition: "background .12s", display: "flex", alignItems: "center", gap: 8, fontWeight: ativo ? 700 : 400 }}
+                                        onMouseOver={e => { if (!ativo) e.currentTarget.style.background = "#211e15"; }}
+                                        onMouseOut={e => { if (!ativo) e.currentTarget.style.background = "transparent"; }}
+                                    >
+                                        <span style={{ flex: 1 }}>{a.nome}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+                <div className="ficha-arma-field ficha-arma-small">
+                    <span className="ficha-field-label">DANO</span>
+                    <input className="ficha-input" value={dano} onChange={e => setDano(e.target.value)} />
+                </div>
+            </div>
+            <div className="ficha-arma-row" style={{ alignItems: "flex-end", gap: "6px" }}>
+                {!isMelee && <>
+                    <div className="ficha-arma-field ficha-arma-small">
+                        <span className="ficha-field-label">PENTE</span>
+                        <input className="ficha-input" value={pente} onChange={e => { setPente(e.target.value); setCapacidade(e.target.value); }} />
+                    </div>
+                    <div className="ficha-arma-field ficha-arma-small">
+                        <span className="ficha-field-label">CAPACIDADE</span>
+                        <input className="ficha-input" value={capacidade} onChange={e => { setCapacidade(e.target.value); setPente(e.target.value); }} />
+                    </div>
+                    <div className="ficha-arma-field ficha-arma-medium">
+                        <span className="ficha-field-label">CADÊNCIA DE TIRO</span>
+                        <input className="ficha-input" value={cadencia} onChange={e => setCadencia(e.target.value)} />
+                    </div>
+                </>}
+                {isMelee && <>
+                    <div className="ficha-arma-field ficha-arma-small">
+                        <span className="ficha-field-label">DURABILIDADE</span>
+                        <input className="ficha-input" value={cadencia} onChange={e => setCadencia(e.target.value)} />
+                    </div>
+                </>}
+                <div className="ficha-arma-field ficha-arma-medium">
+                    <span className="ficha-field-label">PERFURAÇÃO DA ARMA</span>
+                    <input className="ficha-input" value={perfuracao} onChange={e => setPerfuracao(e.target.value)} />
+                </div>
+                <button
+                    className="ficha-btn-rolar"
+                    onClick={rolarDanoArma}
+                    title={dano ? `Rolar dano: ${dano}` : "Preencha o campo DANO primeiro"}
+                    style={{ marginBottom: "2px", opacity: dano ? 1 : 0.3, cursor: dano ? "pointer" : "not-allowed", flexShrink: 0 }}
+                >
+                    <i className="fas fa-dice-d20 ficha-btn-rolar-icon" />
+                </button>
+            </div>
         </div>
-        <div className="ficha-arma-row">
-            <div className="ficha-arma-field ficha-arma-medium"><span className="ficha-field-label">CADÊNCIA DE TIRO</span><input className="ficha-input" /></div>
-            <div className="ficha-arma-field ficha-arma-medium"><span className="ficha-field-label">PERFURAÇÃO DA ARMA</span><input className="ficha-input" /></div>
-        </div>
-    </div>
-);
+    );
+};
 
 const ModalNovoAtaque = ({ onConfirmar, onFechar, ataqueInicial }) => {
     const [novo, setNovo] = useState(ataqueInicial ?? {
-        nome: "Novo Ataque",
-        dano: "",
-        critico: "10",
-        multiplicador: "2",
-        ataqueBonus: "0",
-        alcance: "-",
-        pericia: "brutalidade",
-        imagem: null,
-        anotacoes: "",
+        nome: "Novo Ataque", dano: "", critico: "10", multiplicador: "2",
+        ataqueBonus: "0", alcance: "-", pericia: "brutalidade", imagem: null, anotacoes: "",
     });
 
     const imagemRef = useRef(null);
@@ -334,100 +670,42 @@ const ModalNovoAtaque = ({ onConfirmar, onFechar, ataqueInicial }) => {
         padding: "6px 10px", outline: "none", boxSizing: "border-box", width: "100%",
         transition: "border-color 0.2s",
     };
-
     const labelStyle = {
         fontFamily: "'Google Sans', sans-serif", fontSize: "0.65rem", color: "#777",
         letterSpacing: "1px", textTransform: "uppercase", marginBottom: "3px", display: "block",
     };
-
     const fieldStyle = { display: "flex", flexDirection: "column" };
 
     return (
-        <div
-            style={{
-                position: "fixed", inset: 0, background: "rgba(0,0,0,0.80)",
-                display: "flex", alignItems: "flex-start", justifyContent: "center",
-                zIndex: 900, backdropFilter: "blur(2px)",
-                padding: "80px 16px 1px", boxSizing: "border-box", overscrollBehavior: "contain",
-            }}
-            onClick={onFechar}
-        >
-            <div
-                style={{
-                    background: "#111009", border: "1px solid #C79255", borderRadius: "12px",
-                    width: "100%", maxWidth: "520px", maxHeight: "700px", height: "85vh",
-                    display: "flex", flexDirection: "column",
-                    boxShadow: "0 12px 48px rgba(0,0,0,0.8)",
-                    overflow: "hidden", overscrollBehavior: "contain", isolation: "isolate", margin: "auto",
-                }}
-                onClick={e => e.stopPropagation()}
-            >
-                <div style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "18px 22px 14px", borderBottom: "1px solid #2a2218", flexShrink: 0,
-                }}>
-                    <span style={{ fontFamily: "'Google Sans', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: "#fff" }}>
-                        {ataqueInicial ? "Editar Ataque" : "Novo Ataque"}
-                    </span>
-                    <button onClick={onFechar}
-                        style={{ background: "none", border: "none", color: "#666", fontSize: "1.2rem", cursor: "pointer", padding: "2px 6px", borderRadius: "4px", transition: "color .15s" }}
-                        onMouseOver={e => e.currentTarget.style.color = "#C79255"}
-                        onMouseOut={e => e.currentTarget.style.color = "#666"}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.80)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 900, backdropFilter: "blur(2px)", padding: "80px 16px 1px", boxSizing: "border-box", overscrollBehavior: "contain" }} onClick={onFechar}>
+            <div style={{ background: "#111009", border: "1px solid #C79255", borderRadius: "12px", width: "100%", maxWidth: "520px", maxHeight: "700px", height: "85vh", display: "flex", flexDirection: "column", boxShadow: "0 12px 48px rgba(0,0,0,0.8)", overflow: "hidden", overscrollBehavior: "contain", isolation: "isolate", margin: "auto" }} onClick={e => e.stopPropagation()}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px 14px", borderBottom: "1px solid #2a2218", flexShrink: 0 }}>
+                    <span style={{ fontFamily: "'Google Sans', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: "#fff" }}>{ataqueInicial ? "Editar Ataque" : "Novo Ataque"}</span>
+                    <button onClick={onFechar} style={{ background: "none", border: "none", color: "#666", fontSize: "1.2rem", cursor: "pointer", padding: "2px 6px", borderRadius: "4px", transition: "color .15s" }} onMouseOver={e => e.currentTarget.style.color = "#C79255"} onMouseOut={e => e.currentTarget.style.color = "#666"}>
                         <i className="fas fa-times" />
                     </button>
                 </div>
-
-                <div style={{
-                    flex: 1, overflowY: "auto", padding: "20px 22px 4px",
-                    display: "flex", flexDirection: "column", gap: "14px",
-                    scrollbarWidth: "thin", scrollbarColor: "#3a3020 #0e0c08",
-                }}>
+                <div style={{ flex: 1, overflowY: "auto", padding: "20px 22px 4px", display: "flex", flexDirection: "column", gap: "14px", scrollbarWidth: "thin", scrollbarColor: "#3a3020 #0e0c08" }}>
                     <div style={fieldStyle}>
                         <label style={labelStyle}>Nome *</label>
-                        <input style={inputStyle} value={novo.nome} onChange={e => set("nome", e.target.value)}
-                            onFocus={e => e.target.style.borderColor = "#C79255"}
-                            onBlur={e => e.target.style.borderColor = "#2a2218"} />
+                        <input style={inputStyle} value={novo.nome} onChange={e => set("nome", e.target.value)} onFocus={e => e.target.style.borderColor = "#C79255"} onBlur={e => e.target.style.borderColor = "#2a2218"} />
                     </div>
-
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
-                        {[
-                            { k: "dano", l: "Dano *", p: "1d4" },
-                            { k: "critico", l: "Crítico *", p: "20" },
-                            { k: "multiplicador", l: "Multiplicador *", p: "2" },
-                        ].map(({ k, l, p }) => (
+                        {[{ k: "dano", l: "Dano *", p: "1d4" }, { k: "critico", l: "Crítico *", p: "20" }, { k: "multiplicador", l: "Multiplicador *", p: "2" }].map(({ k, l, p }) => (
                             <div key={k} style={fieldStyle}>
                                 <label style={labelStyle}>{l}</label>
-                                <input style={inputStyle} value={novo[k]} placeholder={p}
-                                    onChange={e => set(k, e.target.value)}
-                                    onFocus={e => e.target.style.borderColor = "#C79255"}
-                                    onBlur={e => e.target.style.borderColor = "#2a2218"} />
+                                <input style={inputStyle} value={novo[k]} placeholder={p} onChange={e => set(k, e.target.value)} onFocus={e => e.target.style.borderColor = "#C79255"} onBlur={e => e.target.style.borderColor = "#2a2218"} />
                             </div>
                         ))}
                     </div>
-
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
                         <div style={fieldStyle}>
                             <label style={labelStyle}>Ataque Bônus</label>
-                            <input
-                                style={{ ...inputStyle, MozAppearance: "textfield" }}
-                                type="number"
-                                value={novo.ataqueBonus}
-                                onChange={e => set("ataqueBonus", e.target.value)}
-                                onFocus={e => e.target.style.borderColor = "#C79255"}
-                                onBlur={e => e.target.style.borderColor = "#2a2218"}
-                                onWheel={e => e.target.blur()}
-                                className="no-spinner"
-                            />
+                            <input style={{ ...inputStyle, MozAppearance: "textfield" }} type="number" value={novo.ataqueBonus} onChange={e => set("ataqueBonus", e.target.value)} onFocus={e => e.target.style.borderColor = "#C79255"} onBlur={e => e.target.style.borderColor = "#2a2218"} onWheel={e => e.target.blur()} className="no-spinner" />
                         </div>
                         <div style={fieldStyle}>
                             <label style={labelStyle}>Alcance</label>
-                            <select
-                                style={{ ...inputStyle, cursor: "pointer" }}
-                                value={novo.alcance ?? "-"}
-                                onChange={e => set("alcance", e.target.value)}
-                                onFocus={e => e.target.style.borderColor = "#C79255"}
-                                onBlur={e => e.target.style.borderColor = "#2a2218"}
-                            >
+                            <select style={{ ...inputStyle, cursor: "pointer" }} value={novo.alcance ?? "-"} onChange={e => set("alcance", e.target.value)} onFocus={e => e.target.style.borderColor = "#C79255"} onBlur={e => e.target.style.borderColor = "#2a2218"}>
                                 <option value="-">-</option>
                                 <option value="Curto">Curto</option>
                                 <option value="Médio">Médio</option>
@@ -437,112 +715,32 @@ const ModalNovoAtaque = ({ onConfirmar, onFechar, ataqueInicial }) => {
                         </div>
                         <div style={fieldStyle}>
                             <label style={labelStyle}>Perícia</label>
-                            <select
-                                style={{ ...inputStyle, cursor: "pointer" }}
-                                value={novo.pericia ?? "brutalidade"}
-                                onChange={e => set("pericia", e.target.value)}
-                                onFocus={e => e.target.style.borderColor = "#C79255"}
-                                onBlur={e => e.target.style.borderColor = "#2a2218"}
-                            >
-                                {periciasConfig.map(p => (
-                                    <option key={p.key} value={p.key}>{p.label}</option>
-                                ))}
+                            <select style={{ ...inputStyle, cursor: "pointer" }} value={novo.pericia ?? "brutalidade"} onChange={e => set("pericia", e.target.value)} onFocus={e => e.target.style.borderColor = "#C79255"} onBlur={e => e.target.style.borderColor = "#2a2218"}>
+                                {periciasConfig.map(p => (<option key={p.key} value={p.key}>{p.label}</option>))}
                             </select>
                         </div>
                     </div>
-
                     <div style={fieldStyle}>
                         <label style={labelStyle}>Imagem</label>
-                        <div
-                            style={{
-                                width: "72px", height: "72px", background: "#0e0c08",
-                                border: "1px solid #2a2218", borderRadius: "6px",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                cursor: "pointer", overflow: "hidden", transition: "border-color .2s",
-                            }}
-                            onClick={() => imagemRef.current?.click()}
-                            onMouseOver={e => e.currentTarget.style.borderColor = "#C79255"}
-                            onMouseOut={e => e.currentTarget.style.borderColor = "#2a2218"}
-                        >
-                            {novo.imagem
-                                ? <img src={novo.imagem} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                : <i className="fas fa-image" style={{ color: "#3a3020", fontSize: "1.6rem" }} />
-                            }
+                        <div style={{ width: "72px", height: "72px", background: "#0e0c08", border: "1px solid #2a2218", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", transition: "border-color .2s" }} onClick={() => imagemRef.current?.click()} onMouseOver={e => e.currentTarget.style.borderColor = "#C79255"} onMouseOut={e => e.currentTarget.style.borderColor = "#2a2218"}>
+                            {novo.imagem ? <img src={novo.imagem} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <i className="fas fa-image" style={{ color: "#3a3020", fontSize: "1.6rem" }} />}
                         </div>
                         <input ref={imagemRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImagem} />
                     </div>
-
                     <div style={fieldStyle}>
-                        <label style={{ ...labelStyle, marginBottom: "6px" }}>
-                            Anotações{" "}
-                            <span style={{ color: "#4a3a28", textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>
-                                (utilize negrito para aplicar a cor roxo)
-                            </span>
-                        </label>
-                        <div style={{
-                            display: "flex", gap: "4px", padding: "6px 8px",
-                            background: "#0e0c08", border: "1px solid #2a2218",
-                            borderBottom: "none", borderRadius: "4px 4px 0 0",
-                        }}>
-                            {[
-                                { cmd: "bold", icon: "B", extra: { fontWeight: 900 } },
-                                { cmd: "italic", icon: "I", extra: { fontStyle: "italic" } },
-                                { cmd: "underline", icon: "U", extra: { textDecoration: "underline" } },
-                            ].map(({ cmd, icon, extra }) => (
-                                <button key={cmd}
-                                    onMouseDown={e => { e.preventDefault(); aplicarFormato(cmd); }}
-                                    style={{
-                                        background: "none", border: "none", color: "#aaa", cursor: "pointer",
-                                        fontFamily: "'Google Sans', sans-serif", fontSize: "0.85rem",
-                                        padding: "2px 8px", borderRadius: "3px", transition: "color .15s, background .15s",
-                                        ...extra,
-                                    }}
-                                    onMouseOver={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.background = "#2a2218"; }}
-                                    onMouseOut={e => { e.currentTarget.style.color = "#aaa"; e.currentTarget.style.background = "none"; }}>
-                                    {icon}
-                                </button>
+                        <label style={{ ...labelStyle, marginBottom: "6px" }}>Anotações <span style={{ color: "#4a3a28", textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>(utilize negrito para aplicar a cor roxo)</span></label>
+                        <div style={{ display: "flex", gap: "4px", padding: "6px 8px", background: "#0e0c08", border: "1px solid #2a2218", borderBottom: "none", borderRadius: "4px 4px 0 0" }}>
+                            {[{ cmd: "bold", icon: "B", extra: { fontWeight: 900 } }, { cmd: "italic", icon: "I", extra: { fontStyle: "italic" } }, { cmd: "underline", icon: "U", extra: { textDecoration: "underline" } }].map(({ cmd, icon, extra }) => (
+                                <button key={cmd} onMouseDown={e => { e.preventDefault(); aplicarFormato(cmd); }} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", fontFamily: "'Google Sans', sans-serif", fontSize: "0.85rem", padding: "2px 8px", borderRadius: "3px", transition: "color .15s, background .15s", ...extra }} onMouseOver={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.background = "#2a2218"; }} onMouseOut={e => { e.currentTarget.style.color = "#aaa"; e.currentTarget.style.background = "none"; }}>{icon}</button>
                             ))}
                         </div>
-                        <div ref={anotacoesRef} contentEditable suppressContentEditableWarning
-                            onInput={e => set("anotacoes", e.currentTarget.innerHTML)}
-                            style={{
-                                background: "#0e0c08", border: "1px solid #2a2218",
-                                borderRadius: "0 0 4px 4px", color: "#ccc",
-                                fontFamily: "'Google Sans', sans-serif", fontSize: "0.82rem",
-                                padding: "10px 12px", minHeight: "110px", outline: "none",
-                                lineHeight: 1.6, transition: "border-color .2s",
-                            }}
-                            onFocus={e => e.currentTarget.style.borderColor = "#C79255"}
-                            onBlur={e => e.currentTarget.style.borderColor = "#2a2218"} />
+                        <div ref={anotacoesRef} contentEditable suppressContentEditableWarning onInput={e => set("anotacoes", e.currentTarget.innerHTML)} style={{ background: "#0e0c08", border: "1px solid #2a2218", borderRadius: "0 0 4px 4px", color: "#ccc", fontFamily: "'Google Sans', sans-serif", fontSize: "0.82rem", padding: "10px 12px", minHeight: "110px", outline: "none", lineHeight: 1.6, transition: "border-color .2s" }} onFocus={e => e.currentTarget.style.borderColor = "#C79255"} onBlur={e => e.currentTarget.style.borderColor = "#2a2218"} />
                     </div>
-
                     <div style={{ height: "6px", flexShrink: 0 }} />
                 </div>
-
-                <div style={{
-                    display: "flex", justifyContent: "flex-end", gap: "10px",
-                    padding: "14px 22px 18px", borderTop: "1px solid #2a2218", flexShrink: 0,
-                }}>
-                    <button onClick={onFechar}
-                        style={{
-                            background: "none", border: "1px solid #4a1a1a", color: "#c0392b",
-                            fontFamily: "'Google Sans', sans-serif", fontSize: "0.65rem",
-                            padding: "5px 10px", borderRadius: "4px", cursor: "pointer", transition: "background .2s",
-                        }}
-                        onMouseOver={e => e.currentTarget.style.background = "rgba(192, 57, 43, 0.15)"}
-                        onMouseOut={e => e.currentTarget.style.background = "none"}>
-                        CANCELAR
-                    </button>
-                    <button onClick={() => { if (novo.nome.trim()) onConfirmar(novo); }}
-                        style={{
-                            background: "#C79255", border: "none", color: "#0e0c08",
-                            fontFamily: "'Google Sans', sans-serif", fontSize: "12px", fontWeight: 600,
-                            letterSpacing: "0.5px", padding: "7px 20px", borderRadius: "4px", cursor: "pointer", transition: "opacity .2s",
-                        }}
-                        onMouseOver={e => e.currentTarget.style.opacity = "0.85"}
-                        onMouseOut={e => e.currentTarget.style.opacity = "1"}>
-                        {ataqueInicial ? "SALVAR" : "ADICIONAR"}
-                    </button>
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", padding: "14px 22px 18px", borderTop: "1px solid #2a2218", flexShrink: 0 }}>
+                    <button onClick={onFechar} style={{ background: "none", border: "1px solid #4a1a1a", color: "#c0392b", fontFamily: "'Google Sans', sans-serif", fontSize: "0.65rem", padding: "5px 10px", borderRadius: "4px", cursor: "pointer", transition: "background .2s" }} onMouseOver={e => e.currentTarget.style.background = "rgba(192, 57, 43, 0.15)"} onMouseOut={e => e.currentTarget.style.background = "none"}>CANCELAR</button>
+                    <button onClick={() => { if (novo.nome.trim()) onConfirmar(novo); }} style={{ background: "#C79255", border: "none", color: "#0e0c08", fontFamily: "'Google Sans', sans-serif", fontSize: "12px", fontWeight: 600, letterSpacing: "0.5px", padding: "7px 20px", borderRadius: "4px", cursor: "pointer", transition: "opacity .2s" }} onMouseOver={e => e.currentTarget.style.opacity = "0.85"} onMouseOut={e => e.currentTarget.style.opacity = "1"}>{ataqueInicial ? "SALVAR" : "ADICIONAR"}</button>
                 </div>
             </div>
         </div>
@@ -561,10 +759,7 @@ const ModalLoja = ({ pilulas, onGastarPilulas, comprados, onComprar, onFechar })
         return () => { document.body.style.overflow = prev || ""; };
     }, []);
 
-    const mostrarToast = (msg, tipo = "erro") => {
-        setToast({ msg, tipo }); setTimeout(() => setToast(null), 2500);
-    };
-
+    const mostrarToast = (msg, tipo = "erro") => { setToast({ msg, tipo }); setTimeout(() => setToast(null), 2500); };
     const tierAtual = id => comprados[id] ?? 0;
 
     const comprarTier = (item, idx) => {
@@ -596,12 +791,7 @@ const ModalLoja = ({ pilulas, onGastarPilulas, comprados, onComprar, onFechar })
                 </div>
                 <div className="loja-cats">
                     {catKeys.map(k => (
-                        <button key={k}
-                            className={`loja-cat-btn ${catAtiva === k ? "loja-cat-ativa" : ""}`}
-                            style={catAtiva === k ? { color: LOJA[k].cor, borderBottomColor: LOJA[k].cor } : {}}
-                            onClick={() => { setCatAtiva(k); setBusca(""); }}>
-                            {LOJA[k].label}
-                        </button>
+                        <button key={k} className={`loja-cat-btn ${catAtiva === k ? "loja-cat-ativa" : ""}`} style={catAtiva === k ? { color: LOJA[k].cor, borderBottomColor: LOJA[k].cor } : {}} onClick={() => { setCatAtiva(k); setBusca(""); }}>{LOJA[k].label}</button>
                     ))}
                 </div>
                 <div className="loja-busca-row">
@@ -625,17 +815,12 @@ const ModalLoja = ({ pilulas, onGastarPilulas, comprados, onComprar, onFechar })
                                             {isMax && <span className="loja-badge-max">MAX</span>}
                                         </div>
                                         <div className="loja-progress-row">
-                                            {item.tiers.map((_, i) => (
-                                                <div key={i} className="loja-progress-pip"
-                                                    style={{ background: i < comprado ? catData.cor : "#2a2218", borderColor: i < comprado ? catData.cor : "#3a3020" }} />
-                                            ))}
+                                            {item.tiers.map((_, i) => (<div key={i} className="loja-progress-pip" style={{ background: i < comprado ? catData.cor : "#2a2218", borderColor: i < comprado ? catData.cor : "#3a3020" }} />))}
                                             <span className="loja-progress-label">{comprado}/{total}</span>
                                         </div>
                                     </div>
                                     {!isMax && (
-                                        <button className="loja-item-add"
-                                            style={{ borderColor: catData.cor, color: catData.cor }}
-                                            onClick={e => { e.stopPropagation(); comprarTier(item, comprado); }}>
+                                        <button className="loja-item-add" style={{ borderColor: catData.cor, color: catData.cor }} onClick={e => { e.stopPropagation(); comprarTier(item, comprado); }}>
                                             <i className="fas fa-plus" />
                                         </button>
                                     )}
@@ -645,25 +830,15 @@ const ModalLoja = ({ pilulas, onGastarPilulas, comprados, onComprar, onFechar })
                                         <p className="loja-item-desc">{item.desc}</p>
                                         <div className="loja-tiers-lista">
                                             {item.tiers.map((tier, idx) => {
-                                                const done = idx < comprado;
-                                                const next = idx === comprado;
-                                                const locked = idx > comprado;
+                                                const done = idx < comprado; const next = idx === comprado; const locked = idx > comprado;
                                                 return (
                                                     <div key={idx} className={`loja-tier-row ${done ? "lt-done" : ""} ${locked ? "lt-locked" : ""}`}>
-                                                        <div className="lt-left">
-                                                            <span className="lt-label">Tier {idx + 1}</span>
-                                                            <span className="lt-efeito">{tier.efeito}</span>
-                                                        </div>
+                                                        <div className="lt-left"><span className="lt-label">Tier {idx + 1}</span><span className="lt-efeito">{tier.efeito}</span></div>
                                                         <div className="lt-right">
                                                             <span className="lt-custo"><i className="fas fa-capsules" /> {tier.custo}</span>
                                                             {done && <span className="lt-status lt-ok"><i className="fas fa-check" /></span>}
                                                             {locked && <span className="lt-status lt-lock"><i className="fas fa-lock" /></span>}
-                                                            {next && (
-                                                                <button className="lt-buy" style={{ background: catData.cor }}
-                                                                    onClick={() => comprarTier(item, idx)}>
-                                                                    Comprar
-                                                                </button>
-                                                            )}
+                                                            {next && <button className="lt-buy" style={{ background: catData.cor }} onClick={() => comprarTier(item, idx)}>Comprar</button>}
                                                         </div>
                                                     </div>
                                                 );
@@ -681,26 +856,6 @@ const ModalLoja = ({ pilulas, onGastarPilulas, comprados, onComprar, onFechar })
     );
 };
 
-const parsearFormula = (formula) => {
-    const str = formula.trim().toLowerCase().replace(/\s/g, "");
-    const dadoMatch = str.match(/^(\d*)d(\d+)/);
-    if (!dadoMatch) return null;
-    const qtd = parseInt(dadoMatch[1] || "1", 10);
-    const faces = parseInt(dadoMatch[2], 10);
-    if (qtd < 1 || qtd > 20 || faces < 2) return null;
-    const resto = str.slice(dadoMatch[0].length);
-    let bonus = 0;
-    if (resto) {
-        try {
-            bonus = Math.round(Function(`"use strict"; return (${resto})`)());
-            if (!isFinite(bonus)) return null;
-        } catch {
-            return null;
-        }
-    }
-    return { qtd, faces, bonus, resto };
-};
-
 const AbaCombate = ({ onRolar, bonus, dados }) => {
     const [formula, setFormula] = useState("");
     const [erro, setErro] = useState(false);
@@ -709,6 +864,39 @@ const AbaCombate = ({ onRolar, bonus, dados }) => {
     const [modal, setModal] = useState(false);
     const [ataqueEditando, setAtaqueEditando] = useState(null);
     const [imgAmpliada, setImgAmpliada] = useState(null);
+
+    // Arremessáveis
+    const [arremQtd,   setArremQtd]   = useState(0);
+    const [arremMax,   setArremMax]   = useState(1);
+    const [dadoArremesso, setDadoArremesso] = useState("D10");
+    const [dropArremesso, setDropArremesso] = useState(false);
+    const dropArremessoRef = useRef(null);
+
+    useEffect(() => {
+        const h = e => { if (dropArremessoRef.current && !dropArremessoRef.current.contains(e.target)) setDropArremesso(false); };
+        document.addEventListener("mousedown", h);
+        return () => document.removeEventListener("mousedown", h);
+    }, []);
+
+    const rolarArremesso = () => {
+        if (arremQtd <= 0) return;
+        const bonusPericia = parseInt(bonus?.["mira"], 10) || 0;
+        const facesPericia = parseInt(dadoArremesso.replace("D", ""), 10);
+        const rolagemAtaque = Math.floor(Math.random() * facesPericia) + 1;
+        const ataqueTotal = rolagemAtaque + bonusPericia;
+        const critico10 = rolagemAtaque === facesPericia;
+        const danoRoll = Math.floor(Math.random() * 6) + 1;
+        const danoFinal = critico10 ? danoRoll * 2 : danoRoll;
+        onRolar({
+            label: "Tijolo/Garrafa",
+            isDano: true,
+            ataqueTotal, rolagemAtaque, dadoPericia: dadoArremesso,
+            bonusPericia, periciaNome: "Mira",
+            dado: "1D4",
+            danoRolls: [danoRoll], valorDado: danoRoll,
+            ataqueBonus: 0, total: danoFinal, critico10,
+        });
+    };
 
     const rolarLivre = () => {
         const parsed = parsearFormula(formula);
@@ -722,31 +910,32 @@ const AbaCombate = ({ onRolar, bonus, dados }) => {
 
     const rolarAtaque = ataque => {
         const m = (ataque.dano || "1d4").match(/(\d+)[dD](\d+)/);
-        let danoVal = 0, dadoDano = ataque.dano || "1d4";
+        let danoVal = 0, dadoDano = (ataque.dano || "1d4").toUpperCase();
+        const rolls = [];
         if (m) {
             const q = parseInt(m[1]), f = parseInt(m[2]);
-            dadoDano = `${q}D${f}`;
-            for (let i = 0; i < q; i++) danoVal += Math.floor(Math.random() * f) + 1;
-        } else danoVal = 1;
+            for (let i = 0; i < q; i++) {
+                const r = Math.floor(Math.random() * f) + 1;
+                rolls.push(r);
+                danoVal += r;
+            }
+        } else {
+            danoVal = 1; rolls.push(1);
+        }
         const bonusPericia = parseInt(bonus?.[ataque.pericia], 10) || 0;
         const ataqueBonus = parseInt(ataque.ataqueBonus, 10) || 0;
         const dadoPericia = dados?.[ataque.pericia] ?? "D10";
         const facesPericia = parseInt(dadoPericia.replace("D", ""), 10);
         const rolagemAtaque = Math.floor(Math.random() * facesPericia) + 1;
-        const ataqueTotal = rolagemAtaque + bonusPericia + ataqueBonus;
+        const ataqueTotal = rolagemAtaque + bonusPericia;
+        const danoComBonus = danoVal + ataqueBonus;
+        const critico10 = rolagemAtaque === facesPericia;
+        const danoFinal = critico10 ? danoComBonus * 2 : danoComBonus;
         onRolar({
-            label: ataque.nome,
-            dado: dadoDano,
-            valorDado: danoVal,
-            bonus: 0,
-            total: danoVal,
-            ataqueTotal,
-            rolagemAtaque,
-            dadoPericia,
-            bonusPericia,
-            ataqueBonus,
-            periciaNome: periciasConfig.find(p => p.key === ataque.pericia)?.label || "",
-            isDano: true,
+            label: ataque.nome, danoRolls: rolls, dado: dadoDano, valorDado: danoVal,
+            bonus: ataqueBonus, total: danoFinal, ataqueTotal, rolagemAtaque, dadoPericia,
+            bonusPericia, ataqueBonus, periciaNome: periciasConfig.find(p => p.key === ataque.pericia)?.label || "",
+            isDano: true, critico10,
         });
     };
 
@@ -760,28 +949,62 @@ const AbaCombate = ({ onRolar, bonus, dados }) => {
         setModal(false);
     };
 
-    const abrirEdicao = (ataque) => {
-        setAtaqueEditando(ataque);
-        setModal(true);
-    };
+    const abrirEdicao = (ataque) => { setAtaqueEditando(ataque); setModal(true); };
 
     return (
         <div className="aba-content">
             <div className="aba-filtro-row aba-filtro-com-btn" style={{ flexDirection: "column", alignItems: "stretch", gap: 4 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <input className="aba-filtro-input"
-                        style={{ flex: 1, borderBottom: `1px solid ${erro ? "#ef4444" : "#3a3020"}` }}
-                        placeholder="Rolar Dados" value={formula}
-                        onChange={e => { setFormula(e.target.value); setErro(false); }}
-                        onKeyDown={e => e.key === "Enter" && rolarLivre()} spellCheck={false} />
-                    <button className="aba-icon-btn" onClick={rolarLivre} title="Rolar" style={{ color: erro ? "#ef4444" : undefined }}>
-                        <i className="fas fa-dice-d20" />
-                    </button>
+                    <input className="aba-filtro-input" style={{ flex: 1, borderBottom: `1px solid ${erro ? "#ef4444" : "#3a3020"}` }} placeholder="Rolar Dados" value={formula} onChange={e => { setFormula(e.target.value); setErro(false); }} onKeyDown={e => e.key === "Enter" && rolarLivre()} spellCheck={false} />
+                    <button className={`aba-icon-btn${erro ? " aba-icon-btn-erro" : ""}`} onClick={rolarLivre} title="Rolar"><i className="fas fa-dice-d20" /></button>
                     <button className="aba-btn-novo" onClick={() => { setAtaqueEditando(null); setModal(true); }}>NOVO ATAQUE</button>
                 </div>
-                {erro && <span style={{ fontSize: ".62rem", color: "#ef4444", letterSpacing: 1, fontFamily: "'Google Sans', sans-serif", paddingLeft: 2 }}>Fórmula inválida — use ex: 2d10+2 ou d20</span>}
+                {erro && <span className="combate-formula-erro">Fórmula inválida — use ex: 2d10+2 ou d20</span>}
             </div>
 
+            {/* ── ARREMESSÁVEIS ── */}
+            <div className="arremessavel-row">
+                <span className="arremessavel-label">ARREMESSÁVEL</span>
+
+                {/* Contador atual / max */}
+                <div className="arremessavel-contador">
+                    <input
+                        type="number" min={0} value={arremQtd}
+                        onChange={e => setArremQtd(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                        className={`arremessavel-input no-spinner${arremQtd > 0 ? " ativo-garrafa" : ""}`}
+                        title="Quantidade atual"
+                    />
+                    <span className="arremessavel-sep">/</span>
+                    <input
+                        type="number" min={0} value={arremMax}
+                        onChange={e => setArremMax(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                        className="arremessavel-input no-spinner arremessavel-input-max"
+                        title="Máximo"
+                    />
+                </div>
+
+                <span className="arremessavel-tipo-label">TIJOLO/GARRAFA</span>
+
+                {/* Dado */}
+                <div className="arremessavel-dado-wrap" ref={dropArremessoRef}>
+                    <div onClick={() => setDropArremesso(v => !v)} className={`arremessavel-dado-btn${dropArremesso ? " aberto" : ""}`}>
+                        {dadoArremesso}
+                    </div>
+                    {dropArremesso && (
+                        <div className="arremessavel-dado-dropdown">
+                            {dadosOpcoes.map(d => (
+                                <div key={d} onClick={() => { setDadoArremesso(d); setDropArremesso(false); }} className={`arremessavel-dado-opcao${d === dadoArremesso ? " ativo" : ""}`}>
+                                    {d}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <button onClick={rolarArremesso} title={arremQtd > 0 ? "Rolar arremesso" : "Sem arremessáveis"} className={`arremessavel-rolar-btn garrafa${arremQtd > 0 ? " ativo" : ""}`}>
+                    <i className="fas fa-dice-d20" />
+                </button>
+            </div>
             <div className="aba-lista">
                 {ataques.length === 0 && <p className="ficha-aba-vazio">Nenhum ataque cadastrado.</p>}
                 {ataques.map(a => (
@@ -804,75 +1027,29 @@ const AbaCombate = ({ onRolar, bonus, dados }) => {
                                 <div className="ataque-expandido-info">
                                     {a.multiplicador && <span className="ataque-detalhe">Multiplicador: <strong>×{a.multiplicador}</strong></span>}
                                     <span className="ataque-detalhe">Ataque Bônus: <strong>{a.ataqueBonus || "0"}</strong></span>
-                                    {(a.alcance && a.alcance !== "-") && (
-                                        <span className="ataque-detalhe">Alcance: <strong>{a.alcance}</strong></span>
-                                    )}
+                                    {(a.alcance && a.alcance !== "-") && <span className="ataque-detalhe">Alcance: <strong>{a.alcance}</strong></span>}
                                     {a.pericia && <span className="ataque-detalhe">Perícia: <strong>{periciasConfig.find(p => p.key === a.pericia)?.label || "—"}</strong></span>}
-                                    {a.anotacoes && (
-                                        <p className="ataque-detalhe" dangerouslySetInnerHTML={{ __html: a.anotacoes }} />
-                                    )}
+                                    {a.anotacoes && <p className="ataque-detalhe" dangerouslySetInnerHTML={{ __html: a.anotacoes }} />}
                                     <div className="ataque-expandido-btns">
-                                        <button className="aba-btn-remover" onClick={() => setAtaques(p => p.filter(x => x.id !== a.id))}>
-                                            REMOVER
-                                        </button>
-                                        <button className="aba-btn-editar" onClick={e => { e.stopPropagation(); abrirEdicao(a); }}>
-                                            EDITAR
-                                        </button>
+                                        <button className="aba-btn-remover" onClick={() => setAtaques(p => p.filter(x => x.id !== a.id))}>REMOVER</button>
+                                        <button className="aba-btn-editar" onClick={e => { e.stopPropagation(); abrirEdicao(a); }}>EDITAR</button>
                                     </div>
                                 </div>
                                 {a.imagem && (
-                                    <img
-                                        src={a.imagem}
-                                        alt=""
-                                        className="ataque-expandido-img"
-                                        style={{ cursor: "zoom-in" }}
-                                        onClick={e => { e.stopPropagation(); setImgAmpliada(a.imagem); }}
-                                    />
+                                    <img src={a.imagem} alt="" className="ataque-expandido-img" style={{ cursor: "zoom-in" }} onClick={e => { e.stopPropagation(); setImgAmpliada(a.imagem); }} />
                                 )}
                             </div>
                         )}
                     </div>
                 ))}
             </div>
-
             {modal && (
-                <ModalNovoAtaque
-                    onConfirmar={adicionar}
-                    onFechar={() => { setModal(false); setAtaqueEditando(null); }}
-                    ataqueInicial={ataqueEditando}
-                />
+                <ModalNovoAtaque onConfirmar={adicionar} onFechar={() => { setModal(false); setAtaqueEditando(null); }} ataqueInicial={ataqueEditando} />
             )}
-
             {imgAmpliada && (
-                <div
-                    onClick={() => setImgAmpliada(null)}
-                    style={{
-                        position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        zIndex: 1100, backdropFilter: "blur(4px)", cursor: "zoom-out",
-                    }}
-                >
-                    <img
-                        src={imgAmpliada}
-                        alt=""
-                        onClick={e => e.stopPropagation()}
-                        style={{
-                            width: "500px", height: "500px",
-                            borderRadius: "10px", border: "none",
-                            objectFit: "cover", cursor: "default",
-                        }}
-                    />
-                    <button
-                        onClick={() => setImgAmpliada(null)}
-                        style={{
-                            position: "fixed", top: 20, right: 24,
-                            background: "none", border: "none", color: "#C79255",
-                            fontSize: "1.8rem", cursor: "pointer", lineHeight: 1,
-                            transition: "opacity .2s",
-                        }}
-                        onMouseOver={e => e.currentTarget.style.opacity = "0.7"}
-                        onMouseOut={e => e.currentTarget.style.opacity = "1"}
-                    >×</button>
+                <div onClick={() => setImgAmpliada(null)} className="img-ampliada-overlay">
+                    <img src={imgAmpliada} alt="" onClick={e => e.stopPropagation()} className="img-ampliada-img" />
+                    <button onClick={() => setImgAmpliada(null)} className="img-ampliada-fechar">×</button>
                 </div>
             )}
         </div>
@@ -895,17 +1072,13 @@ const AbaHabilidades = ({ pilulas, onGastarPilulas, onDevolverPilulas, comprados
         });
     });
 
-    const adquiridasFiltradas = adquiridas.filter(({ item }) =>
-        item.nome.toLowerCase().includes(filtro.toLowerCase())
-    );
+    const adquiridasFiltradas = adquiridas.filter(({ item }) => item.nome.toLowerCase().includes(filtro.toLowerCase()));
 
     return (
         <div className="aba-content">
             <div className="aba-filtro-row aba-filtro-com-btn">
                 <input className="aba-filtro-input" placeholder="Filtrar habilidades" value={filtro} onChange={e => setFiltro(e.target.value)} />
-                <button className="aba-btn-adicionar" onClick={() => setLojaAberta(true)}>
-                    + ADICIONAR
-                </button>
+                <button className="aba-btn-adicionar" onClick={() => setLojaAberta(true)}>+ ADICIONAR</button>
             </div>
             <div className="aba-lista">
                 {adquiridasFiltradas.length === 0 && <p className="ficha-aba-vazio">Nenhuma habilidade adquirida.<br />Clique em Adicionar para comprar.</p>}
@@ -919,17 +1092,11 @@ const AbaHabilidades = ({ pilulas, onGastarPilulas, onDevolverPilulas, comprados
                                     {tierComprado >= item.tiers.length && <span className="loja-badge-max">MAX</span>}
                                 </div>
                                 <div className="loja-progress-row" style={{ marginTop: 3 }}>
-                                    {item.tiers.map((_, i) => (
-                                        <div key={i} className="loja-progress-pip"
-                                            style={{ background: i < tierComprado ? cat.cor : "#2a2218", borderColor: i < tierComprado ? cat.cor : "#3a3020" }} />
-                                    ))}
+                                    {item.tiers.map((_, i) => (<div key={i} className="loja-progress-pip" style={{ background: i < tierComprado ? cat.cor : "#2a2218", borderColor: i < tierComprado ? cat.cor : "#3a3020" }} />))}
                                     <span className="loja-progress-label">{tierComprado}/{item.tiers.length}</span>
                                 </div>
                             </div>
-                            <button
-                                className="aba-icon-btn"
-                                style={{ color: "#c0392b" }}
-                                title={tierComprado > 1 ? `Remover Tier ${tierComprado}` : "Remover habilidade"}
+                            <button className="aba-icon-btn" style={{ color: "#c0392b" }} title={tierComprado > 1 ? `Remover Tier ${tierComprado}` : "Remover habilidade"}
                                 onClick={e => {
                                     e.stopPropagation();
                                     const custoDevolver = item.tiers[tierComprado - 1]?.custo ?? 0;
@@ -937,19 +1104,13 @@ const AbaHabilidades = ({ pilulas, onGastarPilulas, onDevolverPilulas, comprados
                                     if (tierComprado > 1) {
                                         onCompradosChange(prev => ({ ...prev, [item.id]: tierComprado - 1 }));
                                     } else {
-                                        onCompradosChange(prev => {
-                                            const next = { ...prev };
-                                            delete next[item.id];
-                                            return next;
-                                        });
+                                        onCompradosChange(prev => { const next = { ...prev }; delete next[item.id]; return next; });
                                     }
-                                }}
-                            >
+                                }}>
                                 <i className="fas fa-trash" />
                             </button>
                             {tierComprado < item.tiers.length && (
-                                <button className="aba-icon-btn" style={{ color: cat.cor }}
-                                    onClick={e => { e.stopPropagation(); setLojaAberta(true); }}>
+                                <button className="aba-icon-btn" style={{ color: cat.cor }} onClick={e => { e.stopPropagation(); setLojaAberta(true); }}>
                                     <i className="fas fa-level-up-alt" />
                                 </button>
                             )}
@@ -957,22 +1118,14 @@ const AbaHabilidades = ({ pilulas, onGastarPilulas, onDevolverPilulas, comprados
                         {expandidos[item.id] && (
                             <div className="aba-item-corpo">
                                 <p className="aba-item-desc">{item.desc}</p>
-                                <p className="aba-item-desc" style={{ color: cat.cor, fontWeight: 700 }}>
-                                    Tier {tierComprado}: {item.tiers[tierComprado - 1]?.efeito}
-                                </p>
+                                <p className="aba-item-desc" style={{ color: cat.cor, fontWeight: 700 }}>Tier {tierComprado}: {item.tiers[tierComprado - 1]?.efeito}</p>
                             </div>
                         )}
                     </div>
                 ))}
             </div>
             {lojaAberta && (
-                <ModalLoja
-                    pilulas={pilulas}
-                    onGastarPilulas={onGastarPilulas}
-                    comprados={comprados}
-                    onComprar={onComprar}
-                    onFechar={() => setLojaAberta(false)}
-                />
+                <ModalLoja pilulas={pilulas} onGastarPilulas={onGastarPilulas} comprados={comprados} onComprar={onComprar} onFechar={() => setLojaAberta(false)} />
             )}
         </div>
     );
@@ -995,15 +1148,11 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
         const prev = document.body.style.overflow;
         document.body.style.overflow = "hidden";
         fetch("http://localhost:3001/api/tlou/loja", { credentials: "include" })
-            .then(r => r.json())
-            .then(d => setLojaData(d))
-            .catch(() => setLojaData(null))
-            .finally(() => setCarregando(false));
+            .then(r => r.json()).then(d => setLojaData(d)).catch(() => setLojaData(null)).finally(() => setCarregando(false));
         return () => { document.body.style.overflow = prev || ""; };
     }, []);
 
     const cor = CATS_MOCHILA.find(c => c.key === catAtiva)?.cor ?? "#C79255";
-
     const itensDaCat = () => {
         if (!lojaData) return [];
         if (catAtiva === "armas") return lojaData.armas || [];
@@ -1011,33 +1160,57 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
         if (catAtiva === "geral") return lojaData.geral || [];
         return [];
     };
-
-    const melhoriasDaArma = arma_id =>
-        (lojaData?.melhorias || []).filter(m => m.arma_id === arma_id);
-
-    const filtrados = itensDaCat().filter(i =>
-        i.nome.toLowerCase().includes(busca.toLowerCase())
-    );
-
+    const melhoriasDaArma = arma_id => (lojaData?.melhorias || []).filter(m => m.arma_id === arma_id);
+    const filtrados = itensDaCat().filter(i => i.nome.toLowerCase().includes(busca.toLowerCase()));
     const toggleExp = key => setExpandidos(p => ({ ...p, [key]: !p[key] }));
 
     const construirItem = (item) => {
         if (catAtiva === "armas") {
             const partes = [
-                item.dano ? `Dano: ${item.dano}` : "",
-                item.taxa_fogo ? `Taxa de Fogo: ${item.taxa_fogo}` : "",
-                item.municao ? `Munição: ${item.municao}` : "",
-                item.capacidade ? `Capacidade: ${item.capacidade}` : "",
-                item.recarga ? `Recarga: ${item.recarga}` : "",
-                item.perfuracao_armadura ? `Perfuração: ${item.perfuracao_armadura}` : "",
-                item.observacoes ? item.observacoes : "",
+                item.dano               ? `Dano: ${item.dano}`                         : "",
+                item.taxa_fogo          ? `Taxa de Fogo: ${item.taxa_fogo}`             : "",
+                item.municao            ? `Munição: ${item.municao}`                    : "",
+                item.capacidade         ? `Capacidade: ${item.capacidade}`              : "",
+                item.recarga            ? `Recarga: ${item.recarga}`                    : "",
+                item.perfuracao_armadura ? `Perfuração: ${item.perfuracao_armadura}`   : "",
+                item.observacoes        ? item.observacoes                              : "",
             ].filter(Boolean);
-            return { id: Date.now(), nome: item.nome, categoria: "Arma", espacos: "", descricao: partes.join(" · "), equipado: false };
+
+            const nomeLower = (item.nome || "").toLowerCase();
+            const NOMES_MELEE_EXATOS = [
+                "2x4", "martelo", "chave inglesa", "pé de cabra", "cano", "taco",
+                "marreta", "taco de golfe", "faca improvisada", "canivete", "machado", "machete",
+                "molotov cocktail", "nail bomb", "pipe bomb", "smoke bomb", "trap mine",
+            ];
+            const NOMES_PISTOLA = [
+                "hunting pistol", "magnum", "pistola", "revólver", "revolver",
+                "semi-auto rifle", "shorty", "tactical shotgun",
+            ];
+            const isMelee   = NOMES_MELEE_EXATOS.some(n => nomeLower === n);
+            const isPistola = !isMelee && NOMES_PISTOLA.some(n => nomeLower.includes(n));
+            const tipoArma = isMelee ? "melee" : isPistola ? "pistola" : "longa";
+            const melhoriasDaEstaArma = (lojaData?.melhorias || []).filter(m => m.arma_id === item.id);
+            return {
+                id: Date.now(),
+                nome: item.nome,
+                categoria: "Arma",
+                espacos: "",
+                descricao: partes.join(" · "),
+                equipado: false,
+                arma_db_id: item.id,
+                melhorias_disponiveis: melhoriasDaEstaArma,
+                melhorias_aplicadas: [],
+                _arma: {
+                    tipoArma,
+                    dano:       item.dano                || "",
+                    pente:      "",
+                    capacidade: item.capacidade          || "",
+                    cadencia:   item.taxa_fogo           || "",
+                    perfuracao: item.perfuracao_armadura || "",
+                },
+            };
         }
-        if (catAtiva === "municoes") {
-            return { id: Date.now(), nome: item.nome, categoria: "Munição", espacos: item.espacos ?? 1, descricao: item.descricao || "", equipado: false };
-        }
-        // geral
+        if (catAtiva === "municoes") return { id: Date.now(), nome: item.nome, categoria: "Munição", espacos: item.espacos ?? 1, descricao: item.descricao || "", equipado: false };
         const partes = [item.descricao, item.efeito].filter(Boolean);
         return { id: Date.now(), nome: item.nome, categoria: "Geral", espacos: "", descricao: partes.join(" | "), equipado: false };
     };
@@ -1045,11 +1218,7 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
     const renderArma = (item) => {
         const expKey = `arma-${item.id}`;
         const exp = expandidos[expKey];
-        const grupos = melhoriasDaArma(item.id).reduce((acc, m) => {
-            if (!acc[m.categoria]) acc[m.categoria] = [];
-            acc[m.categoria].push(m);
-            return acc;
-        }, {});
+        const grupos = melhoriasDaArma(item.id).reduce((acc, m) => { if (!acc[m.categoria]) acc[m.categoria] = []; acc[m.categoria].push(m); return acc; }, {});
         return (
             <div key={item.id} className="loja-item">
                 <div className="loja-item-header" onClick={() => toggleExp(expKey)}>
@@ -1066,10 +1235,7 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
                             {item.capacidade && <span className="aba-tag">Cap: <strong>{item.capacidade}</strong></span>}
                         </div>
                     </div>
-                    <button className="loja-item-add" style={{ borderColor: cor, color: cor, flexShrink: 0 }}
-                        onClick={e => { e.stopPropagation(); onAdicionarItem(construirItem(item)); }}>
-                        <i className="fas fa-plus" />
-                    </button>
+                    <button className="loja-item-add" style={{ borderColor: cor, color: cor, flexShrink: 0 }} onClick={e => { e.stopPropagation(); onAdicionarItem(construirItem(item)); }}><i className="fas fa-plus" /></button>
                 </div>
                 {exp && (
                     <div className="loja-item-corpo">
@@ -1111,34 +1277,16 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
         return (
             <div key={item.id} className="loja-item">
                 <div className="loja-item-header" onClick={() => temDetalhes && toggleExp(expKey)}>
-                    {temDetalhes
-                        ? <button className="loja-item-chevron"><i className={`fas fa-chevron-${exp ? "up" : "down"}`} /></button>
-                        : <div style={{ width: 20, flexShrink: 0 }} />
-                    }
+                    {temDetalhes ? <button className="loja-item-chevron"><i className={`fas fa-chevron-${exp ? "up" : "down"}`} /></button> : <div style={{ width: 20, flexShrink: 0 }} />}
                     <div className="loja-item-info">
                         <div className="loja-item-nome-row">
                             <span className="loja-item-nome" style={{ color: cor }}>{item.nome}</span>
-                            {item.custo_sucatas && (
-                                <span style={{ fontSize: ".6rem", color: "#888", fontFamily: "'Google Sans',sans-serif" }}>
-                                    <i className="fas fa-cogs" style={{ marginRight: 3 }} />{item.custo_sucatas} sucatas
-                                </span>
-                            )}
-                            {catAtiva === "municoes" && item.espacos > 0 && (
-                                <span style={{ fontSize: ".6rem", color: "#666", fontFamily: "'Google Sans',sans-serif" }}>
-                                    {item.espacos} espaço{item.espacos > 1 ? "s" : ""}
-                                </span>
-                            )}
+                            {item.custo_sucatas && <span style={{ fontSize: ".6rem", color: "#888", fontFamily: "'Google Sans',sans-serif" }}><i className="fas fa-cogs" style={{ marginRight: 3 }} />{item.custo_sucatas} sucatas</span>}
+                            {catAtiva === "municoes" && item.espacos > 0 && <span style={{ fontSize: ".6rem", color: "#666", fontFamily: "'Google Sans',sans-serif" }}>{item.espacos} espaço{item.espacos > 1 ? "s" : ""}</span>}
                         </div>
-                        {item.descricao && (
-                            <div style={{ fontSize: ".7rem", color: "#888", fontFamily: "'Google Sans',sans-serif", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "260px" }}>
-                                {item.descricao}
-                            </div>
-                        )}
+                        {item.descricao && <div style={{ fontSize: ".7rem", color: "#888", fontFamily: "'Google Sans',sans-serif", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "260px" }}>{item.descricao}</div>}
                     </div>
-                    <button className="loja-item-add" style={{ borderColor: cor, color: cor, flexShrink: 0 }}
-                        onClick={e => { e.stopPropagation(); onAdicionarItem(construirItem(item)); }}>
-                        <i className="fas fa-plus" />
-                    </button>
+                    <button className="loja-item-add" style={{ borderColor: cor, color: cor, flexShrink: 0 }} onClick={e => { e.stopPropagation(); onAdicionarItem(construirItem(item)); }}><i className="fas fa-plus" /></button>
                 </div>
                 {exp && (item.descricao || item.efeito) && (
                     <div className="loja-item-corpo">
@@ -1159,12 +1307,7 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
                 </div>
                 <div className="loja-cats">
                     {CATS_MOCHILA.map(c => (
-                        <button key={c.key}
-                            className={`loja-cat-btn ${catAtiva === c.key ? "loja-cat-ativa" : ""}`}
-                            style={catAtiva === c.key ? { color: c.cor, borderBottomColor: c.cor } : {}}
-                            onClick={() => { setCatAtiva(c.key); setBusca(""); setExpandidos({}); }}>
-                            {c.label}
-                        </button>
+                        <button key={c.key} className={`loja-cat-btn ${catAtiva === c.key ? "loja-cat-ativa" : ""}`} style={catAtiva === c.key ? { color: c.cor, borderBottomColor: c.cor } : {}} onClick={() => { setCatAtiva(c.key); setBusca(""); setExpandidos({}); }}>{c.label}</button>
                     ))}
                 </div>
                 <div className="loja-busca-row">
@@ -1172,69 +1315,608 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
                     <input className="loja-busca-input" placeholder="Buscar item..." value={busca} onChange={e => setBusca(e.target.value)} />
                 </div>
                 <div className="loja-lista">
-                    {carregando && (
-                        <p style={{ color: "#666", textAlign: "center", padding: "30px 0", fontFamily: "'Google Sans',sans-serif", fontSize: ".8rem" }}>
-                            <i className="fas fa-spinner fa-spin" style={{ marginRight: 8 }} />Carregando...
-                        </p>
-                    )}
+                    {carregando && <p style={{ color: "#666", textAlign: "center", padding: "30px 0", fontFamily: "'Google Sans',sans-serif", fontSize: ".8rem" }}><i className="fas fa-spinner fa-spin" style={{ marginRight: 8 }} />Carregando...</p>}
                     {!carregando && !lojaData && <p className="loja-vazio">Erro ao carregar itens.</p>}
                     {!carregando && lojaData && filtrados.length === 0 && <p className="loja-vazio">Nenhum item encontrado.</p>}
-                    {!carregando && lojaData && filtrados.map(item =>
-                        catAtiva === "armas" ? renderArma(item) : renderItemSimples(item)
-                    )}
+                    {!carregando && lojaData && filtrados.map(item => catAtiva === "armas" ? renderArma(item) : renderItemSimples(item))}
                 </div>
             </div>
         </div>
     );
 };
 
-const AbaMochila = ({ itens, setItens }) => {
-    const [filtro, setFiltro] = useState("");
-    const [exp, setExp] = useState({});
-    const [lojaAberta, setLojaAberta] = useState(false);
+const ModalMelhorias = ({ item, sucata, nivFerramenta, onAplicar, onFechar }) => {
+    const melhorias = item.melhorias_disponiveis || [];
+    const aplicadas = item.melhorias_aplicadas || [];
 
-    const filtrados = itens.filter(i => i.nome.toLowerCase().includes(filtro.toLowerCase()));
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = prev || ""; };
+    }, []);
+
+    const sucataDisp = parseInt(sucata, 10) || 0;
+    const nivDisp    = parseInt(nivFerramenta, 10) || 1;
+    const jaAplicada  = (m) => aplicadas.some(a => a.id === m.id);
+    const tierAnteriorAplicado = (m) => {
+        const mesmaCat = melhorias.filter(x => x.categoria === m.categoria).sort((a, b) => a.id - b.id);
+        const idx = mesmaCat.findIndex(x => x.id === m.id);
+        if (idx === 0) return true;
+        return jaAplicada(mesmaCat[idx - 1]);
+    };
+    const podeAplicar = (m) => {
+        if (jaAplicada(m)) return false;
+        if (!tierAnteriorAplicado(m)) return false;
+        if (m.nivel_ferramenta && m.nivel_ferramenta > nivDisp) return false;
+        if (m.custo_sucatas && m.custo_sucatas > sucataDisp) return false;
+        return true;
+    };
+    const motivoBloqueio = (m) => {
+        if (jaAplicada(m)) return "Já aplicada";
+        if (!tierAnteriorAplicado(m)) {
+            const mesmaCat = melhorias.filter(x => x.categoria === m.categoria).sort((a, b) => a.id - b.id);
+            const idx = mesmaCat.findIndex(x => x.id === m.id);
+            return `Requer: ${mesmaCat[idx - 1]?.descricao}`;
+        }
+        if (m.nivel_ferramenta && m.nivel_ferramenta > nivDisp) return `Requer ferramenta Nv${m.nivel_ferramenta} (você tem Nv${nivDisp})`;
+        if (m.custo_sucatas && m.custo_sucatas > sucataDisp) return `Sucata insuficiente (${sucataDisp}/${m.custo_sucatas})`;
+        return null;
+    };
+    const grupos = melhorias.reduce((acc, m) => {
+        if (!acc[m.categoria]) acc[m.categoria] = [];
+        acc[m.categoria].push(m);
+        return acc;
+    }, {});
+
+    return (
+        <div className="loja-overlay" onClick={onFechar}>
+            <div className="loja-modal" onClick={e => e.stopPropagation()}>
+                <div className="loja-header">
+                    <h2 className="loja-titulo">Melhorias — {item.nome}</h2>
+                    <button className="loja-fechar" onClick={onFechar}><i className="fas fa-times" /></button>
+                </div>
+                <div className="loja-pilulas-bar">
+                    <i className="fas fa-cogs" />
+                    <span>Sucata:</span>
+                    <strong>{sucataDisp}</strong>
+                    <span style={{ marginLeft: 14 }}>
+                        <i className="fas fa-wrench" style={{ marginRight: 4 }} />Ferramenta Nv{nivDisp}
+                    </span>
+                </div>
+                <div className="loja-lista">
+                    {melhorias.length === 0 && (
+                        <p style={{ color: "#666", fontFamily: "'Google Sans',sans-serif", fontSize: ".85rem", padding: "30px", textAlign: "center" }}>
+                            Nenhuma melhoria disponível.
+                        </p>
+                    )}
+                    {Object.entries(grupos).map(([cat, items]) => (
+                        <div key={cat}>
+                            <div style={{ fontSize: ".6rem", color: "#C79255", letterSpacing: "1.5px", textTransform: "uppercase", fontFamily: "'Google Sans',sans-serif", padding: "10px 16px 4px" }}>{cat}</div>
+                            {items.map((m, idx) => {
+                                const bloqueio = motivoBloqueio(m);
+                                const aplicada = jaAplicada(m);
+                                const pode     = podeAplicar(m);
+                                const isTier   = items.length > 1;
+                                return (
+                                    <div key={m.id} className="loja-item">
+                                        <div className="loja-item-header" style={{ opacity: bloqueio && !aplicada ? 0.55 : 1 }}>
+                                            <div className="loja-item-info" style={{ flex: 1 }}>
+                                                <div className="loja-item-nome-row">
+                                                    {isTier && (
+                                                        <span style={{ fontSize: ".58rem", color: aplicada ? "#4ade80" : pode ? "#C79255" : "#555", fontFamily: "'Google Sans',sans-serif", letterSpacing: "1px", flexShrink: 0, marginRight: 4 }}>
+                                                            T{idx + 1}
+                                                        </span>
+                                                    )}
+                                                    <span className="loja-item-nome" style={{ color: aplicada ? "#4ade80" : pode ? "#C79255" : "#888" }}>
+                                                        {m.descricao}
+                                                    </span>
+                                                    {aplicada && <span className="loja-badge-max" style={{ background: "#14532d", color: "#4ade80", borderColor: "#4ade80" }}>✓</span>}
+                                                </div>
+                                                <div style={{ display: "flex", gap: 10, marginTop: 3, flexWrap: "wrap", alignItems: "center" }}>
+                                                    {m.custo_sucatas != null && (
+                                                        <span className="aba-tag">
+                                                            <i className="fas fa-cogs" style={{ marginRight: 3 }} />
+                                                            <strong style={{ color: m.custo_sucatas > sucataDisp && !aplicada ? "#ef4444" : "#C79255" }}>{m.custo_sucatas}</strong> sucatas
+                                                        </span>
+                                                    )}
+                                                    {m.nivel_ferramenta && (
+                                                        <span className="aba-tag">
+                                                            <i className="fas fa-wrench" style={{ marginRight: 3 }} />
+                                                            Nv<strong style={{ color: m.nivel_ferramenta > nivDisp && !aplicada ? "#ef4444" : "#C79255" }}>{m.nivel_ferramenta}</strong>
+                                                        </span>
+                                                    )}
+                                                    {bloqueio && !aplicada && (
+                                                        <span style={{ fontSize: ".65rem", color: "#ef4444", fontFamily: "'Google Sans',sans-serif" }}>
+                                                            <i className="fas fa-lock" style={{ marginRight: 3 }} />{bloqueio}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {!aplicada && (
+                                                <button
+                                                    className="loja-item-add"
+                                                    style={{ borderColor: pode ? "#C79255" : "#3a3020", color: pode ? "#C79255" : "#3a3020", cursor: pode ? "pointer" : "not-allowed", flexShrink: 0 }}
+                                                    onClick={e => { e.stopPropagation(); if (pode) onAplicar(item.id, m); }}
+                                                    title={bloqueio || "Aplicar melhoria"}
+                                                >
+                                                    <i className="fas fa-plus" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ── MODAL DE FABRICAÇÃO ──
+const ModalFabricacao = ({ receita, recursos, onFabricar, onEncontrar, onFechar }) => {
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = prev || ""; };
+    }, []);
+
+    const temRecursos = Object.entries(receita.ingredientes).every(
+        ([key, qtd]) => (recursos[key] || 0) >= qtd
+    );
+
+    const ingredientesLabel = Object.entries(receita.ingredientes)
+        .map(([key, qtd]) => {
+            const cfg = RECURSOS_CONFIG.find(r => r.key === key);
+            const tem = recursos[key] || 0;
+            return { label: cfg?.label || key, qtd, tem, ok: tem >= qtd };
+        });
+
+    return (
+        <div className="fab-overlay" onClick={onFechar}>
+            <div className="fab-modal" onClick={e => e.stopPropagation()}>
+                <div className="fab-modal-header">
+                    <span className="fab-modal-titulo">{receita.nome}</span>
+                    <button onClick={onFechar} className="fab-modal-fechar">
+                        <i className="fas fa-times" />
+                    </button>
+                </div>
+                <div className="fab-ingredientes">
+                    <div className="fab-ingredientes-titulo">Ingredientes necessários</div>
+                    <div className="fab-ingredientes-lista">
+                        {ingredientesLabel.map(({ label, qtd, tem, ok }) => (
+                            <div key={label} className={`fab-ingrediente-row ${ok ? "ok" : "falta"}`}>
+                                <span className={`fab-ingrediente-nome ${ok ? "ok" : "falta"}`}>
+                                    <i className={`fas ${ok ? "fa-check" : "fa-times"} fab-ingrediente-icon`} />
+                                    {label}
+                                </span>
+                                <span className={`fab-ingrediente-qtd ${ok ? "ok" : "falta"}`}>
+                                    {tem}/{qtd}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="fab-modal-btns">
+                    <button
+                        onClick={() => temRecursos && onFabricar()}
+                        className={`fab-btn-fabricar ${temRecursos ? "pode" : "nao-pode"}`}
+                        title={temRecursos ? "Fabricar (gasta os recursos)" : "Recursos insuficientes"}
+                    >
+                        <i className="fas fa-hammer" style={{ marginRight: 6 }} />
+                        FABRICAR
+                    </button>
+                    <button onClick={onEncontrar} className="fab-btn-encontrar">
+                        <i className="fas fa-search" style={{ marginRight: 6 }} />
+                        ENCONTRAR
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ── SEÇÃO DE RECURSOS DE FABRICAÇÃO ──
+const RecursosFabricacao = ({ recursos, onChange }) => {
+    return (
+        <div className="recursos-fab-wrap">
+            <div className="recursos-fab-titulo">RECURSOS DE FABRICAÇÃO</div>
+            <div className="recursos-fab-grid">
+                {RECURSOS_CONFIG.map(r => {
+                    const qtd = recursos[r.key] || 0;
+                    const ativo = qtd > 0;
+                    return (
+                        <div key={r.key} className="recurso-item">
+                            <div className={`recurso-icone${ativo ? " ativo" : ""}`}>
+                                <i className={r.icon} />
+                            </div>
+                            <input
+                                type="number"
+                                min={0}
+                                value={qtd}
+                                onChange={e => {
+                                    const v = parseInt(e.target.value, 10);
+                                    onChange(r.key, isNaN(v) || v < 0 ? 0 : v);
+                                }}
+                                className={`recurso-input no-spinner${ativo ? " ativo" : ""}`}
+                            />
+                            <span className={`recurso-label${ativo ? " ativo" : ""}`}>{r.label}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+// ── SEÇÃO DE RECEITAS ──
+const ReceitasFabricacao = ({ recursos, onFabricar, onEncontrar }) => {
+    const [filtro, setFiltro] = useState("");
+    const [receitaSelecionada, setReceitaSelecionada] = useState(null);
+
+    const receitasFiltradas = RECEITAS.filter(r =>
+        r.nome.toLowerCase().includes(filtro.toLowerCase())
+    );
+
+    const temRecursosPara = (receita) =>
+        Object.entries(receita.ingredientes).every(([key, qtd]) => (recursos[key] || 0) >= qtd);
+
+    return (
+        <>
+            <div className="receitas-fab-header">
+                <div className="receitas-fab-titulo">FABRICAÇÃO</div>
+                <input
+                    className="receitas-fab-filtro"
+                    placeholder="Filtrar receitas..."
+                    value={filtro}
+                    onChange={e => setFiltro(e.target.value)}
+                />
+            </div>
+            <div>
+                {receitasFiltradas.map(receita => {
+                    const pode = temRecursosPara(receita);
+                    const ingredLabel = Object.entries(receita.ingredientes)
+                        .map(([key, qtd]) => `${qtd}× ${RECURSOS_CONFIG.find(r => r.key === key)?.label || key}`)
+                        .join(" + ");
+                    return (
+                        <div key={receita.id} className="receita-item">
+                            <div className="receita-item-row" onClick={() => setReceitaSelecionada(receita)}>
+                                <div className={`receita-dot${pode ? " pode" : ""}`} />
+                                <div className="receita-info">
+                                    <div className={`receita-nome${pode ? " pode" : ""}`}>{receita.nome}</div>
+                                    <div className="receita-ingredientes">{ingredLabel}</div>
+                                </div>
+                                <i className="fas fa-chevron-right receita-chevron" />
+                            </div>
+                        </div>
+                    );
+                })}
+                {receitasFiltradas.length === 0 && (
+                    <p className="receitas-fab-vazio">Nenhuma receita encontrada.</p>
+                )}
+            </div>
+
+            {receitaSelecionada && (
+                <ModalFabricacao
+                    receita={receitaSelecionada}
+                    recursos={recursos}
+                    onFabricar={() => {
+                        onFabricar(receitaSelecionada);
+                        setReceitaSelecionada(null);
+                    }}
+                    onEncontrar={() => {
+                        onEncontrar(receitaSelecionada);
+                        setReceitaSelecionada(null);
+                    }}
+                    onFechar={() => setReceitaSelecionada(null)}
+                />
+            )}
+        </>
+    );
+};
+
+// ── ABAMOCHILA com sistema de fabricação ──
+const AbaMochila = ({ itens, setItens, sucata, onGastarSucata, nivFerramenta, recursos, onRecursosChange }) => {
+    const [filtro,       setFiltro]       = useState("");
+    const [exp,          setExp]          = useState({});
+    const [lojaAberta,   setLojaAberta]   = useState(false);
+    const [modalMelItem, setModalMelItem] = useState(null);
+    const [abaInterna,   setAbaInterna]   = useState("itens"); // "itens" | "fabricar"
+    const [toast,        setToast]        = useState(null);
+
+    const mostrarToast = (msg, tipo = "ok") => { setToast({ msg, tipo }); setTimeout(() => setToast(null), 2500); };
+
+    const filtrados   = itens.filter(i => i.nome.toLowerCase().includes(filtro.toLowerCase()));
     const toggleEquip = id => setItens(p => p.map(i => i.id === id ? { ...i, equipado: !i.equipado } : i));
     const adicionarDaLoja = item => setItens(p => [...p, { ...item, id: Date.now() }]);
 
+    const handleRecursoChange = (key, val) => {
+        onRecursosChange(prev => ({ ...prev, [key]: val }));
+    };
+
+    const construirItemDeReceita = (receita) => ({
+        id: Date.now(),
+        nome: receita.nome,
+        categoria: receita.categoria || "Geral",
+        espacos: receita.espacos ?? "",
+        descricao: receita.descricao || "",
+        equipado: false,
+        melhorias_disponiveis: [],
+        melhorias_aplicadas: [],
+        ...(receita._arma ? { _arma: { ...receita._arma } } : {}),
+    });
+
+    const handleFabricar = (receita) => {
+        // Gasta os recursos
+        const novosRecursos = { ...recursos };
+        Object.entries(receita.ingredientes).forEach(([key, qtd]) => {
+            novosRecursos[key] = Math.max(0, (novosRecursos[key] || 0) - qtd);
+        });
+        onRecursosChange(() => novosRecursos);
+        // Adiciona à mochila
+        setItens(p => [...p, construirItemDeReceita(receita)]);
+        mostrarToast(`${receita.nome} fabricado!`, "ok");
+    };
+
+    const handleEncontrar = (receita) => {
+        setItens(p => [...p, construirItemDeReceita(receita)]);
+        mostrarToast(`${receita.nome} adicionado!`, "ok");
+    };
+
+    const aplicarMelhoria = (itemId, melhoria) => {
+        const custo = melhoria.custo_sucatas || 0;
+        onGastarSucata(custo);
+        const CAMPO_MAP = {
+            dano: "dano", capacidade: "capacidade",
+            taxa_fogo: "cadencia", perfuracao_armadura: "perfuracao",
+        };
+        setItens(p => p.map(i => {
+            if (i.id !== itemId) return i;
+            const novasMelhorias = [...(i.melhorias_aplicadas || []), melhoria];
+            let novoArma = i._arma ? { ...i._arma } : null;
+            if (novoArma && melhoria.campo_afetado && melhoria.novo_valor) {
+                const campoArma = CAMPO_MAP[melhoria.campo_afetado];
+                if (campoArma) novoArma[campoArma] = melhoria.novo_valor;
+            }
+            let novaDescricao = i.descricao;
+            if (melhoria.campo_afetado && melhoria.novo_valor) {
+                const LABEL_MAP = { dano: "Dano", capacidade: "Capacidade", taxa_fogo: "Taxa de Fogo", perfuracao_armadura: "Perfuração" };
+                const label = LABEL_MAP[melhoria.campo_afetado];
+                if (label) {
+                    const regex = new RegExp(`(${label}: )[^·]+`, "g");
+                    if (regex.test(novaDescricao)) {
+                        novaDescricao = novaDescricao.replace(new RegExp(`(${label}: )[^·]+`), `$1${melhoria.novo_valor} `);
+                    }
+                }
+            }
+            return { ...i, descricao: novaDescricao.trim().replace(/ · $/, ""), melhorias_aplicadas: novasMelhorias, _arma: novoArma };
+        }));
+        setModalMelItem(prev => {
+            if (!prev) return null;
+            const novasMelhorias = [...(prev.melhorias_aplicadas || []), melhoria];
+            let novoArma = prev._arma ? { ...prev._arma } : null;
+            const CAMPO_MAP2 = { dano: "dano", capacidade: "capacidade", taxa_fogo: "cadencia", perfuracao_armadura: "perfuracao" };
+            if (novoArma && melhoria.campo_afetado && melhoria.novo_valor) {
+                const campoArma = CAMPO_MAP2[melhoria.campo_afetado];
+                if (campoArma) novoArma[campoArma] = melhoria.novo_valor;
+            }
+            return { ...prev, melhorias_aplicadas: novasMelhorias, _arma: novoArma };
+        });
+    };
+
     return (
         <div className="aba-content">
-            <div className="aba-filtro-row aba-filtro-com-btn">
-                <input className="aba-filtro-input" placeholder="Filtrar itens" value={filtro} onChange={e => setFiltro(e.target.value)} />
-                <button className="aba-btn-adicionar" onClick={() => setLojaAberta(true)}>+ ADICIONAR</button>
+            {toast && (
+                <div className={`mochila-toast ${toast.tipo}`}>{toast.msg}</div>
+            )}
+
+            {/* Sub-abas Itens / Fabricar */}
+            <div className="mochila-sub-abas">
+                {[{ key: "itens", label: "ITENS" }, { key: "fabricar", label: "FABRICAR" }].map((a) => (
+                    <button
+                        key={a.key}
+                        onClick={() => setAbaInterna(a.key)}
+                        className={`mochila-sub-aba-btn${abaInterna === a.key ? " ativa" : ""}`}
+                    >
+                        {a.label}
+                    </button>
+                ))}
             </div>
-            <div className="aba-lista">
-                {filtrados.length === 0 && <p className="ficha-aba-vazio">Mochila vazia.</p>}
-                {filtrados.map(item => (
-                    <div key={item.id} className="aba-item">
-                        <div className="aba-item-header" onClick={() => setExp(p => ({ ...p, [item.id]: !p[item.id] }))}>
-                            <button className="aba-chevron"><i className={`fas fa-chevron-${exp[item.id] ? "up" : "down"}`} /></button>
-                            <div className="aba-item-info">
-                                <span className="aba-item-nome">{item.nome}</span>
-                                <div className="aba-item-meta">
-                                    <span className="aba-tag">Categoria: <strong>{item.categoria}</strong></span>
-                                    {item.espacos !== "" && item.espacos !== undefined && (
-                                        <span className="aba-tag">Espaços: <strong>{item.espacos}</strong></span>
+
+            {abaInterna === "itens" && (
+                <>
+                    <div className="aba-filtro-row aba-filtro-com-btn">
+                        <input className="aba-filtro-input" placeholder="Filtrar itens" value={filtro} onChange={e => setFiltro(e.target.value)} />
+                        <button className="aba-btn-adicionar" onClick={() => setLojaAberta(true)}>+ ADICIONAR</button>
+                    </div>
+                    <div className="aba-lista">
+                        {filtrados.length === 0 && <p className="ficha-aba-vazio">Mochila vazia.</p>}
+                        {filtrados.map(item => {
+                            const temMelhorias = item.melhorias_disponiveis?.length > 0;
+                            const melAplicadas = item.melhorias_aplicadas?.length || 0;
+                            return (
+                                <div key={item.id} className="aba-item">
+                                    <div className="aba-item-header" onClick={() => setExp(p => ({ ...p, [item.id]: !p[item.id] }))}>
+                                        <button className="aba-chevron"><i className={`fas fa-chevron-${exp[item.id] ? "up" : "down"}`} /></button>
+                                        <div className="aba-item-info">
+                                            <span className="aba-item-nome">{item.nome}</span>
+                                            <div className="aba-item-meta">
+                                                <span className="aba-tag">Categoria: <strong>{item.categoria}</strong></span>
+                                                {item.espacos !== "" && item.espacos !== undefined && <span className="aba-tag">Espaços: <strong>{item.espacos}</strong></span>}
+                                                {melAplicadas > 0 && <span className="aba-tag" style={{ color: "#C79255" }}><i className="fas fa-cogs" style={{ marginRight: 3 }} />{melAplicadas} melhoria{melAplicadas > 1 ? "s" : ""}</span>}
+                                            </div>
+                                        </div>
+                                        {temMelhorias && (
+                                            <button title="Melhorias" onClick={e => { e.stopPropagation(); setModalMelItem(item); }}
+                                                className={`mochila-btn-melhoria${melAplicadas > 0 ? " aplicada" : ""}`}
+                                            >
+                                                <i className="fas fa-cogs" />
+                                            </button>
+                                        )}
+                                        <button title="Remover item" onClick={e => { e.stopPropagation(); setItens(p => p.filter(x => x.id !== item.id)); }}
+                                            className="mochila-btn-remover-item"
+                                        >
+                                            <i className="fas fa-trash" />
+                                        </button>
+                                        <button className={`mochila-equip-btn ${item.equipado ? "mochila-equip-on" : ""}`} onClick={e => { e.stopPropagation(); toggleEquip(item.id); }} style={{ width: 28, height: 28 }}>
+                                            <i className={`fas ${item.equipado ? "fa-check-square" : "fa-square"}`} />
+                                        </button>
+                                    </div>
+                                    {exp[item.id] && (
+                                        <div className="ataque-expandido">
+                                            <div className="ataque-expandido-info">
+                                                {item.descricao && item.descricao.split(' · ').map((campo, i) => {
+                                                    const sep = campo.indexOf(': ');
+                                                    if (sep !== -1) {
+                                                        const chave = campo.slice(0, sep);
+                                                        const valor = campo.slice(sep + 2);
+                                                        return <span key={i} className="ataque-detalhe">{chave}: <strong>{valor}</strong></span>;
+                                                    }
+                                                    return <span key={i} className="ataque-detalhe" style={{ color: "#aaa", fontStyle: "italic" }}>{campo}</span>;
+                                                })}
+                                                {(item.melhorias_aplicadas || []).length > 0 && (
+                                                    <div className="melhorias-aplicadas-wrap">
+                                                        <span className="melhorias-aplicadas-titulo">MELHORIAS APLICADAS:</span>
+                                                        {item.melhorias_aplicadas.map(m => (
+                                                            <span key={m.id} className="melhoria-aplicada-row">
+                                                                <i className="fas fa-check" />
+                                                                {m.descricao}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {lojaAberta && <ModalLojaMochila onAdicionarItem={adicionarDaLoja} onFechar={() => setLojaAberta(false)} />}
+                    {modalMelItem && (
+                        <ModalMelhorias item={modalMelItem} sucata={sucata} nivFerramenta={nivFerramenta} onAplicar={aplicarMelhoria} onFechar={() => setModalMelItem(null)} />
+                    )}
+                </>
+            )}
+
+            {abaInterna === "fabricar" && (
+                <>
+                    <RecursosFabricacao recursos={recursos} onChange={handleRecursoChange} />
+                    <ReceitasFabricacao recursos={recursos} onFabricar={handleFabricar} onEncontrar={handleEncontrar} />
+                </>
+            )}
+        </div>
+    );
+};
+
+// ── MODAL HISTÓRICO ──
+const PainelResultados = ({ historico, aberto, onFechar }) => {
+    const nomeClasse = (r) => {
+        if (!r) return "";
+        if (r.isDano) {
+            const faces = parseInt((r.dadoPericia || "D10").replace("D", ""), 10);
+            if (r.rolagemAtaque === faces) return "critico-max";
+            if (r.rolagemAtaque === 1) return "critico-min";
+            return "";
+        }
+        const dadoMatch = (r.dado || "").match(/(\d+)D(\d+)/i);
+        const qtd = dadoMatch ? parseInt(dadoMatch[1]) : 1;
+        const faces = dadoMatch ? parseInt(dadoMatch[2]) : parseInt((r.dado || "10").replace(/\D/g, ""), 10);
+        if (r.valorDado === qtd * faces) return "critico-max";
+        if (r.valorDado === qtd) return "critico-min";
+        return "";
+    };
+
+    if (!aberto) return null;
+
+    return (
+        <div className="painel-resultados">
+            <div className="painel-resultados-header">
+                <span className="painel-resultados-titulo">Resultados</span>
+                <button className="painel-resultados-fechar" onClick={onFechar}>✕</button>
+            </div>
+            <div className="painel-resultados-lista">
+                {historico.length === 0 && <div className="painel-resultados-vazio">Nenhuma rolagem ainda.</div>}
+                {[...historico].reverse().map((r, i) => {
+                    const cls = nomeClasse(r);
+                    const cor = cls === "critico-max" ? "#22c55e" : cls === "critico-min" ? "#ef4444" : "#C79255";
+                    return (
+                        <div key={i} className="painel-item" style={{ borderColor: cls ? cor : "#2a2218" }}>
+                            <div className="painel-item-personagem">{r.personagem || "—"}</div>
+                            <div className="painel-item-card-row">
+                                <i className="fas fa-dice-d20 painel-item-icone" style={{ color: cor === "#C79255" ? "#C79255" : cor }} />
+                                <div className="painel-item-card-body">
+                                    <span className="painel-item-nome">{r.label}</span>
+                                    {r.isDano ? (
+                                        <div className="painel-item-valores" style={{ borderColor: cls ? cor : "#2a2218" }}>
+                                            <div className="painel-item-col">
+                                                <span className="painel-item-num" style={{ color: cor }}>{r.ataqueTotal}</span>
+                                                <span className="painel-item-sub">ATAQUE</span>
+                                            </div>
+                                            <div className="painel-item-sep" style={{ background: cls ? cor : "#2a2218" }} />
+                                            <div className="painel-item-col">
+                                                <span className="painel-item-num">{r.total}</span>
+                                                <span className="painel-item-sub">DANO</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="painel-item-pericia-row">
+                                            <span className="painel-item-formula-inline">
+                                                {parseInt(r.bonus,10) !== 0 ? `[${r.valorDado}]${parseInt(r.bonus,10) >= 0 ? "+" : ""}${r.bonus}` : `[${r.valorDado}]`}
+                                            </span>
+                                            <span className="painel-item-igual">=</span>
+                                            <span className="painel-item-total" style={{ color: cor }}>{r.total}</span>
+                                        </div>
                                     )}
                                 </div>
                             </div>
-                            <button className={`mochila-equip-btn ${item.equipado ? "mochila-equip-on" : ""}`}
-                                onClick={e => { e.stopPropagation(); toggleEquip(item.id); }}>
-                                <i className={`fas ${item.equipado ? "fa-check-square" : "fa-square"}`} />
-                            </button>
+                            <div className="painel-item-ts">{r.timestamp}</div>
                         </div>
-                        {exp[item.id] && (
-                            <div className="aba-item-corpo">
-                                {item.descricao && <p className="aba-item-desc">{item.descricao}</p>}
-                                <button className="aba-btn-remover" onClick={() => setItens(p => p.filter(x => x.id !== item.id))}>
-                                    <i className="fas fa-trash" /> Remover
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                    );
+                })}
             </div>
-            {lojaAberta && <ModalLojaMochila onAdicionarItem={adicionarDaLoja} onFechar={() => setLojaAberta(false)} />}
+        </div>
+    );
+};
+
+// ── MODAL CONFIGURAÇÕES ──
+const ModalConfiguracoes = ({ onFechar }) => {
+    const [fichaPrivada, setFichaPrivada] = useState(false);
+    const [mestreEdita, setMestreEdita] = useState(true);
+    const [qualquerEdita, setQualquerEdita] = useState(false);
+
+    const Toggle = ({ valor, onChange }) => (
+        <div className="cfg-toggle">
+            <button className={`cfg-toggle-btn ${!valor ? "cfg-toggle-ativo" : ""}`} onClick={() => onChange(false)}>DESLIGADO</button>
+            <button className={`cfg-toggle-btn ${valor ? "cfg-toggle-ativo" : ""}`} onClick={() => onChange(true)}>LIGADO</button>
+        </div>
+    );
+
+    return (
+        <div className="cfg-overlay" onClick={onFechar}>
+            <div className="cfg-painel" onClick={e => e.stopPropagation()}>
+                <div className="cfg-header">
+                    <span className="cfg-titulo">Configurações</span>
+                    <button className="cfg-fechar" onClick={onFechar}>✕</button>
+                </div>
+                <div className="cfg-body">
+                    <div className="cfg-section">
+                        <span className="cfg-section-label">Ficha privada</span>
+                        <span className="cfg-section-desc">Apenas você e o mestre da campanha poderão visualizar a ficha. A ficha ainda aparece no Escudo do Mestre para outros jogadores</span>
+                        <Toggle valor={fichaPrivada} onChange={setFichaPrivada} />
+                    </div>
+                    <div className="cfg-section">
+                        <span className="cfg-section-label">Permitir que o Mestre da campanha edite minha ficha</span>
+                        <Toggle valor={mestreEdita} onChange={setMestreEdita} />
+                    </div>
+                    <div className="cfg-section">
+                        <span className="cfg-section-label">Permitir que qualquer pessoa edite minha ficha</span>
+                        <span className="cfg-section-desc">Atenção: com essa opção ligada qualquer pessoa pode editar sua ficha. É recomendado deixar essa opção ligada por apenas um curto período de tempo</span>
+                        <Toggle valor={qualquerEdita} onChange={setQualquerEdita} />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
@@ -1261,8 +1943,14 @@ const FichaPersonagem = () => {
     const [compradosGlobal, setCompradosGlobal] = useState({});
     const [dados, setDados] = useState({});
     const [resultado, setResultado] = useState(null);
-
+    const [historico, setHistorico] = useState([]);
+    const [painelAberto, setPainelAberto] = useState(false);
+    const [modalConfig, setModalConfig] = useState(false);
     const [itensMochila, setItensMochila] = useState([]);
+    // ── NOVO: recursos de fabricação ──
+    const [recursos, setRecursos] = useState({
+        fita: 0, garrafa: 0, trapos: 0, alcool: 0, lamina: 0, polvora: 0, explosivo: 0,
+    });
 
     const salvarTimer = useRef(null);
     const fichaCarregada = useRef(false);
@@ -1270,108 +1958,100 @@ const FichaPersonagem = () => {
 
     const bonusDeHabilidades = calcularBonusDeHabilidades(compradosGlobal);
     const bonus = Object.fromEntries(
-        periciasConfig.map(p => [
-            p.key,
-            (parseInt(bonusBase[p.key], 10) || 0) + (bonusDeHabilidades[p.key] || 0)
-        ])
+        periciasConfig.map(p => [p.key, (parseInt(bonusBase[p.key], 10) || 0) + (bonusDeHabilidades[p.key] || 0)])
     );
+
+    const armasEquipadasLonga = itensMochila.filter(i => i.equipado && i.categoria === "Arma" && (i._arma?.tipoArma === "longa" || !i._arma));
+    const armasEquipadasCurta = itensMochila.filter(i => i.equipado && i.categoria === "Arma" && i._arma?.tipoArma === "pistola");
+    const armasEquipadasMelee = itensMochila.filter(i => i.equipado && i.categoria === "Arma" && i._arma?.tipoArma === "melee");
 
     useEffect(() => {
         estadoAtual.current = {
-            nome_personagem: nomePersonagem,
-            nome_jogador: nomeJogador,
-            vida_atual: vidaAtual,
-            vida_maxima: vidaMax,
-            pilulas: parseInt(pilulas, 10) || 0,
-            sucata: parseInt(sucata, 10) || 0,
-            nivel_ferramenta: parseInt(nivFerramenta, 10) || 1,
-            medicina_val: medicinaVal,
-            brutalidade: parseInt(bonusBase.brutalidade, 10) || 0,
-            mira: parseInt(bonusBase.mira, 10) || 0,
-            agilidade: parseInt(bonusBase.agilidade, 10) || 0,
-            instinto: parseInt(bonusBase.instinto, 10) || 0,
-            coleta: parseInt(bonusBase.coleta, 10) || 0,
-            sobrevivencia: parseInt(bonusBase.sobrevivencia, 10) || 0,
-            manutencao: parseInt(bonusBase.manutencao, 10) || 0,
-            medicina: parseInt(bonusBase.medicina, 10) || 0,
-            dados_pericias: JSON.stringify(dados),
-            habilidades_compradas: JSON.stringify(compradosGlobal),
+            nome_personagem: nomePersonagem, nome_jogador: nomeJogador,
+            vida_atual: vidaAtual, vida_maxima: vidaMax,
+            pilulas: parseInt(pilulas, 10) || 0, sucata: parseInt(sucata, 10) || 0,
+            nivel_ferramenta: parseInt(nivFerramenta, 10) || 1, medicina_val: medicinaVal,
+            brutalidade: parseInt(bonusBase.brutalidade, 10) || 0, mira: parseInt(bonusBase.mira, 10) || 0,
+            agilidade: parseInt(bonusBase.agilidade, 10) || 0, instinto: parseInt(bonusBase.instinto, 10) || 0,
+            coleta: parseInt(bonusBase.coleta, 10) || 0, sobrevivencia: parseInt(bonusBase.sobrevivencia, 10) || 0,
+            manutencao: parseInt(bonusBase.manutencao, 10) || 0, medicina: parseInt(bonusBase.medicina, 10) || 0,
+            dados_pericias: JSON.stringify(dados), habilidades_compradas: JSON.stringify(compradosGlobal),
             itens_mochila: JSON.stringify(itensMochila),
+            // Recursos salvos junto com a ficha
+            recursos_fabricacao: JSON.stringify(recursos),
+            historico_rolagens: JSON.stringify(historico),
+            coldre_longo: coldreLongo,
+            coldre_curto: coldreCurto,
         };
-    }, [nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata,
-        nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila]);
+    }, [nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, historico, coldreLongo, coldreCurto]);
+
     useEffect(() => {
         if (!fichaCarregada.current) return;
         clearTimeout(salvarTimer.current);
         salvarTimer.current = setTimeout(async () => {
             try {
-                await fetch(`http://localhost:3001/api/tlou/fichas/${id}/salvar`, {
-                    method: "PUT",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(estadoAtual.current),
-                });
-            } catch (e) {
-                console.error("Erro ao salvar:", e);
-            }
+                await fetch(`http://localhost:3001/api/tlou/fichas/${id}/salvar`, { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(estadoAtual.current) });
+            } catch (e) { console.error("Erro ao salvar:", e); }
         }, 1000);
-    }, [nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata,
-        nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila]);
+    }, [nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, historico, coldreLongo, coldreCurto]);
 
     useEffect(() => {
         fetch(`http://localhost:3001/api/tlou/fichas/${id}`, { credentials: "include" })
             .then(r => r.json())
             .then(data => {
                 setFicha(data);
-                setNomePersonagem(data.nome_personagem ?? "");
-                setNomeJogador(data.nome_jogador ?? "");
-                setTipoSobrevivente(data.nivel ?? "");
-                setClasseSobrevivente(data.classe ?? "");
-                setVidaAtual(data.vida_atual ?? data.vida_maxima ?? 0);
-                setVidaMax(data.vida_maxima ?? 0);
-                setPilulas(String(data.pilulas ?? ""));
-                setSucata(String(data.sucata ?? ""));
-                setNivFerramenta(String(data.nivel_ferramenta ?? ""));
-                setMedicinaVal(data.medicina_val ?? "");
+                setNomePersonagem(data.nome_personagem ?? ""); setNomeJogador(data.nome_jogador ?? "");
+                setTipoSobrevivente(data.nivel ?? ""); setClasseSobrevivente(data.classe ?? "");
+                setVidaAtual(data.vida_atual ?? data.vida_maxima ?? 0); setVidaMax(data.vida_maxima ?? 0);
+                setPilulas(String(data.pilulas ?? "")); setSucata(String(data.sucata ?? ""));
+                setNivFerramenta(String(data.nivel_ferramenta ?? "")); setMedicinaVal(data.medicina_val ?? "");
                 const b = {}, d = {};
-                periciasConfig.forEach(p => {
-                    b[p.key] = data[p.key] ?? 0;
-                    d[p.key] = "D10";
-                });
+                periciasConfig.forEach(p => { b[p.key] = data[p.key] ?? 0; d[p.key] = "D10"; });
                 setBonusBase(b);
-                if (data.dados_pericias) {
-                    try { setDados(JSON.parse(data.dados_pericias)); } catch { setDados(d); }
-                } else {
-                    setDados(d);
+                if (data.dados_pericias) { try { setDados(JSON.parse(data.dados_pericias)); } catch { setDados(d); } } else { setDados(d); }
+                if (data.habilidades_compradas) { try { setCompradosGlobal(JSON.parse(data.habilidades_compradas)); } catch { } }
+                if (data.itens_mochila) { try { setItensMochila(JSON.parse(data.itens_mochila)); } catch { } }
+                // Carrega recursos de fabricação
+                if (data.recursos_fabricacao) {
+                    try {
+                        const r = JSON.parse(data.recursos_fabricacao);
+                        setRecursos(prev => ({ ...prev, ...r }));
+                    } catch { }
                 }
-                if (data.habilidades_compradas) {
-                    try { setCompradosGlobal(JSON.parse(data.habilidades_compradas)); } catch { }
-                }
-                if (data.itens_mochila) {
-                    try { setItensMochila(JSON.parse(data.itens_mochila)); } catch { }
-                }
-                setTimeout(() => {
-                    fichaCarregada.current = true;
-                }, 200);
+                if (data.historico_rolagens) { try { setHistorico(JSON.parse(data.historico_rolagens)); } catch {} }
+                if (data.coldre_longo != null) setColdreLongo(!!data.coldre_longo);
+                if (data.coldre_curto  != null) setColdreCurto(!!data.coldre_curto);
+                setTimeout(() => { fichaCarregada.current = true; }, 200);
             })
             .catch(() => setFicha(null))
             .finally(() => setCarregando(false));
     }, [id]);
 
+    const makeTimestamp = () => {
+        const now = new Date();
+        return `${String(now.getMonth()+1).padStart(2,"0")}/${String(now.getDate()).padStart(2,"0")}/${now.getFullYear().toString().slice(2)} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+    };
+
+    const nomePersonagemRef = useRef("");
+    useEffect(() => { nomePersonagemRef.current = nomePersonagem; }, [nomePersonagem]);
+
     const handleRolar = (key, label) => {
         const dado = dados[key] ?? "D10";
         const bv = parseInt(bonus[key], 10) || 0;
         const v = rolarDado(dado);
-        setResultado({ label, dado, valorDado: v, bonus: bv, total: v + bv });
+        const entrada = { personagem: nomePersonagemRef.current || nomePersonagem, label, dado, valorDado: v, bonus: bv, total: v + bv, timestamp: makeTimestamp() };
+        setResultado(entrada);
+        setHistorico(h => [...h.slice(-99), entrada]);
     };
 
-    const handleGastarPilulas = custo => {
-        setPilulas(p => String(Math.max(0, (parseInt(p, 10) || 0) - custo)));
+    const handleRolarComHistorico = (entrada) => {
+        const entradaComData = { ...entrada, personagem: nomePersonagemRef.current || nomePersonagem, timestamp: makeTimestamp() };
+        setResultado(entradaComData);
+        setHistorico(h => [...h.slice(-99), entradaComData]);
     };
 
-    const handleDevolverPilulas = quantidade => {
-        setPilulas(p => String((parseInt(p, 10) || 0) + quantidade));
-    };
+    const handleGastarPilulas = custo => setPilulas(p => String(Math.max(0, (parseInt(p, 10) || 0) - custo)));
+    const handleDevolverPilulas = quantidade => setPilulas(p => String((parseInt(p, 10) || 0) + quantidade));
 
     if (carregando) return <div className="ficha-loading-page"><p className="ficha-loading-text">Carregando ficha...</p></div>;
     if (!ficha || ficha.error) return (
@@ -1386,7 +2066,6 @@ const FichaPersonagem = () => {
             <div className="ficha-topbar">
                 <button className="ficha-voltar-btn" onClick={() => navigate("/personagens")}>← VOLTAR</button>
             </div>
-
             <div className="ficha-sheet">
                 <div className="ficha-identidade">
                     <div className="ficha-identidade-esquerda">
@@ -1410,14 +2089,11 @@ const FichaPersonagem = () => {
                         </div>
                     </div>
                 </div>
-
                 <div className="ficha-body">
                     <div className="ficha-col-esquerda">
                         <div className="ficha-pericias-bloco">
                             <div className="ficha-avatar-wrapper">
-                                {ficha.imagem
-                                    ? <img src={ficha.imagem} alt={nomePersonagem} className="ficha-avatar-img" />
-                                    : <div className="ficha-avatar-placeholder">{nomePersonagem?.[0]?.toUpperCase() || "?"}</div>}
+                                {ficha.imagem ? <img src={ficha.imagem} alt={nomePersonagem} className="ficha-avatar-img" /> : <div className="ficha-avatar-placeholder">{nomePersonagem?.[0]?.toUpperCase() || "?"}</div>}
                             </div>
                             <VidaControl valor={vidaAtual} max={vidaMax} onChange={setVidaAtual} onChangeMax={setVidaMax} />
                             <table className="ficha-pericias-tabela">
@@ -1428,9 +2104,7 @@ const FichaPersonagem = () => {
                                             <td className="ficha-pericia-nome">{p.label}</td>
                                             <td className="ficha-pericia-bonus">
                                                 <div className="ficha-circulo">
-                                                    <input className="ficha-circulo-input" type="number" min={0}
-                                                        value={bonus[p.key] ?? 0}
-                                                        onChange={e => setBonusBase(prev => ({ ...prev, [p.key]: e.target.value }))} />
+                                                    <input className="ficha-circulo-input" type="number" min={0} value={bonus[p.key] ?? 0} onChange={e => setBonusBase(prev => ({ ...prev, [p.key]: e.target.value }))} />
                                                 </div>
                                             </td>
                                             <td className="ficha-pericia-dado">
@@ -1447,7 +2121,6 @@ const FichaPersonagem = () => {
                             </table>
                         </div>
                     </div>
-
                     <div className="ficha-col-meio">
                         <div className="ficha-status-row">
                             <div className="ficha-status-campo"><span className="ficha-field-label">SUCATA</span><input className="ficha-input ficha-status-input" value={sucata} onChange={e => setSucata(e.target.value)} /></div>
@@ -1455,57 +2128,61 @@ const FichaPersonagem = () => {
                             <div className="ficha-status-campo"><span className="ficha-field-label">NÍV. FERRAMENTA</span><input className="ficha-input ficha-status-input" value={nivFerramenta} onChange={e => setNivFerramenta(e.target.value)} /></div>
                             <div className="ficha-status-campo"><span className="ficha-field-label">REMÉDIO</span><input className="ficha-input ficha-status-input" value={medicinaVal} onChange={e => setMedicinaVal(e.target.value)} /></div>
                         </div>
-                        <ArmaSlot titulo="ARMA LONGA" />
-                        <ArmaSlot titulo="ARMA CURTA" />
-                        {coldreLongo && <ArmaSlot titulo="COLDRE ARMA LONGA" />}
-                        {coldreCurto && <ArmaSlot titulo="COLDRE ARMA CURTA" />}
-                        <ArmaSlot titulo="MELEE" />
+                        <ArmaSlot titulo="ARMA LONGA"  armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} onRolar={handleRolarComHistorico} />
+                        <ArmaSlot titulo="ARMA CURTA"  armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} onRolar={handleRolarComHistorico} />
+                        {coldreLongo && (
+                            <div className="ficha-coldre-slot-wrapper">
+                                <ArmaSlot titulo="COLDRE ARMA LONGA" armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} onRolar={handleRolarComHistorico} />
+                                <button className="ficha-coldre-remover-btn" onClick={() => setColdreLongo(false)} title="Remover coldre">✕</button>
+                            </div>
+                        )}
+                        {coldreCurto && (
+                            <div className="ficha-coldre-slot-wrapper">
+                                <ArmaSlot titulo="COLDRE ARMA CURTA" armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} onRolar={handleRolarComHistorico} />
+                                <button className="ficha-coldre-remover-btn" onClick={() => setColdreCurto(false)} title="Remover coldre">✕</button>
+                            </div>
+                        )}
+                        <ArmaSlot titulo="MELEE" armasEquipadas={armasEquipadasMelee} bonus={bonus} dados={dados} isMelee onRolar={handleRolarComHistorico} />
                         <div className="ficha-coldre-adicionar">
-                            {!coldreLongo && (
-                                <div className="ficha-coldre-item">
-                                    <span className="ficha-coldre-label">Adicionar Coldre de Arma Longa</span>
-                                    <button className="ficha-coldre-btn" onClick={() => setColdreLongo(true)}>+</button>
-                                </div>
-                            )}
-                            {!coldreCurto && (
-                                <div className="ficha-coldre-item">
-                                    <span className="ficha-coldre-label">Adicionar Coldre de Arma Curta</span>
-                                    <button className="ficha-coldre-btn" onClick={() => setColdreCurto(true)}>+</button>
-                                </div>
-                            )}
+                            {!coldreLongo && <div className="ficha-coldre-item"><span className="ficha-coldre-label">Adicionar Coldre de Arma Longa</span><button className="ficha-coldre-btn" onClick={() => setColdreLongo(true)}>+</button></div>}
+                            {!coldreCurto && <div className="ficha-coldre-item"><span className="ficha-coldre-label">Adicionar Coldre de Arma Curta</span><button className="ficha-coldre-btn" onClick={() => setColdreCurto(true)}>+</button></div>}
                         </div>
                     </div>
                 </div>
-
                 <div className="ficha-col-direita">
                     <div className="ficha-identidade-abas">
-                        {["combate", "habilidades", "mochila"].map(aba => (
-                            <button
-                                key={aba}
-                                className={`ficha-aba-btn ${abaAtiva === aba ? "ficha-aba-ativa" : ""}`}
-                                onClick={() => setAbaAtiva(aba)}
-                            >
-                                {aba.toUpperCase()}
-                            </button>
-                        ))}
+                        <button className="ficha-aba-icone-btn" onClick={() => setPainelAberto(p => !p)} title="Histórico de rolagens">
+                            <i className="fa-solid fa-book" />
+                        </button>
+                        <div className="ficha-abas-centro">
+                            {["combate", "habilidades", "mochila"].map(aba => (
+                                <button key={aba} className={`ficha-aba-btn ${abaAtiva === aba ? "ficha-aba-ativa" : ""}`} onClick={() => setAbaAtiva(aba)}>{aba.toUpperCase()}</button>
+                            ))}
+                        </div>
+                        <button className="ficha-aba-icone-btn" onClick={() => setModalConfig(true)} title="Configurações">
+                            <i className="fa-solid fa-gear" />
+                        </button>
                     </div>
                     <div className="ficha-aba-conteudo">
-                        {abaAtiva === "combate" && <AbaCombate onRolar={setResultado} bonus={bonus} dados={dados} />}
-                        {abaAtiva === "habilidades" && (
-                            <AbaHabilidades
-                                pilulas={pilulas}
-                                onGastarPilulas={handleGastarPilulas}
-                                onDevolverPilulas={handleDevolverPilulas}
-                                compradosGlobal={compradosGlobal}
-                                onCompradosChange={setCompradosGlobal}
+                        {abaAtiva === "combate"     && <AbaCombate onRolar={handleRolarComHistorico} bonus={bonus} dados={dados} />}
+                        {abaAtiva === "habilidades" && <AbaHabilidades pilulas={pilulas} onGastarPilulas={handleGastarPilulas} onDevolverPilulas={handleDevolverPilulas} compradosGlobal={compradosGlobal} onCompradosChange={setCompradosGlobal} />}
+                        {abaAtiva === "mochila"     && (
+                            <AbaMochila
+                                itens={itensMochila}
+                                setItens={setItensMochila}
+                                sucata={sucata}
+                                nivFerramenta={nivFerramenta}
+                                onGastarSucata={v => setSucata(p => String(Math.max(0, (parseInt(p,10)||0) - v)))}
+                                recursos={recursos}
+                                onRecursosChange={setRecursos}
                             />
                         )}
-                        {abaAtiva === "mochila" && <AbaMochila itens={itensMochila} setItens={setItensMochila} />}
                     </div>
                 </div>
             </div>
-
             <ResultadoRolagem resultado={resultado} onFechar={() => setResultado(null)} />
+            <PainelResultados historico={historico} aberto={painelAberto} onFechar={() => setPainelAberto(false)} />
+            {modalConfig    && <ModalConfiguracoes onFechar={() => setModalConfig(false)} />}
         </div>
     );
 };
