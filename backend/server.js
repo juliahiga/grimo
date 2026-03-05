@@ -11,7 +11,7 @@ app.set("trust proxy", 1);
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://grimo.vercel.app",
+  "https://lovyr.vercel.app",
 ];
 
 app.use(cors({
@@ -40,8 +40,8 @@ const sessionStore = new MySQLStore({
 });
 
 app.use(session({
-  name: "grimo.sid",
-  secret: process.env.SESSION_SECRET || "grimo-secret-key",
+  name: "lovyr.sid",
+  secret: process.env.SESSION_SECRET || "lovyr-secret-key",
   resave: false,
   saveUninitialized: false,
   store: sessionStore,
