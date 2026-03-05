@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
-import { useUser } from "../context/UserContext";
+//import { useUser } from "../context/UserContext";
 import "../styles/CampanhaTlou.css";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:3001";
