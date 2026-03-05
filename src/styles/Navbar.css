@@ -72,7 +72,7 @@
   position: fixed;
   top: 70px;
   left: 0;
-  z-index: 1000;
+  z-index: 999;
 }
 
 .user-avatar {
@@ -85,9 +85,11 @@
   transition: border-color 0.3s ease;
   margin-top: 4px;
 }
+
 .avatar-wrapper {
   position: relative;
 }
+
 .avatar-menu {
   position: absolute;
   right: 0;
@@ -99,8 +101,9 @@
   display: flex;
   flex-direction: column;
   min-width: 130px;
-  z-index: 1002;
+  z-index: 1100; /* ← Aumenta para ficar acima de tudo */
 }
+
 .avatar-menu button {
   background: none;
   border: none;

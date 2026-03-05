@@ -74,7 +74,6 @@ const NovaCampanhaTLOU = () => {
           <input
             className="nc-input"
             type="text"
-            placeholder="Ex: A Última Esperança"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             maxLength={150}

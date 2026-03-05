@@ -11,6 +11,7 @@ import Profile from "./pages/Profile";
 import NovoTlouRpg from "./pages/NovoTlouRpg";
 import NovaCampanhaTlouRpg from "./pages/NovaCampanhaTlouRpg";
 import FichaPersonagem from "./pages/FichaPersonagem";
+import CampanhaTlou from "./pages/CampanhaTlou";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/personagens" element={<Personagens />} />
             <Route path="/ficha/:id" element={<FichaPersonagem />} />
             <Route path="/campanhas" element={<Campanhas />} />
+            <Route path="/campanha/:id" element={<CampanhaTlou />} />
             <Route path="/sistemas" element={<Sistemas />} />
             <Route path="/perfil" element={<Profile />} />
             <Route path="/novo-tlourpg" element={<NovoTlouRpg />} />

@@ -136,19 +136,23 @@ body {
 
 .ficha-identidade-abas .ficha-aba-btn {
   flex: 1;
+  min-width: 0;
   background: #0e0c08;
   border: none;
   border-right: 1px solid #2a2218;
   color: #888;
   font-family: 'Google Sans', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   cursor: pointer;
   transition: color 0.2s, background 0.2s;
   text-align: center;
-  padding: 10px 4px;
+  padding: 10px 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ficha-identidade-abas .ficha-aba-btn:last-child {
@@ -2357,8 +2361,7 @@ body {
 .ficha-abas-centro {
     display: flex;
     flex: 1;
-    gap: 4px;
-    justify-content: center;
+    justify-content: stretch;
 }
 .ficha-aba-icone-btn {
     background: transparent;

@@ -168,11 +168,11 @@ const LOJA = {
         label: "Combate",
         cor: "#f87171",
         itens: [
-            { id: "pen", nome: "Punhos Ensanguentados", desc: "Aumenta o dano corpo a corpo.", tiers: [{ custo: 30, efeito: "1D8 Dano" }, { custo: 50, efeito: "2D10 Dano" }, { custo: 70, efeito: "1D12 Dano" }] },
+            { id: "pen", nome: "Punhos Ensanguentados", desc: "Aumenta o dano corpo a corpo.", tiers: [{ custo: 30, efeito: "1D8 Dano" }, { custo: 50, efeito: "1D10 Dano" }, { custo: 70, efeito: "1D12 Dano" }] },
             { id: "dur", nome: "Durável", desc: "Aumenta a durabilidade das armas corpo a corpo.", tiers: [{ custo: 25, efeito: "Durabilidade extra" }, { custo: 40, efeito: "Segunda durabilidade extra" }, { custo: 55, efeito: "Terceira durabilidade extra" }] },
             { id: "lut", nome: "Lutador", desc: "Golpes extras corpo a corpo por turno.", tiers: [{ custo: 25, efeito: "Segundo golpe" }, { custo: 50, efeito: "Terceiro golpe" }, { custo: 75, efeito: "Terceiro golpe dano dobrado" }] },
             { id: "imp", nome: "Impulso", desc: "Golpe fatal gera ataque extra.", tiers: [{ custo: 90, efeito: "Ataque extra após golpe fatal" }] },
-            { id: "sfr", nome: "Sangue Frio", desc: "Modificadores adicionais em testes de Furtividade.", tiers: [{ custo: 30, efeito: "+1 em Furtividade" }, { custo: 60, efeito: "+2 em Furtividade" }, { custo: 90, efeito: "+3 em Furtividade" }] },
+            { id: "sfr", nome: "Sangue Frio", desc: "Modificadores adicionais em testes de Agilidade.", tiers: [{ custo: 30, efeito: "+1 em Agilidade" }, { custo: 60, efeito: "+2 em Agilidade" }, { custo: 90, efeito: "+3 em Agilidade" }] },
             { id: "adr", nome: "Corrida de Adrenalina", desc: "Vida ≤10: dados extras nos testes de Habilidade.", tiers: [{ custo: 20, efeito: "D4 nos testes" }, { custo: 40, efeito: "D6 nos testes" }, { custo: 60, efeito: "D8 nos testes" }] },
             { id: "fur", nome: "Fúria", desc: "Vantagem em um teste de Brutalidade por combate.", tiers: [{ custo: 70, efeito: "Vantagem em Brutalidade 1×/combate" }] },
             { id: "pre", nome: "Precisão", desc: "Vantagem em um teste de Mira por combate.", tiers: [{ custo: 70, efeito: "Vantagem em Mira 1×/combate" }] },
@@ -516,10 +516,8 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
             const rollStr = qtd === 1 ? `${rollsGrupo[0]}` : rollsGrupo.join(", ");
             partesDano.push(`${qtd}D${faces}[${rollStr}]`);
         }
-        // bônus embutido na string de dano (ex: "3D8+5")
         const bonusEmbutidoMatch = processado.replace(/\s/g, "").match(/^([+-][0-9]+)$/);
         const bonusEmbutido = bonusEmbutidoMatch ? parseInt(bonusEmbutidoMatch[1], 10) : 0;
-        // bônus extra digitado no campo separado
         const bonusExtra = parseInt(bonusDano, 10) || 0;
         const bonusTotal = bonusEmbutido + bonusExtra;
         totalDano += bonusTotal;
@@ -609,7 +607,7 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
                 </div>
                 <div className="ficha-arma-field ficha-arma-small">
                     <span className="ficha-field-label">DANO</span>
-                    <input className="ficha-input" value={dano} onChange={e => setDano(e.target.value)} placeholder="ex: 3D8" />
+                    <input className="ficha-input" value={dano} onChange={e => setDano(e.target.value)}/>
                 </div>
                 <div className="ficha-arma-field" style={{minWidth:54,maxWidth:70}}>
                     <span className="ficha-field-label" style={{color:"#C79255"}}>BÔNUS</span>
@@ -990,11 +988,9 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
                 {erro && <span className="combate-formula-erro">Fórmula inválida — use ex: 2d10+2 ou d20</span>}
             </div>
 
-            {/* ── ARREMESSÁVEIS ── */}
             <div className="arremessavel-row">
                 <span className="arremessavel-label">ARREMESSÁVEL</span>
 
-                {/* Contador atual / max */}
                 <div className="arremessavel-contador">
                     <input
                         type="number" min={0} value={arremQtd}
@@ -1986,6 +1982,15 @@ const FichaPersonagem = () => {
     const fichaCarregada = useRef(false);
 
     const bonusDeHabilidades = calcularBonusDeHabilidades(compradosGlobal);
+
+    // Vida máxima baseada na habilidade "vid": sem tier=25, tier1=50, tier2=75, tier3=100
+    const VIDA_POR_TIER_VID = [25, 50, 75, 100];
+    const tierVid = compradosGlobal["vid"] ?? 0;
+    const vidaMaxDeHabilidades = VIDA_POR_TIER_VID[tierVid] ?? 25;
+    useEffect(() => {
+        if (!fichaCarregada.current) return;
+        setVidaMax(vidaMaxDeHabilidades);
+    }, [vidaMaxDeHabilidades]); // eslint-disable-line react-hooks/exhaustive-deps
     const bonus = Object.fromEntries(
         periciasConfig.map(p => [p.key, (parseInt(bonusBase[p.key], 10) || 0) + (bonusDeHabilidades[p.key] || 0)])
     );
@@ -2183,11 +2188,8 @@ const FichaPersonagem = () => {
                                             <td className="ficha-pericia-nome">{p.label}</td>
                                             <td className="ficha-pericia-bonus">
                                                 <div className="ficha-circulo" title={bonusDeHabilidades[p.key] ? `Base: ${parseInt(bonusBase[p.key],10)||0} + Habilidades: +${bonusDeHabilidades[p.key]} = ${bonus[p.key]}` : `Bônus: ${bonus[p.key]}`}>
-                                                    <input className="ficha-circulo-input" type="number" min={0} value={bonusBase[p.key] ?? 0} onChange={e => setBonusBase(prev => ({ ...prev, [p.key]: e.target.value }))} />
+                                                    <input className="ficha-circulo-input" type="number" min={0} value={bonus[p.key] ?? 0} onChange={e => setBonusBase(prev => ({ ...prev, [p.key]: Math.max(0, parseInt(e.target.value,10) - (bonusDeHabilidades[p.key]||0)) }))} />
                                                 </div>
-                                                {bonusDeHabilidades[p.key] > 0 && (
-                                                    <span style={{fontSize:"0.55rem",color:"#C79255",fontFamily:"'Google Sans',sans-serif",textAlign:"center",display:"block",lineHeight:1,marginTop:1}}>+{bonusDeHabilidades[p.key]} hab</span>
-                                                )}
                                             </td>
                                             <td className="ficha-pericia-dado">
                                                 <DadoSelector valor={dados[p.key] ?? "D10"} onChange={v => setDados(prev => ({ ...prev, [p.key]: v }))} />

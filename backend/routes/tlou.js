@@ -69,10 +69,10 @@ router.post("/fichas", async (req, res) => {
         sobrevivencia, agilidade, coleta, instinto, brutalidade, mira, manutencao, medicina, imagem
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [user.id, nome_jogador || user.name, nome_personagem, nivel_id, classe_id, idade_id,
-        personalidade_id, pericia_escolhida, traco_id, motivacao_id, pilulas_iniciais || 100,
-        pericias.sobrevivencia, pericias.agilidade, pericias.coleta, pericias.instinto,
-        pericias.brutalidade, pericias.mira, pericias.manutencao, pericias.medicina,
-        req.body.imagem || null]);
+      personalidade_id, pericia_escolhida, traco_id, motivacao_id, pilulas_iniciais || 100,
+      pericias.sobrevivencia, pericias.agilidade, pericias.coleta, pericias.instinto,
+      pericias.brutalidade, pericias.mira, pericias.manutencao, pericias.medicina,
+      req.body.imagem || null]);
     res.status(201).json({ id: result.insertId });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -143,12 +143,11 @@ router.get("/campanhas", async (req, res) => {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
     const [rows] = await pool.query(`
-      SELECT DISTINCT c.id, c.nome, c.descricao, c.nome_mestre, c.max_jogadores, c.criado_em,
-        c.image AS imagem, n.nome AS nivel,
+      SELECT DISTINCT c.id, c.nome, c.descricao, c.nome_mestre, c.criado_em,
+        c.image AS imagem,
         CASE WHEN c.user_id_mestre = ? THEN 1 ELSE 0 END AS sou_mestre,
         (SELECT COUNT(*) FROM tlou_campanha_jogadores cj WHERE cj.campanha_id = c.id) AS total_jogadores
       FROM tlou_campanhas c
-      LEFT JOIN tlou_niveis_sobrevivente n ON c.nivel_sobrevivente_id = n.id
       LEFT JOIN tlou_campanha_jogadores cj2 ON cj2.campanha_id = c.id AND cj2.user_id = ?
       WHERE c.user_id_mestre = ? OR cj2.user_id = ?
       ORDER BY c.criado_em DESC
@@ -159,15 +158,15 @@ router.get("/campanhas", async (req, res) => {
 
 router.post("/campanhas", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
-  const { nome, descricao, max_jogadores, nivel_id, imagem } = req.body;
+  const { nome, descricao, imagem } = req.body;
   if (!nome) return res.status(400).json({ error: "Nome é obrigatório" });
   try {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
     const [result] = await pool.query(`
-      INSERT INTO tlou_campanhas (user_id_mestre, nome_mestre, nome, descricao, max_jogadores, nivel_sobrevivente_id, image)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [user.id, user.name, nome, descricao || null, max_jogadores || 4, nivel_id || null, imagem || null]);
+      INSERT INTO tlou_campanhas (user_id_mestre, nome_mestre, nome, descricao, image)
+      VALUES (?, ?, ?, ?, ?)
+    `, [user.id, user.name, nome, descricao || null, imagem || null]);
     res.status(201).json({ id: result.insertId });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -191,9 +190,8 @@ router.get("/campanhas/:id", async (req, res) => {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
     const [campanhaRows] = await pool.query(`
-      SELECT c.*, c.image AS imagem, n.nome AS nivel
+      SELECT c.*, c.image AS imagem
       FROM tlou_campanhas c
-      LEFT JOIN tlou_niveis_sobrevivente n ON c.nivel_sobrevivente_id = n.id
       WHERE c.id = ?
     `, [req.params.id]);
     if (campanhaRows.length === 0) return res.status(404).json({ error: "Campanha não encontrada" });
@@ -218,9 +216,6 @@ router.post("/campanhas/:id/entrar", async (req, res) => {
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
     const [fichaCheck] = await pool.query("SELECT id, nome_personagem FROM tlou_fichas WHERE id = ? AND user_id = ?", [ficha_id, user.id]);
     if (fichaCheck.length === 0) return res.status(403).json({ error: "Ficha não pertence a você" });
-    const [[campanha]] = await pool.query("SELECT max_jogadores FROM tlou_campanhas WHERE id = ?", [req.params.id]);
-    const [[{ total }]] = await pool.query("SELECT COUNT(*) AS total FROM tlou_campanha_jogadores WHERE campanha_id = ?", [req.params.id]);
-    if (total >= campanha.max_jogadores) return res.status(400).json({ error: "Campanha já está cheia" });
     await pool.query(
       "INSERT INTO tlou_campanha_jogadores (campanha_id, user_id, ficha_id, nome_jogador, nome_personagem) VALUES (?, ?, ?, ?, ?)",
       [req.params.id, user.id, ficha_id, user.name, fichaCheck[0].nome_personagem]
@@ -308,12 +303,12 @@ router.put("/fichas/:id/salvar", async (req, res) => {
         atualizado_em         = NOW()
       WHERE id = ? AND user_id = ?
     `, [nome_personagem, nome_jogador, vida_atual, vida_maxima, pilulas, sucata,
-        nivel_ferramenta, medicina_val || null, brutalidade, mira, agilidade, instinto,
-        coleta, sobrevivencia, manutencao, medicina, dados_pericias || null,
-        habilidades_compradas || null, itens_mochila || null, recursos_fabricacao || null,
-        coldre_longo ? 1 : 0, coldre_curto ? 1 : 0, historico_rolagens || null,
-        ataques_combate || null, coldres_slots || null,
-        parseInt(req.params.id), user.id]);
+      nivel_ferramenta, medicina_val || null, brutalidade, mira, agilidade, instinto,
+      coleta, sobrevivencia, manutencao, medicina, dados_pericias || null,
+      habilidades_compradas || null, itens_mochila || null, recursos_fabricacao || null,
+      coldre_longo ? 1 : 0, coldre_curto ? 1 : 0, historico_rolagens || null,
+      ataques_combate || null, coldres_slots || null,
+      parseInt(req.params.id), user.id]);
     res.json({ ok: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

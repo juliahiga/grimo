@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
-require("dotenv").config();
+require("dotenv").config({ path: process.env.NODE_ENV === "production" ? ".env.production" : ".env" });
 const usersRouter = require("./routes/users");
 const tlouRouter = require("./routes/tlou");
 
@@ -27,7 +27,8 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 const sessionStore = new MySQLStore({
   host: process.env.DB_HOST,
@@ -46,8 +47,8 @@ app.use(session({
   store: sessionStore,
   cookie: {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 }));
