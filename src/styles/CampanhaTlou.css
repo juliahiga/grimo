@@ -24,10 +24,8 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  gap: 10px;
-  padding: 18px 2rem;
-  border-bottom: 1px solid #2a2318;
-  background-color: #1a1610;
+  gap: 50px;
+  padding: 8px 2rem;
   box-sizing: border-box;
   flex-wrap: wrap;
 }

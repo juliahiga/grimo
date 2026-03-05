@@ -2,7 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
-require("dotenv").config({ path: process.env.NODE_ENV === "production" ? ".env.production" : ".env" });
+
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
 const usersRouter = require("./routes/users");
 const tlouRouter = require("./routes/tlou");
 
