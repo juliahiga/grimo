@@ -7,6 +7,10 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
+app.get("/", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 const usersRouter = require("./routes/users");
 const tlouRouter = require("./routes/tlou");
 
