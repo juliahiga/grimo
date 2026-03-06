@@ -13,7 +13,7 @@ const periciasConfig = [
     { key: "medicina", label: "Medicina" },
 ];
 
-const dadosOpcoes = ["D10", "D12", "D20"];
+const dadosOpcoes = ["D10", "D12"];
 
 const HABILIDADE_PERICIA_MAP = {
     agr: "brutalidade",
@@ -66,8 +66,8 @@ const RECEITAS = [
         nome: "Bomba de Pregos",
         categoria: "Arma",
         ingredientes: { lamina: 1, explosivo: 1 },
-        _arma: { tipoArma: "melee", dano: "3D6", capacidade: "", cadencia: "", perfuracao: "" },
-        descricao: "Dano: 3D6 · Tipo: Explosivo",
+        _arma: { tipoArma: "melee", dano: "5D8", capacidade: "", cadencia: "", perfuracao: "" },
+        descricao: "Dano: 5D8 · Tipo: Explosivo",
     },
     {
         id: "bomba_improvisada",
@@ -1027,7 +1027,7 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
                     <button className={`aba-icon-btn${erro ? " aba-icon-btn-erro" : ""}`} onClick={rolarLivre} title="Rolar"><i className="fas fa-dice-d20" /></button>
                     <button className="aba-btn-novo" onClick={() => { setAtaqueEditando(null); setModal(true); }}>NOVO ATAQUE</button>
                 </div>
-                {erro && <span className="combate-formula-erro">Fórmula inválida — use ex: 2d10+2 ou d20</span>}
+                {erro && <span className="combate-formula-erro">Fórmula inválida — use ex: 2D10+2 ou D20</span>}
             </div>
 
             <div className="arremessavel-row">
@@ -2190,7 +2190,7 @@ const FichaPersonagem = () => {
         }
 
         const totalFinal = v + bv + adrBonus;
-        const formulaResto = adrRoll !== null ? `+${bv !== 0 ? bv + "+" : ""}[${adrRoll}]` : undefined;
+        //const formulaResto = adrRoll !== null ? `+${bv !== 0 ? bv + "+" : ""}[${adrRoll}]` : undefined;
         const entrada = {
             personagem: nomePersonagemRef.current || nomePersonagem,
             label,
