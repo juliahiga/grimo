@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/FichaPersonagemTlou.css";
+import ImageCropModal from "../components/ImageCropModal";
 
 const periciasConfig = [
     { key: "brutalidade", label: "Brutalidade",  desc: "Brutalidade é a habilidade que abrange o uso de armas corpo a corpo, agarrar ou dominar Infectados, e qualquer outro teste que envolva força física.\n\nTambém reflete a força de um Sobrevivente, podendo incluir levantar objetos pesados, quebrar restrições, mover destroços que bloqueiam portas e se puxar para cima. A habilidade Brutalidade é uma especialidade extremamente versátil para o sobrevivente resistente." },
@@ -2308,6 +2309,20 @@ const FichaPersonagemTlou = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [ficha, setFicha] = useState(null);
+    const [showCropModal, setShowCropModal] = useState(false);
+    const fichaImagemRef = useRef(null);
+    const handleSalvarImagem = useCallback((base64) => {
+        fichaImagemRef.current = base64;
+        if (payloadRef.current) payloadRef.current = { ...payloadRef.current, imagem: base64 };
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, {
+            method: "PUT", credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imagem: base64 }),
+        })
+            .then(r => r.json())
+            .then(() => setFicha(prev => ({ ...prev, imagem: base64 })))
+            .catch(e => console.error('[salvarImagem] erro:', e));
+    }, [id]);
     const [carregando, setCarregando] = useState(true);
     const [abaAtiva, setAbaAtiva] = useState("combate");
     const [coldreLongo, setColdreLongo] = useState(false);
@@ -2421,6 +2436,7 @@ const FichaPersonagemTlou = () => {
             coldre_curto: coldreCurto,
             ataques_combate: JSON.stringify(ataquesCombate),
             coldres_slots: JSON.stringify(coldresSlots),
+            imagem: fichaImagemRef.current ?? undefined,
         };
         payloadRef.current = payload; // sempre atualizado para o flush no unmount
         clearTimeout(salvarTimer.current);
@@ -2458,7 +2474,7 @@ const FichaPersonagemTlou = () => {
             .then(r => r.json())
             .then(data => {
                 setFicha(data);
-                setNomePersonagem(data.nome_personagem ?? ""); setNomeJogador(data.nome_jogador ?? "");
+                fichaImagemRef.current = data.imagem ?? null;
                 setTipoSobrevivente(data.nivel ?? ""); setClasseSobrevivente(data.classe ?? "");
                 setVidaAtual(data.vida_atual ?? data.vida_maxima ?? 0); setVidaMax(data.vida_maxima ?? 0);
                 setPilulas(String(data.pilulas ?? "")); setSucata(String(data.sucata ?? ""));
@@ -2620,9 +2636,18 @@ const FichaPersonagemTlou = () => {
                 <div className="ficha-body">
                     <div className="ficha-col-esquerda">
                         <div className="ficha-pericias-bloco">
-                            <div className="ficha-avatar-wrapper">
+                            <div className="ficha-avatar-wrapper" onClick={() => setShowCropModal(true)} style={{ cursor: "pointer" }} title="Clique para alterar a foto">
                                 {ficha.imagem ? <img src={ficha.imagem} alt={nomePersonagem} className="ficha-avatar-img" /> : <div className="ficha-avatar-placeholder">{nomePersonagem?.[0]?.toUpperCase() || "?"}</div>}
+                                <div className="fn-avatar-edit-overlay"><i className="fas fa-camera" /></div>
                             </div>
+                            {showCropModal && (
+                                <ImageCropModal
+                                    title="Foto de Perfil"
+                                    src={ficha.imagem || null}
+                                    onConfirm={handleSalvarImagem}
+                                    onClose={() => setShowCropModal(false)}
+                                />
+                            )}
                             <VidaControl valor={vidaAtual} max={vidaMax} onChange={setVidaAtual} onChangeMax={setVidaMax} />
                             <table className="ficha-pericias-tabela">
                                 <thead><tr><th>PERÍCIA</th><th>BÔNUS</th><th>DADO</th><th></th></tr></thead>

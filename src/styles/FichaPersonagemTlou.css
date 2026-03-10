@@ -287,6 +287,14 @@ body {
   overflow: hidden;
   margin-bottom: 10px;
   border: 1px solid #3a3020;
+  position: relative;
+}
+.ficha-avatar-wrapper:hover .fn-avatar-edit-overlay { opacity: 1; }
+.fn-avatar-edit-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s;
+  color: #fff; font-size: 1.6rem;
 }
 
 .ficha-avatar-img {
