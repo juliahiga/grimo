@@ -117,7 +117,9 @@ router.delete("/fichas/:id", async (req, res) => {
   try {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
-    await pool.query("DELETE FROM tlou_fichas WHERE id = ? AND user_id = ?", [req.params.id, user.id]);
+    const fichaId = parseInt(req.params.id);
+    await pool.query("DELETE FROM tlou_campanha_jogadores WHERE ficha_id = ?", [fichaId]);
+    await pool.query("DELETE FROM tlou_fichas WHERE id = ? AND user_id = ?", [fichaId, user.id]);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

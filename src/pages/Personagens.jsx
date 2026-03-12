@@ -79,7 +79,7 @@ const ModalConfirmar = ({ onConfirmar, onCancelar }) => {
   const [inputValue, setInputValue] = useState("");
   const confirmado = inputValue === "REMOVER";
 
-  return createPortal(
+  const conteudo = (
     <div className="confirmar-overlay" onClick={onCancelar}>
       <div className="confirmar-modal-novo" onClick={(e) => e.stopPropagation()}>
         <div className="confirmar-header">
@@ -105,9 +105,11 @@ const ModalConfirmar = ({ onConfirmar, onCancelar }) => {
           </button>
         </div>
       </div>
-    </div>,
-    document.getElementById("modal-root")
+    </div>
   );
+
+  const modalRoot = document.getElementById("modal-root");
+  return modalRoot ? createPortal(conteudo, modalRoot) : conteudo;
 };
 
 // ── Página principal ──────────────────────────────────────────────────────────
@@ -149,17 +151,33 @@ const Personagens = () => {
   // ── Deletar TLOU
   const handleDeletarTlou = async (p) => {
     try {
-      await fetch(`${API}/api/tlou/fichas/${p.id}`, { method: "DELETE", credentials: "include" });
-      setPersonagensTlou((prev) => prev.filter((x) => x.id !== p.id));
-    } finally { setModalDeletar(null); }
+      const res = await fetch(`${API}/api/tlou/fichas/${p.id}`, { method: "DELETE", credentials: "include" });
+      if (res.ok) {
+        setPersonagensTlou((prev) => prev.filter((x) => x.id !== p.id));
+      } else {
+        mostrarAviso("Erro ao deletar personagem. Tente novamente.");
+      }
+    } catch {
+      mostrarAviso("Erro de conexão ao deletar personagem.");
+    } finally {
+      setModalDeletar(null);
+    }
   };
 
   // ── Deletar Naruto
   const handleDeletarNaruto = async (p) => {
     try {
-      await fetch(`${API}/api/naruto/fichas/${p.id}`, { method: "DELETE", credentials: "include" });
-      setPersonagensNaruto((prev) => prev.filter((x) => x.id !== p.id));
-    } finally { setModalDeletar(null); }
+      const res = await fetch(`${API}/api/naruto/fichas/${p.id}`, { method: "DELETE", credentials: "include" });
+      if (res.ok) {
+        setPersonagensNaruto((prev) => prev.filter((x) => x.id !== p.id));
+      } else {
+        mostrarAviso("Erro ao deletar personagem. Tente novamente.");
+      }
+    } catch {
+      mostrarAviso("Erro de conexão ao deletar personagem.");
+    } finally {
+      setModalDeletar(null);
+    }
   };
 
   const handleDuplicarTlou = async (p) => {
@@ -215,7 +233,7 @@ const Personagens = () => {
                 subtitulo={p.nivel}
                 sistema="The Last of Us"
                 rota={`/ficha/${p.id}`}
-                onDeletar={(p) => setModalDeletar({ p, sistema: "tlou" })}
+                onDeletar={(per) => setModalDeletar({ p: per, sistema: "tlou" })}
                 onDuplicar={handleDuplicarTlou}
               />
             ))}
@@ -226,7 +244,7 @@ const Personagens = () => {
                 subtitulo={`${p.nivel_shinobi} | ${p.cla_nome}`}
                 sistema="Naruto: Shinobi no Sho"
                 rota={`/naruto/ficha/${p.id}`}
-                onDeletar={(p) => setModalDeletar({ p, sistema: "naruto" })}
+                onDeletar={(per) => setModalDeletar({ p: per, sistema: "naruto" })}
                 onDuplicar={handleDuplicarNaruto}
               />
             ))}
@@ -257,7 +275,7 @@ const Personagens = () => {
             </div>
           </div>
         </div>,
-        document.getElementById("modal-root")
+        document.getElementById("modal-root") || document.body
       )}
 
       {modalDeletar && (

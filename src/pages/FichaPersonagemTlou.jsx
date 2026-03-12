@@ -549,12 +549,10 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
     const rolarDanoArma = () => {
         if (!dano) return;
         const str = dano.trim().toUpperCase().replace(/\s/g, "");
-        const dadoRegex = /([0-9]*)D([0-9]+)/g;
-        let match;
         let totalDano = 0;
         const partesDano = [];
         let processado = str;
-        while ((match = dadoRegex.exec(str)) !== null) {
+        for (const match of str.matchAll(/([0-9]*)D([0-9]+)/g)) {
             const qtd = parseInt(match[1] || "1", 10);
             const faces = parseInt(match[2], 10);
             const rollsGrupo = [];
@@ -988,10 +986,8 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
         let danoVal = 0;
         const rolls = [];
         const partesDano = [];
-        const dadoRegexAtq = /([0-9]*)D([0-9]+)/g;
-        let mAtq;
         let processadoAtq = strDano;
-        while ((mAtq = dadoRegexAtq.exec(strDano)) !== null) {
+        for (const mAtq of strDano.matchAll(/([0-9]*)D([0-9]+)/g)) {
             const q = parseInt(mAtq[1] || "1", 10);
             const f = parseInt(mAtq[2], 10);
             for (let i = 0; i < q; i++) {
@@ -2496,6 +2492,8 @@ const FichaPersonagemTlou = () => {
             .then(data => {
                 setFicha(data);
                 fichaImagemRef.current = data.imagem ?? null;
+                setNomePersonagem(data.nome_personagem ?? "");
+                setNomeJogador(data.nome_jogador ?? "");
                 setTipoSobrevivente(data.nivel ?? ""); setClasseSobrevivente(data.classe ?? "");
                 setVidaAtual(data.vida_atual ?? data.vida_maxima ?? 0); setVidaMax(data.vida_maxima ?? 0);
                 setPilulas(String(data.pilulas ?? "")); setSucata(String(data.sucata ?? ""));
