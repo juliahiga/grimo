@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/NovaCampanhaTlouRpg.css";
 import { useUser } from "../context/UserContext";
+import ImageCropModalCapa from "../components/ImageCropModalCapa";
 
 const NovaCampanhaTLOU = () => {
   useUser();
@@ -11,18 +12,32 @@ const NovaCampanhaTLOU = () => {
   const [imagem, setImagem]               = useState(null);
   const [imagemPreview, setImagemPreview] = useState(null);
   const [enviando, setEnviando]           = useState(false);
+  const [cropSrc, setCropSrc]             = useState(null); // src bruto para o modal de crop
   const editorRef                         = useRef(null);
   const fileInputRef                      = useRef(null);
 
+  /* Abre o seletor de arquivo */
+  const abrirSeletor = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  /* Quando o usuário seleciona um arquivo → abre o modal de crop */
   const handleImagem = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      setImagem(ev.target.result);
-      setImagemPreview(ev.target.result);
-    };
+    reader.onload = (ev) => setCropSrc(ev.target.result);
     reader.readAsDataURL(file);
+  };
+
+  /* Callback do modal de crop: recebe o base64 já cortado */
+  const handleCropConfirm = (base64) => {
+    setImagem(base64);
+    setImagemPreview(base64);
+    setCropSrc(null);
   };
 
   const handleRemoverImagem = () => {
@@ -85,12 +100,15 @@ const NovaCampanhaTLOU = () => {
           {imagemPreview ? (
             <div className="nc-imagem-preview-wrap">
               <img src={imagemPreview} alt="preview" className="nc-imagem-preview" />
+              <button className="nc-remover-imagem" onClick={abrirSeletor} title="Trocar imagem">
+                🔄 Trocar
+              </button>
               <button className="nc-remover-imagem" onClick={handleRemoverImagem}>
                 ✕ Remover
               </button>
             </div>
           ) : (
-            <button className="nc-upload-btn" onClick={() => fileInputRef.current?.click()}>
+            <button className="nc-upload-btn" onClick={abrirSeletor}>
               📁 Escolher imagem
             </button>
           )}
@@ -135,6 +153,16 @@ const NovaCampanhaTLOU = () => {
         </div>
 
       </div>
+
+      {/* Modal de crop — aparece ao escolher ou trocar imagem */}
+      {cropSrc && (
+        <ImageCropModalCapa
+          src={cropSrc}
+          title="Imagem de Capa"
+          onConfirm={handleCropConfirm}
+          onClose={() => setCropSrc(null)}
+        />
+      )}
     </div>
   );
 };

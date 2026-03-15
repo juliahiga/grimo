@@ -2777,6 +2777,7 @@ const FichaPersonagemNaruto = () => {
   useEffect(() => { chakraMaxRef.current = chakraMax; }, [chakraMax]);
   useEffect(() => { ryosRef.current = ryos; }, [ryos]);
   const imagemRef = useRef(null);
+  const fichaRef   = useRef(null);
 
   // Refs espelho dos estados — sempre atualizados, usados no beforeunload
   const jutsusRef        = useRef([]);
@@ -2804,6 +2805,7 @@ const FichaPersonagemNaruto = () => {
       .then(r => r.json())
       .then(data => {
         setFicha(data);
+        fichaRef.current = data;
         imagemRef.current = data.imagem ?? null;
         console.log('[DEBUG ficha]', JSON.stringify(data, null, 2));
         setNomePersonagem(data.nome_personagem ?? "");
@@ -2984,6 +2986,24 @@ const FichaPersonagemNaruto = () => {
     if (entradaPreMontada) {
       setResultado(entradaPreMontada);
       setHistorico(h => [...h.slice(-99), entradaPreMontada]);
+      if (fichaRef.current?.campanha_id) {
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/naruto/campanhas/${fichaRef.current.campanha_id}/rolagens`, {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ficha_id: fichaRef.current.id,
+            personagem: nomeRef.current,
+            label: entradaPreMontada.label,
+            valor_dado: entradaPreMontada.d1 ?? 0,
+            bonus: entradaPreMontada.bonus ?? 0,
+            total: entradaPreMontada.total,
+            is_dano: false,
+            critico_max: !!(entradaPreMontada.critico),
+            critico_min: !!(entradaPreMontada.falhaCritica),
+            hora: makeTimestamp().slice(-5),
+          }),
+        }).catch(() => {});
+      }
       return;
     }
     const { d1, d2 } = rolar2d8();
@@ -3003,7 +3023,25 @@ const FichaPersonagemNaruto = () => {
     };
     setResultado(entrada);
     setHistorico(h => [...h.slice(-99), entrada]);
-  }, []);
+    if (fichaRef.current?.campanha_id) {
+      fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/naruto/campanhas/${fichaRef.current.campanha_id}/rolagens`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ficha_id: fichaRef.current.id,
+          personagem: nomeRef.current,
+          label,
+          valor_dado: d1 + d2,
+          bonus: precisaoExtra + bonusExtra,
+          total,
+          is_dano: false,
+          critico_max: critico,
+          critico_min: falhaCritica,
+          hora: makeTimestamp().slice(-5),
+        }),
+      }).catch(() => {});
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Rolar 1d8 (Iniciativa) ──
   const handleRolar1d8 = useCallback((label, bonus = 0) => {
@@ -3021,7 +3059,25 @@ const FichaPersonagemNaruto = () => {
     };
     setResultado(entrada);
     setHistorico(h => [...h.slice(-99), entrada]);
-  }, []);
+    if (fichaRef.current?.campanha_id) {
+      fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/naruto/campanhas/${fichaRef.current.campanha_id}/rolagens`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ficha_id: fichaRef.current.id,
+          personagem: nomeRef.current,
+          label,
+          valor_dado: d1,
+          bonus,
+          total,
+          is_dano: false,
+          critico_max: critico,
+          critico_min: falhaCritica,
+          hora: makeTimestamp().slice(-5),
+        }),
+      }).catch(() => {});
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Helpers derivados ──
   const _atrBase = {

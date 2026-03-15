@@ -202,6 +202,8 @@ router.get("/fichas/:id", async (req, res) => {
         cl.nome   AS cla_nome,
         cl.kekkei AS cla_kekkei,
         t.nome    AS tendencia_nome,
+        cj.campanha_id,
+        cj.campanha_id,
         camp.nome AS campanha_nome
       FROM naruto_fichas f
       JOIN naruto_niveis_campanha n  ON n.id  = f.nc_id
@@ -321,6 +323,8 @@ router.delete("/fichas/:id", async (req, res) => {
   try {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+    await pool.query("DELETE FROM naruto_campanha_jogadores WHERE ficha_id = ? AND user_id = ?", [req.params.id, user.id]);
+    await pool.query("DELETE FROM naruto_campanha_jogadores WHERE ficha_id = ? AND user_id = ?", [req.params.id, user.id]);
     await pool.query("DELETE FROM naruto_fichas WHERE id = ? AND user_id = ?", [req.params.id, user.id]);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -530,6 +534,8 @@ router.get("/campanhas/:id/fichas", async (req, res) => {
         f.chakra_atual, f.chakra_maximo,
         f.atr_forca, f.atr_destreza, f.atr_agilidade,
         f.atr_percepcao, f.atr_inteligencia, f.atr_vigor, f.atr_espirito,
+        f.atr_forca, f.atr_destreza, f.atr_agilidade,
+        f.atr_percepcao, f.atr_inteligencia, f.atr_vigor, f.atr_espirito,
         f.ryos, f.imagem,
         n.nc, n.nivel_shinobi,
         cl.nome AS cla_nome,
@@ -566,8 +572,11 @@ router.get("/campanhas/:id/rolagens", async (req, res) => {
     const sinceId = parseInt(req.query.since_id) || 0;
     const [rows] = await pool.query(`
       SELECT id, ficha_id, campanha_id,
-             tipo, descricao, dado1, dado2, precisao, bonus, total,
-             critico, falha_critica, rolado_em
+             tipo, descricao AS label,
+             personagem, hora,
+             dado1 AS valor_dado, dado2, precisao, bonus, total,
+             critico AS critico_max, falha_critica AS critico_min,
+             rolado_em
       FROM naruto_rolagens
       WHERE campanha_id = ? AND id > ?
       ORDER BY id DESC LIMIT 100
@@ -579,8 +588,12 @@ router.get("/campanhas/:id/rolagens", async (req, res) => {
 
 router.post("/campanhas/:id/rolagens", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
-  const { ficha_id, tipo, descricao, dado1, dado2, precisao, bonus, total, dificuldade, sucesso } = req.body;
-  if (!tipo || total === undefined) return res.status(400).json({ error: "tipo e total são obrigatórios" });
+  const {
+    ficha_id,
+    label, valor_dado, is_dano, critico_max, critico_min, hora, personagem,
+    tipo, descricao, dado1, dado2, precisao, bonus, total, dificuldade, sucesso,
+  } = req.body;
+  if (total === undefined) return res.status(400).json({ error: "total é obrigatório" });
   try {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
@@ -593,23 +606,23 @@ router.post("/campanhas/:id/rolagens", async (req, res) => {
     `, [req.params.id, user.id, req.params.id, user.id]);
     if (!acesso.length) return res.status(403).json({ error: "Sem acesso a esta campanha" });
 
-    const d1          = dado1 ?? 0;
-    const d2          = dado2 ?? 0;
-    const soma        = d1 + d2;
-    const critico     = soma >= 15 ? 1 : 0;
-    const falha_critica = soma <= 3  ? 1 : 0;
+    const _tipo     = tipo || (is_dano ? "dano" : "pericia");
+    const _descricao = descricao || label || null;
+    const _d1        = dado1 ?? valor_dado ?? 0;
+    const _d2        = dado2 ?? 0;
+    const _bonus     = bonus ?? 0;
+    const _critico   = critico_max ? 1 : ((_d1 + _d2) >= 15 ? 1 : 0);
+    const _falha     = critico_min ? 1 : ((_d1 + _d2) <= 3  ? 1 : 0);
 
     const [result] = await pool.query(`
       INSERT INTO naruto_rolagens
-        (ficha_id, campanha_id, tipo, descricao, dado1, dado2, precisao, bonus, total,
-         dificuldade, sucesso, critico, falha_critica)
+        (ficha_id, campanha_id, tipo, descricao, personagem, hora, dado1, dado2, precisao, bonus, total, critico, falha_critica)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       ficha_id || null, req.params.id,
-      tipo, descricao || null,
-      d1, d2, precisao ?? 0, bonus ?? 0, total,
-      dificuldade ?? null, sucesso ?? null,
-      critico, falha_critica,
+      _tipo, _descricao, personagem || null, hora || null,
+      _d1, _d2, precisao ?? 0, _bonus, total,
+      _critico, _falha,
     ]);
 
     res.status(201).json({ id: result.insertId });
