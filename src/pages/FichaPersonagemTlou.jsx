@@ -1402,6 +1402,7 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar, sucata, onGastarSucata })
                 "2x4", "martelo", "chave inglesa", "pé de cabra", "cano", "taco",
                 "marreta", "taco de golfe", "faca improvisada", "canivete", "machado", "machete",
                 "molotov cocktail", "nail bomb", "pipe bomb", "smoke bomb", "trap mine",
+                "molotov", "bomba de pregos", "bomba improvisada", "bomba de fumaça", "bomba de proximidade",
             ];
             const NOMES_PISTOLA = [
                 "hunting pistol", "magnum", "pistola", "revólver", "revolver",
