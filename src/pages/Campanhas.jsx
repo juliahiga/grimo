@@ -153,10 +153,18 @@ const Campanhas = () => {
       ? `${API}/api/naruto/campanhas/${modalDeletar.id}`
       : `${API}/api/tlou/campanhas/${modalDeletar.id}`;
     try {
-      await fetch(endpoint, { method: "DELETE", credentials: "include" });
+      const res = await fetch(endpoint, { method: "DELETE", credentials: "include" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Erro ao deletar campanha.");
+        return;
+      }
       setCampanhas((prev) => prev.filter((c) => !(c.id === modalDeletar.id && c.sistema === modalDeletar.sistema)));
-    } catch {}
-    finally { setModalDeletar(null); }
+    } catch {
+      alert("Erro de conexão ao deletar campanha.");
+    } finally {
+      setModalDeletar(null);
+    }
   };
 
   const handleNovaCampanha = () => {

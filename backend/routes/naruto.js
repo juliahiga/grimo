@@ -323,9 +323,17 @@ router.delete("/fichas/:id", async (req, res) => {
   try {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
-    await pool.query("DELETE FROM naruto_campanha_jogadores WHERE ficha_id = ? AND user_id = ?", [req.params.id, user.id]);
-    await pool.query("DELETE FROM naruto_campanha_jogadores WHERE ficha_id = ? AND user_id = ?", [req.params.id, user.id]);
+
+    const [check] = await pool.query(
+      "SELECT id FROM naruto_fichas WHERE id = ? AND user_id = ?",
+      [req.params.id, user.id]
+    );
+    if (!check.length) return res.status(403).json({ error: "Sem permissão para deletar esta ficha" });
+
+    await pool.query("DELETE FROM naruto_rolagens WHERE ficha_id = ?", [req.params.id]);
+    await pool.query("DELETE FROM naruto_campanha_jogadores WHERE ficha_id = ?", [req.params.id]);
     await pool.query("DELETE FROM naruto_fichas WHERE id = ? AND user_id = ?", [req.params.id, user.id]);
+
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -472,6 +480,7 @@ router.delete("/campanhas/:id", async (req, res) => {
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
     const [check] = await pool.query("SELECT id FROM naruto_campanhas WHERE id = ? AND user_id_mestre = ?", [req.params.id, user.id]);
     if (!check.length) return res.status(403).json({ error: "Sem permissão para deletar esta campanha" });
+    await pool.query("DELETE FROM naruto_rolagens WHERE campanha_id = ?", [req.params.id]);
     await pool.query("DELETE FROM naruto_campanha_jogadores WHERE campanha_id = ?", [req.params.id]);
     await pool.query("DELETE FROM naruto_campanhas WHERE id = ?", [req.params.id]);
     res.json({ success: true });

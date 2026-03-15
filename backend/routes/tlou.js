@@ -192,6 +192,7 @@ router.delete("/campanhas/:id", async (req, res) => {
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
     const [check] = await pool.query("SELECT id FROM tlou_campanhas WHERE id = ? AND user_id_mestre = ?", [req.params.id, user.id]);
     if (check.length === 0) return res.status(403).json({ error: "Sem permissão para deletar esta campanha" });
+    await pool.query("DELETE FROM tlou_rolagens WHERE campanha_id = ?", [req.params.id]);
     await pool.query("DELETE FROM tlou_campanha_jogadores WHERE campanha_id = ?", [req.params.id]);
     await pool.query("DELETE FROM tlou_campanhas WHERE id = ?", [req.params.id]);
     res.json({ success: true });
