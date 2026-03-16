@@ -149,8 +149,8 @@
 .fn-atributos-grid { display: flex; flex-direction: column; gap: 2px; }
 .fn-atr-row { display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-radius: 4px; }
 .fn-atr-row:hover { background: #0c1424; }
-.fn-atr-sigla { font-size: 0.65rem; color: #4a90e2; width: 28px; flex-shrink: 0; }
-.fn-atr-nome { font-size: 0.8rem; color: #7ab3e0; flex: 1; }
+.fn-atr-sigla { font-size: 16px; color: #4a90e2; width: 28px; flex-shrink: 0; }
+.fn-atr-nome { font-size: 14px; color: #4a6080; flex: 1; text-align: left; padding-left: 18px; }
 .fn-atr-input {
   width: 46px; background: #0d1828; border: 1px solid #1a3050;
   border-radius: 4px; color: #d4b483; font-size: 0.9rem; text-align: center; padding: 2px 4px;
@@ -162,8 +162,8 @@
 .fn-combate-grid { display: flex; flex-direction: column; gap: 2px; }
 .fn-hc-row { display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-radius: 4px; }
 .fn-hc-row:hover { background: #0c1424; }
-.fn-hc-sigla { font-size: 0.65rem; color: #4a90e2; width: 30px; flex-shrink: 0; }
-.fn-hc-nome { font-size: 0.8rem; color: #7ab3e0; flex: 1; }
+.fn-hc-sigla { font-size: 16px; color: #4a90e2; width: 30px; flex-shrink: 0; }
+.fn-hc-nome { font-size: 14px; color: #4a6080; flex: 1; text-align: left; padding-left: 18px; }
 .fn-hc-val { font-size: 1.1rem; color: #d4b483; width: 28px; text-align: right; }
 .fn-hc-rolar { flex-shrink: 0; }
 

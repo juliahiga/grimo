@@ -38,7 +38,7 @@ const CampoEditavel = ({ valor, onSalvar, placeholder }) => {
     />
   );
   return (
-    <span className="fn-campo-valor fn-campo-editavel" onClick={() => setEditando(true)} title="Clique para editar">
+    <span className="fn-campo-valor fn-campo-editavel" onClick={() => setEditando(true)}>
       {valor || <span className="fn-campo-vazio">{placeholder}</span>}
       <i className="fas fa-pen fn-campo-edit-icon" />
     </span>
@@ -72,7 +72,7 @@ const CampoNumerico = ({ valor, onChange, min = 0, className = "" }) => {
     />
   );
   return (
-    <span className={`fn-num-val ${className}`} onClick={() => setEditando(true)} title="Clique para editar">
+    <span className={`fn-num-val ${className}`} onClick={() => setEditando(true)}>
       {valor}
     </span>
   );
@@ -421,7 +421,7 @@ const CATS = [
 // ── Aptidões restritas por clã ────────────────────────────────────────────────
 const aptidoesRestritas = [
   // ABURAME
-  { id: "r_kikaichuu",    nome: "Kikaichuu",                cat: "restrita", cla: "aburame",  req: "Lidar com Animais 1", desc: "Insetos sugadores de chakra vivem no corpo. Ataque drena chakra do alvo igual ao nº de insetos usados. Aptidão evolutiva — cada nível comprado separadamente.", efeito: null },
+  { id: "r_kikaichuu",    nome: "Kikaichuu",                cat: "restrita", cla: "aburame",  req: "Lidar com Animais 1", desc: "Insetos sugadores de chakra vivem no corpo. Ataque drena chakra do alvo igual ao nº de insetos usados. Aptidão evolutiva, cada nível comprado separadamente.", efeito: null },
   { id: "r_shokaichuu",   nome: "Shōkaichuu",               cat: "restrita", cla: "aburame",  req: "Lidar com Animais 10", desc: "Inseto parasita rastreador: prende ao alvo e permite rastreá-lo pelo odor.", efeito: null },
   { id: "r_kidaichuu",    nome: "Kidaichuu",                cat: "restrita", cla: "aburame",  req: null, desc: "Inseto parasita gigante. Não pode ser usado junto com Rinkaichuu.", efeito: null },
   { id: "r_rinkaichuu",   nome: "Rinkaichuu",               cat: "restrita", cla: "aburame",  req: null, desc: "Inseto parasita venenoso. Não pode ser usado junto com Kidaichuu.", efeito: null },
@@ -829,7 +829,6 @@ const AbaAptidoes = ({ aptidoes, setAptidoes, atr, pericias, hcCalc = {}, claId,
 const AbaPericiasNova = ({ periciasConfig, atributosConfig, atr, pericias, setPericias, aptPericiaBonus = {}, aptidoes = [], handleRolar }) => {
   const [atrOverride, setAtrOverride] = useState({});
   const [dropdownAberto, setDropdownAberto] = useState(null);
-  const [totalOverride, setTotalOverride] = useState({});
   const [editandoTotal, setEditandoTotal] = useState(null);
   const wrapperRef = useRef(null);
 
@@ -866,9 +865,9 @@ const AbaPericiasNova = ({ periciasConfig, atributosConfig, atr, pericias, setPe
             // bônus de aptidão Perito (+2 na perícia)
             const aptKey  = p.id.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
             const aptBonus = aptPericiaBonus[aptKey] ?? 0;
-            // total usado nas rolagens = ½Atr + pts gastos + bônus aptidões (ou override manual)
+            // total usado nas rolagens = ½Atr + pts gastos + bônus aptidões
             const totalCalc = base + extra + aptBonus;
-            const total = totalOverride[p.id] !== undefined ? totalOverride[p.id] : totalCalc;
+            const total = totalCalc;
             const trocado = !!atrOverride[p.id];
 
             return (
@@ -911,7 +910,7 @@ const AbaPericiasNova = ({ periciasConfig, atributosConfig, atr, pericias, setPe
                     )}
                   </div>
                 </td>
-                {/* Total editável */}
+                {/* Total editável — editar salva direto em pericias (persiste) */}
                 <td className="fnt-pericia-total-cell">
                   {editandoTotal === p.id ? (
                     <span
@@ -920,8 +919,12 @@ const AbaPericiasNova = ({ periciasConfig, atributosConfig, atr, pericias, setPe
                       suppressContentEditableWarning
                       style={{ cursor: "text", borderBottom: "1px solid #4a90e2", outline: "none", minWidth: 20, display: "inline-block", textAlign: "center" }}
                       onBlur={e => {
-                        const v = parseInt(e.currentTarget.textContent);
-                        setTotalOverride(prev => ({ ...prev, [p.id]: isNaN(v) ? 0 : v }));
+                        const novoTotal = parseInt(e.currentTarget.textContent);
+                        if (!isNaN(novoTotal)) {
+                          // Calcula o extra necessário para que base + extra + aptBonus == novoTotal
+                          const novoExtra = novoTotal - base - aptBonus;
+                          setPericias(prev => ({ ...prev, [p.id]: Math.max(0, novoExtra) }));
+                        }
                         setEditandoTotal(null);
                       }}
                       onKeyDown={e => {
@@ -3124,7 +3127,8 @@ const FichaPersonagemNaruto = () => {
     LM:  (ficha.hc_base_lm  ?? 3) + (atr.percepcao ?? 0) + (hcBonus.LM  ?? 0) + aptHcBonus.LM,
   } : {};
 
-  const iniciativaCalc   = (atr.percepcao ?? 0) + (atr.agilidade ?? 0) + iniciativaBonus + aptIniciativaBonus;
+  const prontidaoCalc    = Math.ceil((atr.percepcao ?? 0) / 2) + (pericias.prontidao ?? 0);
+  const iniciativaCalc   = (atr.agilidade ?? 0) + prontidaoCalc + iniciativaBonus + aptIniciativaBonus;
   const reacaoEsqCalc    = (hcCalc.ESQ ?? 0) + 9;
   // Velocista: dobra Agilidade para deslocamento
   const deslocamentoCalc = temApt("velocista")
@@ -3149,8 +3153,17 @@ const FichaPersonagemNaruto = () => {
     <div className="fn-page">
 
       {/* ── TOPBAR ── */}
-      <div className="fn-topbar">
+      <div className="fn-topbar" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button className="fn-voltar-btn" onClick={handleVoltar}>← VOLTAR</button>
+        {getClaId(ficha.cla_nome) === "inuzuka" && (
+          <button
+            className="fn-voltar-btn"
+            style={{ color: "#4a90e2", borderColor: "#4a90e2" }}
+            onClick={() => navigate(`/personagem-naruto/${id}/animal`)}
+          >
+            COMPANHEIRO →
+          </button>
+        )}
       </div>
 
       <div className="fn-sheet">
@@ -3182,7 +3195,11 @@ const FichaPersonagemNaruto = () => {
             <select
               className="fn-nc-select"
               value={nc || "4"}
-              onChange={e => setNc(e.target.value)}
+              onChange={e => {
+                setNc(e.target.value);
+                const ncNum = parseInt(e.target.value, 10) || 4;
+                setVitalMax(10 + 3 * (atrEditRef.current.vigor ?? 0) + 5 * ncNum);
+              }}
             >
               {Array.from({ length: 17 }, (_, i) => i + 4).map(n => {
                 const row = TABELA_EVOLUCAO.find(r => r.nc === n);
@@ -3236,7 +3253,16 @@ const FichaPersonagemNaruto = () => {
                   <span className="fn-atr-nome">{a.nome}</span>
                   <CampoNumerico
                     valor={atr[a.id] ?? 0}
-                    onChange={v => setAtrEdit(prev => ({ ...prev, [a.id]: v }))}
+                    onChange={v => {
+                      setAtrEdit(prev => ({ ...prev, [a.id]: v }));
+                      if (a.id === "vigor") {
+                        const ncNum = parseInt(ncRef.current, 10) || 4;
+                        setVitalMax(10 + 3 * v + 5 * ncNum);
+                      }
+                      if (a.id === "espirito") {
+                        setChakraMax(10 + 3 * v);
+                      }
+                    }}
                     className="fn-atr-val"
                   />
                 </div>
@@ -3282,7 +3308,7 @@ const FichaPersonagemNaruto = () => {
                 <span className="fn-stat-label">INICIATIVA</span>
                 <CampoNumerico
                   valor={iniciativaCalc}
-                  onChange={v => setIniciativaBonus(v - ((atr.percepcao ?? 0) + (atr.agilidade ?? 0)))}
+                  onChange={v => setIniciativaBonus(v - ((atr.agilidade ?? 0) + prontidaoCalc))}
                   min={0}
                   className="fn-stat-val"
                 />

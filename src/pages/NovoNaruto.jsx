@@ -469,7 +469,7 @@ const StepCombate = ({ atributos, onConcluir, onAnterior, initialValue }) => {
         })}
       </div>
       <div className="combate-info">
-        <p>Iniciativa = Prontidão + Agilidade ({(atributos.percepcao ?? 0) + (atributos.agilidade ?? 0)})</p>
+        <p>Iniciativa = Agilidade + Prontidão ({(atributos.agilidade ?? 0) + Math.ceil((atributos.percepcao ?? 0) / 2)} base, cresce com pontos em Prontidão)</p>
         <p>Deslocamento = 10m + Agilidade ÷ 2 ({10 + Math.floor((atributos.agilidade ?? 0) / 2)}m)</p>
         <p>Reação de Esquiva = ESQ + 9 ({getValor(habs[2]) + 9})</p>
       </div>

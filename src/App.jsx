@@ -18,6 +18,7 @@ import NovoNaruto from "./pages/NovoNaruto";
 import CampanhaNaruto from "./pages/CampanhaNaruto";
 import NovaCampanhaNarutoRpg from "./pages/NovaCampanhaNarutoRpg";
 import EscudoMestreNaruto from "./pages/EscudoMestreNaruto";
+import FichaAnimalInuzuka from "./pages/FichaAnimalInuzuka";
 
 function App() {
   return (
@@ -29,6 +30,9 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/personagens" element={<Personagens />} />
             <Route path="/naruto/ficha/:id" element={<FichaPersonagemNaruto />} />
+            <Route path="/naruto/ficha/:id/animal" element={<FichaAnimalInuzuka />} />
+            <Route path="/personagem-naruto/:id" element={<FichaPersonagemNaruto />} />
+            <Route path="/personagem-naruto/:id/animal" element={<FichaAnimalInuzuka />} />
             <Route path="/ficha/:id"        element={<FichaPersonagemTlou />} />
             <Route path="/campanhas" element={<Campanhas />} />
             <Route path="/campanha/:id" element={<CampanhaTlou />} />

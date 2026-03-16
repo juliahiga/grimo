@@ -235,7 +235,7 @@ router.put("/fichas/:id/salvar", async (req, res) => {
     nome_personagem, nome_jogador, nc,
     vitalidade_atual, vitalidade_maxima,
     chakra_atual, chakra_maximo,
-    ryos,
+    ryos, imagem,
     dados_pericias,
     historico_rolagens,
     dados_extras,
@@ -251,68 +251,60 @@ router.put("/fichas/:id/salvar", async (req, res) => {
     );
     if (!check.length) return res.status(403).json({ error: "Sem permissão" });
 
-    let nc_id = check[0].nc_id;
-    if (nc) {
+    // UPDATE parcial — só atualiza campos presentes no body (evita corromper
+    // dados da ficha principal quando a ficha do animal manda só dados_extras)
+    const fields = [];
+    const values = [];
+
+    if (nome_personagem    !== undefined) { fields.push("nome_personagem = ?");    values.push(nome_personagem); }
+    if (nome_jogador       !== undefined) { fields.push("nome_jogador = ?");       values.push(nome_jogador); }
+    if (imagem             !== undefined) { fields.push("imagem = ?");             values.push(imagem); }
+    if (vitalidade_atual   !== undefined) { fields.push("vitalidade_atual = ?");   values.push(vitalidade_atual || 0); }
+    if (vitalidade_maxima  !== undefined) { fields.push("vitalidade_maxima = ?");  values.push(vitalidade_maxima || 0); }
+    if (chakra_atual       !== undefined) { fields.push("chakra_atual = ?");       values.push(chakra_atual || 0); }
+    if (chakra_maximo      !== undefined) { fields.push("chakra_maximo = ?");      values.push(chakra_maximo || 0); }
+    if (ryos               !== undefined) { fields.push("ryos = ?");               values.push(ryos || 0); }
+    if (dados_pericias     !== undefined) { fields.push("dados_pericias = ?");     values.push(dados_pericias || "{}"); }
+    if (historico_rolagens !== undefined) { fields.push("historico_rolagens = ?"); values.push(historico_rolagens || "[]"); }
+
+    if (nc !== undefined) {
       const [ncRow] = await pool.query(
         "SELECT id FROM naruto_niveis_campanha WHERE nc = ? ORDER BY pontos_poder DESC LIMIT 1",
         [parseInt(nc)]
       );
-      if (ncRow.length) nc_id = ncRow[0].id;
+      if (ncRow.length) { fields.push("nc_id = ?"); values.push(ncRow[0].id); }
     }
 
-    let extrasObj = {};
-    try { extrasObj = JSON.parse(dados_extras || "{}"); } catch {}
+    if (dados_extras !== undefined) {
+      let extrasObj = {};
+      try { extrasObj = JSON.parse(dados_extras || "{}"); } catch {}
 
-    const atrEdit      = extrasObj.atrEdit || {};
-    const temAtrEdit   = Object.keys(atrEdit).length > 0;
-    const poderes      = JSON.stringify(extrasObj.poderes      ?? []);
-    const aptidoes     = JSON.stringify(extrasObj.aptidoes     ?? []);
-    const equipamentos = JSON.stringify(extrasObj.itensMochila ?? []);
-    const notas        = dados_extras || null;
+      const atrEdit = extrasObj.atrEdit || {};
+      if (Object.keys(atrEdit).length > 0) {
+        fields.push("atr_forca = ?");        values.push(atrEdit.forca        || 0);
+        fields.push("atr_destreza = ?");     values.push(atrEdit.destreza     || 0);
+        fields.push("atr_agilidade = ?");    values.push(atrEdit.agilidade    || 0);
+        fields.push("atr_percepcao = ?");    values.push(atrEdit.percepcao    || 0);
+        fields.push("atr_inteligencia = ?"); values.push(atrEdit.inteligencia || 0);
+        fields.push("atr_vigor = ?");        values.push(atrEdit.vigor        || 0);
+        fields.push("atr_espirito = ?");     values.push(atrEdit.espirito     || 0);
+      }
 
-    const atrFields = temAtrEdit
-      ? `atr_forca = ?, atr_destreza = ?, atr_agilidade = ?, atr_percepcao = ?,
-         atr_inteligencia = ?, atr_vigor = ?, atr_espirito = ?,`
-      : "";
-    const atrValues = temAtrEdit
-      ? [atrEdit.forca || 0, atrEdit.destreza || 0, atrEdit.agilidade || 0,
-         atrEdit.percepcao || 0, atrEdit.inteligencia || 0, atrEdit.vigor || 0,
-         atrEdit.espirito || 0]
-      : [];
+      if (extrasObj.poderes      !== undefined) { fields.push("poderes = ?");      values.push(JSON.stringify(extrasObj.poderes)); }
+      if (extrasObj.aptidoes     !== undefined) { fields.push("aptidoes = ?");     values.push(JSON.stringify(extrasObj.aptidoes)); }
+      if (extrasObj.itensMochila !== undefined) { fields.push("equipamentos = ?"); values.push(JSON.stringify(extrasObj.itensMochila)); }
 
-    await pool.query(`
-      UPDATE naruto_fichas SET
-        nome_personagem    = ?,
-        nome_jogador       = ?,
-        nc_id              = ?,
-        vitalidade_atual   = ?,
-        vitalidade_maxima  = ?,
-        chakra_atual       = ?,
-        chakra_maximo      = ?,
-        ryos               = ?,
-        ${atrFields}
-        dados_pericias     = ?,
-        poderes            = ?,
-        aptidoes           = ?,
-        equipamentos       = ?,
-        historico_rolagens = ?,
-        notas              = ?
-      WHERE id = ? AND user_id = ?
-    `, [
-      nome_personagem, nome_jogador,
-      nc_id,
-      vitalidade_atual || 0, vitalidade_maxima || 0,
-      chakra_atual || 0, chakra_maximo || 0,
-      ryos || 0,
-      ...atrValues,
-      dados_pericias     || "{}",
-      poderes,
-      aptidoes,
-      equipamentos,
-      historico_rolagens || "[]",
-      notas,
-      parseInt(req.params.id), user.id,
-    ]);
+      fields.push("notas = ?");
+      values.push(dados_extras);
+    }
+
+    if (fields.length === 0) return res.json({ ok: true, skipped: true });
+
+    values.push(parseInt(req.params.id), user.id);
+    await pool.query(
+      `UPDATE naruto_fichas SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+      values
+    );
 
     res.json({ ok: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
