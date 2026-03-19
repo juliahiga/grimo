@@ -166,6 +166,8 @@
 .fn-hc-nome { font-size: 14px; color: #4a6080; flex: 1; text-align: left; padding-left: 18px; }
 .fn-hc-val { font-size: 1.1rem; color: #d4b483; width: 28px; text-align: right; }
 .fn-hc-rolar { flex-shrink: 0; }
+.fn-hc-rolar:hover { background: none !important; transform: rotate(15deg) scale(1.15); }
+.fn-hc-rolar:active { transform: rotate(30deg) scale(0.95); }
 
 /* Stats rápidos */
 .fn-stats-rapidos { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -176,6 +178,8 @@
 .fn-stat-label { font-size: 12px; color: #4a90e2; letter-spacing: 0.06em; text-align: center; }
 .fn-stat-val { font-size: 20px; color: #4a90e2; }
 .fn-stat-rolar { margin-top: 2px; }
+.fn-stat-rolar:hover { background: none !important; transform: rotate(15deg) scale(1.15); }
+.fn-stat-rolar:active { transform: rotate(30deg) scale(0.95); }
 
 /* Sociais */
 .fn-sociais-grid { display: flex; gap: 8px; }
@@ -212,7 +216,8 @@
   font-size: 0.75rem; font-weight: 700; padding: 6px 14px; border-radius: 6px;
   cursor: pointer; transition: background 0.2s; letter-spacing: 0.05em; flex-shrink: 0;
 }
-.fn-btn-rolar-2d8:hover { background: #0f1e33; }
+.fn-btn-rolar-2d8:hover { background: none; transform: rotate(15deg) scale(1.15); }
+.fn-btn-rolar-2d8:active { transform: rotate(30deg) scale(0.95); }
 
 /* perícias + aptidões lado a lado */
 .fn-pericias-aptidoes-row {
@@ -232,7 +237,7 @@
 
 /* ── PERÍCIAS ── */
 .fn-pericias-wrapper { flex: 1; display: flex; flex-direction: column; height: 100%; align-items: center; }
-.fn-pericias-box { flex: 1; overflow-y: auto; display: flex; justify-content: center; width: 100%; scrollbar-width: thin; scrollbar-color: #1a2535 #040a12; }
+.fn-pericias-box { flex: 1; display: flex; justify-content: center; width: 100%; }
 .fn-pericias-tabela { width: auto; border-collapse: collapse; font-size: 24px; margin: 0 auto; }
 .fn-pericias-tabela thead tr th {
   font-size: 11px; color: #4a90e2; letter-spacing: 0.08em;
@@ -241,21 +246,31 @@
 .fnt-col-rolar  { width: 28px; text-align: center; }
 .fnt-col-nome   { text-align: left; }
 .fnt-col-atr    { width: 44px; text-align: center; }
+.fnt-col-pontos { width: 50px; text-align: center; }
 .fnt-col-total  { width: 44px; text-align: center; }
 .fn-pericias-tabela tbody tr { border-bottom: 1px solid #0c1424; transition: background 0.15s; }
 .fn-pericias-tabela tbody tr:hover { background: #0c1424; }
-.fnt-pericia-rolar      { padding: 2px 2px; text-align: center; }
-.fnt-pericia-nome       { color: #7ab3e0; padding: 4px 6px; font-size: 20px; white-space: nowrap; }
-.fnt-pericia-atr-cell   { text-align: center; padding: 3px 2px; position: relative; }
-.fnt-pericia-total-cell { text-align: center; padding: 4px 2px; }
-.fn-pericia-total-num   { font-size: 16px; font-weight: 700; color: #4a90e2; }
+.fnt-pericia-rolar        { padding: 2px 2px; text-align: center; }
+.fnt-pericia-nome         { color: #7ab3e0; padding: 4px 6px; font-size: 20px; white-space: nowrap; }
+.fnt-pericia-atr-cell     { text-align: center; padding: 3px 2px; position: relative; }
+.fnt-pericia-pontos-cell  { text-align: center; padding: 4px 2px; }
+.fn-pericia-pontos-num    { font-size: 20px; font-weight: 600; color: #4a90e2; opacity: 0.85; }
+.fnt-pericia-total-cell   { text-align: center; padding: 4px 2px; }
+.fn-pericia-total-num     { font-size: 20px; font-weight: 700; color: #4a90e2; }
 
 .fn-btn-rolar {
-  background: none; border: none; color: #4a90e2;
+  background: none; border: none; color: #1e3a5f;
   width: 26px; height: 26px; border-radius: 5px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; font-size: 20px; transition: background 0.2s;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+  transition: color 0.2s, transform 0.15s;
 }
-.fn-btn-rolar:hover { background: #0f1e33; }
+.fn-btn-rolar:hover {
+  color: #4a90e2;
+  transform: rotate(15deg) scale(1.15);
+}
+.fn-btn-rolar:active {
+  transform: rotate(30deg) scale(0.95);
+}
 
 /* Badge atributo */
 .fn-atr-dropdown-wrapper { position: relative; display: inline-flex; justify-content: center; }
@@ -1030,8 +1045,7 @@
 }
 .fn-meio-pericias {
   flex: 1; display: flex; flex-direction: column; align-items: center;
-  border-right: 1px solid #1a2535; overflow-y: auto;
-  scrollbar-width: thin; scrollbar-color: #1a2535 #040a12;
+  border-right: 1px solid #1a2535;
 }
 .fn-meio-anotacoes {
   flex: 1; display: flex; flex-direction: column; min-width: 0;
@@ -1277,3 +1291,414 @@
 .fn-fn-loja-cat-btn:last-child { border-right: none; }
 .fn-fn-loja-cat-btn:hover { color: #aaa; background: #050e1a; }
 .fn-fn-loja-cat-ativa { background: #060f1c !important; }
+/* ── MODAL EDITAR ITEM ─────────────────────────────────────────────────────── */
+.fn-editar-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1200;
+}
+.fn-editar-modal {
+  background: #080d12;
+  border: 1px solid #1a2535;
+  border-radius: 12px;
+  padding: 28px;
+  width: 420px;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.fn-editar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.fn-editar-titulo {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-weight: 900;
+  font-size: 1rem;
+  color: #fff;
+}
+.fn-editar-fechar {
+  background: none; border: none;
+  color: #555; font-size: 1.2rem; cursor: pointer;
+}
+.fn-editar-fechar:hover { color: #fff; }
+.fn-editar-field {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.fn-editar-label {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.6rem; font-weight: 800;
+  color: #4a90e2; letter-spacing: 1px; text-transform: uppercase;
+}
+.fn-editar-input {
+  background: #060a0e;
+  border: 1px solid #1a2535;
+  border-radius: 6px;
+  color: #fff;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.88rem;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.fn-editar-input:focus { border-color: #4a90e2; }
+.fn-editar-textarea {
+  background: #060a0e;
+  border: 1px solid #1a2535;
+  border-radius: 6px;
+  color: #aaa;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.8rem;
+  padding: 8px 12px;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+.fn-editar-textarea:focus { border-color: #4a90e2; }
+.fn-editar-btns {
+  display: flex; gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.fn-editar-btn-cancelar {
+  background: none;
+  border: 1px solid #1a2535;
+  color: #555;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.75rem; font-weight: 700;
+  padding: 8px 18px; border-radius: 6px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.fn-editar-btn-cancelar:hover { border-color: #4a90e2; color: #4a90e2; }
+.fn-editar-btn-salvar {
+  background: #4a90e2; border: none;
+  color: #fff;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.75rem; font-weight: 800;
+  padding: 8px 18px; border-radius: 6px; cursor: pointer;
+  transition: background 0.15s;
+}
+.fn-editar-btn-salvar:hover { background: #357abd; }
+
+/* ── BOTÕES VENDER/EDITAR/REMOVER ────────────────────────────────────────── */
+.fn-item-acoes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  gap: 8px;
+}
+.fn-item-acoes-esq { display: flex; gap: 6px; }
+.fn-btn-vender {
+  background: none;
+  border: 1px solid #1a3a1a;
+  color: #27ae60;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 1px;
+  padding: 4px 10px; border-radius: 4px; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.fn-btn-vender:hover { border-color: #27ae60; }
+.fn-btn-editar-item {
+  background: none;
+  border: 1px solid #1a2535;
+  color: #4a90e2;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 1px;
+  padding: 4px 10px; border-radius: 4px; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.fn-btn-editar-item:hover { border-color: #4a90e2; }
+
+/* ── MODAL CRIAR/EDITAR ATAQUE (estilo TLOU) ─────────────────────────────── */
+.fn-ataque-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+  backdrop-filter: blur(3px);
+}
+
+.fn-ataque-modal {
+  background: #080d12;
+  border: 1px solid #4a90e2;
+  border-radius: 12px;
+  width: 92%;
+  max-width: 480px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+
+.fn-ataque-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid #0d1a28;
+  flex-shrink: 0;
+}
+
+.fn-ataque-modal-titulo {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.fn-ataque-modal-fechar {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.fn-ataque-modal-fechar:hover { color: #4a90e2; }
+
+.fn-ataque-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+
+.fn-ataque-modal-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.fn-ataque-modal-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fn-ataque-modal-campo label {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: #4a6080;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.fn-ataque-modal-input {
+  background: #060a0e;
+  border: 1px solid #1a2535;
+  border-radius: 5px;
+  color: #dde;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.82rem;
+  padding: 7px 10px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+  appearance: auto;
+}
+.fn-ataque-modal-input:focus { border-color: #4a90e2; }
+.fn-ataque-modal-input option { background: #080d12; color: #dde; }
+
+.fn-ataque-modal-textarea {
+  background: #060a0e;
+  border: 1px solid #1a2535;
+  border-radius: 5px;
+  color: #99aabb;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.8rem;
+  padding: 8px 10px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.15s;
+}
+.fn-ataque-modal-textarea:focus { border-color: #4a90e2; }
+.fn-ataque-modal-textarea::placeholder { color: #2a4060; font-style: italic; }
+
+.fn-ataque-modal-preview {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  margin-top: 6px;
+  border: 1px solid #1a2535;
+}
+
+.fn-ataque-modal-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 12px 20px 16px;
+  border-top: 1px solid #0d1a28;
+  flex-shrink: 0;
+}
+
+.fn-ataque-modal-btn-cancelar {
+  background: none;
+  border: 1px solid #1a2535;
+  color: #556;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.fn-ataque-modal-btn-cancelar:hover { border-color: #4a90e2; color: #4a90e2; }
+
+.fn-ataque-modal-btn-adicionar {
+  background: #4a90e2;
+  border: none;
+  color: #fff;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 8px 22px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fn-ataque-modal-btn-adicionar:hover { background: #357abd; }
+.fn-ponto-total-editavel {
+  color: #888;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.fn-ponto-total-editavel:hover {
+  color: #4a90e2;
+  border-color: #4a90e2;
+}
+.fn-num-input.fn-ponto-total-editavel {
+  width: 40px;
+  color: #4a90e2;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #4a90e2;
+  outline: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+  cursor: text;
+}
+
+/* ── Modal descrição de atributo ── */
+.fn-atr-nome-clicavel {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.fn-atr-nome-clicavel:hover {
+  color: #4a90e2;
+}
+.fn-atr-info-icon {
+  margin-left: 5px;
+  font-size: 0.65rem;
+  opacity: 0.4;
+  vertical-align: middle;
+}
+.fn-atr-nome-clicavel:hover .fn-atr-info-icon {
+  opacity: 1;
+}
+.fn-atr-desc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+  backdrop-filter: blur(2px);
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+.fn-atr-desc-modal {
+  background: #060d16;
+  border: 1px solid #4a90e2;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+.fn-atr-desc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid #0f1e33;
+  flex-shrink: 0;
+}
+.fn-atr-desc-sigla {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #4a90e2;
+  letter-spacing: 2px;
+  background: #0a1628;
+  border: 1px solid #4a90e233;
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+.fn-atr-desc-titulo {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+.fn-atr-desc-fechar {
+  background: none;
+  border: none;
+  color: #4a6080;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+.fn-atr-desc-fechar:hover { color: #4a90e2; }
+.fn-atr-desc-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: #1a3050 #060d16;
+}
+.fn-atr-desc-intro {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 1rem;
+  color: #c0d0e0;
+  line-height: 1.7;
+  margin: 0;
+}
+.fn-atr-desc-texto {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.9rem;
+  color: #7090b0;
+  line-height: 1.7;
+  margin: 0;
+}

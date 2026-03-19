@@ -16,7 +16,7 @@ const sistemas = [
 const formatarData = (dataStr) => {
   if (!dataStr) return "";
   const d = new Date(dataStr);
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
 };
 
 // ── Card genérico (TLOU, Naruto e futuros sistemas) ──────────────────────────

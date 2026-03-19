@@ -156,12 +156,12 @@ router.post("/fichas", async (req, res) => {
         ?, ?, ?, ?,
         ?, ?, ?,
         ?, ?, ?, ?,
-        '{}', '[]', '[]', '[]', '[]'
+        ?, '[]', '[]', '[]', '[]'
       )
     `, [
       user.id, nome_jogador || user.name, nome_personagem,
       nc_id, cla_id, tendencia_id, imagem || null,
-      carisma || 0, manipulacao || 0,
+      carisma ?? socObj.carisma ?? 0, manipulacao ?? socObj.manipulacao ?? 0,
       vitMax, vitMax,
       chakMax, chakMax,
       ryosIniciais,
@@ -176,6 +176,7 @@ router.post("/fichas", async (req, res) => {
       hc_base_cd || combObj.cd || 3,
       hc_base_esq|| combObj.esq|| 3,
       hc_base_lm || combObj.lm || 3,
+      pericias && typeof pericias === "object" ? JSON.stringify(pericias) : '{}',
     ]);
 
     res.status(201).json({ id: result.insertId });
@@ -636,6 +637,56 @@ router.get("/itens", async (req, res) => {
       "SELECT id, categoria, nome, preco, descricao, comp FROM naruto_itens ORDER BY categoria, nome"
     );
     res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.patch("/fichas/:id", async (req, res) => {
+  if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
+  try {
+    const user = await getUserId(req.session.google_id);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    const fields = [];
+    const values = [];
+
+    const permitidos = [
+      "nome_personagem", "nome_jogador", "imagem",
+      "vitalidade_atual", "vitalidade_maxima",
+      "chakra_atual", "chakra_maximo", "ryos", "nc_id",
+      "atr_forca", "atr_destreza", "atr_agilidade", "atr_percepcao",
+      "atr_inteligencia", "atr_vigor", "atr_espirito",
+      "carisma", "manipulacao",
+      "hc_base_cc", "hc_base_cd", "hc_base_esq", "hc_base_lm",
+      "pontos_poder", "invocacao_id", "invocacao_dados",
+    ];
+    const json = [
+      "poderes", "aptidoes", "dados_pericias",
+      "equipamentos", "historico_rolagens",
+    ];
+
+    for (const campo of permitidos) {
+      if (req.body[campo] !== undefined) {
+        fields.push(`${campo} = ?`);
+        values.push(req.body[campo]);
+      }
+    }
+    for (const campo of json) {
+      if (req.body[campo] !== undefined) {
+        fields.push(`${campo} = ?`);
+        values.push(typeof req.body[campo] === "string"
+          ? req.body[campo]
+          : JSON.stringify(req.body[campo]));
+      }
+    }
+
+    if (!fields.length) return res.status(400).json({ error: "Nada para atualizar" });
+
+    values.push(req.params.id, user.id);
+    await pool.query(
+      `UPDATE naruto_fichas SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+      values
+    );
+    res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

@@ -265,8 +265,8 @@ const FichaAnimalInuzuka = () => {
           setChakraMax(cMax); setChakraAtual(cMax);
         }
       })
-      .then(() => { setTimeout(() => { fichaCarregada.current = true; }, 300); })
-      .catch(() => setDonorFicha({ error: true }))
+      .then(() => { setTimeout(() => { fichaCarregada.current = true; }, 500); })
+      .catch(() => { setDonorFicha({ error: true }); fichaCarregada.current = true; })
       .finally(() => setCarregando(false));
   }, [id]);
 
@@ -371,7 +371,6 @@ const FichaAnimalInuzuka = () => {
   // ── Salvar — usa refs para dados frescos, sem GET intermediário ──────────────
   const salvar = useCallback((overrides = {}) => {
     if (!id || !fichaCarregada.current) return;
-    // Preserva os dados já existentes no donorFicha (atrEdit, pericias do dono etc.)
     let extrasBase = {};
     try { extrasBase = donorFichaRef.current?.dados_extras ? JSON.parse(donorFichaRef.current.dados_extras) : {}; } catch { }
     const novoExtras = {
@@ -388,33 +387,38 @@ const FichaAnimalInuzuka = () => {
         aptidoes:     aptidoesRef.current,
         anotacoes:    anotacoesRef.current,
         imagemAnimal: imagemAnimalRef.current ?? null,
-        ...overrides, // valores frescos passados diretamente (ex: imagem recém-cropada)
+        ...overrides,
       },
     };
-
-    // Atualiza donorFichaRef para que o próximo save use a base correta
     if (donorFichaRef.current) {
-      donorFichaRef.current = {
-        ...donorFichaRef.current,
-        dados_extras: JSON.stringify(novoExtras),
-      };
+      donorFichaRef.current = { ...donorFichaRef.current, dados_extras: JSON.stringify(novoExtras) };
     }
-
     fetch(`${API}/api/naruto/fichas/${id}/salvar`, {
       method: "PUT", credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ dados_extras: JSON.stringify(novoExtras) }),
-    }).catch(console.error);
+    })
+      .then(r => { if (!r.ok) console.error("[animal] save failed:", r.status); })
+      .catch(e => console.error("[animal] save error:", e));
   }, [id]); // eslint-disable-line
 
   const saveTimer = useRef(null);
+  const [prontoParaSalvar, setProntoParaSalvar] = useState(false);
+
+  // Marca pronto após carregar
   useEffect(() => {
     if (!fichaCarregada.current) return;
+    setProntoParaSalvar(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [donorFicha]);
+
+  useEffect(() => {
+    if (!prontoParaSalvar) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(salvar, 1500);
     return () => clearTimeout(saveTimer.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nomeAnimal, especie, vitalAtual, vitalMax, chakraAtual, chakraMax, hcBonus, pericias, aptidoes, anotacoes, imagemAnimal]);
+  }, [nomeAnimal, especie, vitalAtual, vitalMax, chakraAtual, chakraMax, hcBonus, pericias, aptidoes, anotacoes, imagemAnimal, prontoParaSalvar]);
 
   const toggleApt = (aptId) => {
     setAptidoes(prev =>
@@ -459,7 +463,7 @@ const FichaAnimalInuzuka = () => {
       <div className="fai-topbar">
         <button className="fai-voltar-btn" onClick={() => navigate(`/personagem-naruto/${id}`)}>← VOLTAR</button>
         <div className="fai-topbar-centro">
-          <span className="fai-topbar-tag">COMPANHEIRO</span>
+          <span className="fai-topbar-tag">FICHA COMPANHEIRO</span>
           <span className="fai-topbar-dono">{donorFicha.nome_personagem}</span>
         </div>
         <button className="fai-hist-btn" onClick={() => setPainelAberto(p => !p)} title="Histórico">

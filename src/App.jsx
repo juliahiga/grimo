@@ -19,6 +19,8 @@ import CampanhaNaruto from "./pages/CampanhaNaruto";
 import NovaCampanhaNarutoRpg from "./pages/NovaCampanhaNarutoRpg";
 import EscudoMestreNaruto from "./pages/EscudoMestreNaruto";
 import FichaAnimalInuzuka from "./pages/FichaAnimalInuzuka";
+import EscolherInvocacao from "./pages/EscolherInvocacao";   // ← NOVO
+import FichaInvocacao    from "./pages/FichaInvocacao";       // ← NOVO
 
 function App() {
   return (
@@ -29,24 +31,30 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/personagens" element={<Personagens />} />
-            <Route path="/naruto/ficha/:id" element={<FichaPersonagemNaruto />} />
-            <Route path="/naruto/ficha/:id/animal" element={<FichaAnimalInuzuka />} />
-            <Route path="/personagem-naruto/:id" element={<FichaPersonagemNaruto />} />
-            <Route path="/personagem-naruto/:id/animal" element={<FichaAnimalInuzuka />} />
-            <Route path="/ficha/:id"        element={<FichaPersonagemTlou />} />
-            <Route path="/campanhas" element={<Campanhas />} />
-            <Route path="/campanha/:id" element={<CampanhaTlou />} />
-            <Route path="/entrar-campanha/:id" element={<CampanhaTlou />} />
-            <Route path="/escudo-mestre/:id" element={<EscudoMestre />} />
-            <Route path="/sistemas" element={<Sistemas />} />
-            <Route path="/perfil" element={<Profile />} />
-            <Route path="/novo-tlourpg" element={<NovoTlouRpg />} />
+            <Route path="/naruto/ficha/:id"              element={<FichaPersonagemNaruto />} />
+            <Route path="/naruto/ficha/:id/animal"       element={<FichaAnimalInuzuka />} />
+            <Route path="/personagem-naruto/:id"         element={<FichaPersonagemNaruto />} />
+            <Route path="/personagem-naruto/:id/animal"  element={<FichaAnimalInuzuka />} />
+
+            <Route path="/personagem-naruto/:id/escolher-invocacao" element={<EscolherInvocacao />} />
+            <Route path="/naruto/ficha/:id/escolher-invocacao"      element={<EscolherInvocacao />} />
+            <Route path="/personagem-naruto/:id/invocacao"          element={<FichaInvocacao />} />
+            <Route path="/naruto/ficha/:id/invocacao"               element={<FichaInvocacao />} />
+
+            <Route path="/ficha/:id"             element={<FichaPersonagemTlou />} />
+            <Route path="/campanhas"             element={<Campanhas />} />
+            <Route path="/campanha/:id"          element={<CampanhaTlou />} />
+            <Route path="/entrar-campanha/:id"   element={<CampanhaTlou />} />
+            <Route path="/escudo-mestre/:id"     element={<EscudoMestre />} />
+            <Route path="/sistemas"              element={<Sistemas />} />
+            <Route path="/perfil"                element={<Profile />} />
+            <Route path="/novo-tlourpg"          element={<NovoTlouRpg />} />
             <Route path="/nova-campanha-tlourpg" element={<NovaCampanhaTlouRpg />} />
-            <Route path="/novo-naruto" element={<NovoNaruto />} />
-            <Route path="/campanha-naruto/:id" element={<CampanhaNaruto />} />
+            <Route path="/novo-naruto"           element={<NovoNaruto />} />
+            <Route path="/campanha-naruto/:id"        element={<CampanhaNaruto />} />
             <Route path="/entrar-campanha-naruto/:id" element={<CampanhaNaruto />} />
-            <Route path="/nova-campanha-naruto" element={<NovaCampanhaNarutoRpg />} />
-            <Route path="/escudo-mestre-naruto/:id" element={<EscudoMestreNaruto />} />
+            <Route path="/nova-campanha-naruto"       element={<NovaCampanhaNarutoRpg />} />
+            <Route path="/escudo-mestre-naruto/:id"   element={<EscudoMestreNaruto />} />
           </Routes>
         </Router>
       </UserProvider>

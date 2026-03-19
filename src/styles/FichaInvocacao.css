@@ -1,0 +1,94 @@
+/*
+ * FichaInvocacao.css
+ * Reutiliza todas as classes .fn-* do FichaPersonagemNaruto.css
+ * Este arquivo adiciona apenas os ajustes específicos da ficha de invocação.
+ * IMPORTANTE: importe este arquivo DEPOIS do FichaPersonagemNaruto.css
+ * ou garanta que o componente use as mesmas classes fn-*.
+ *
+ * Como o componente usa as mesmas classes fn-* da ficha principal,
+ * basta importar este CSS junto com o da ficha principal no App ou
+ * criar um import global. Se preferir standalone, copie as classes
+ * abaixo — elas apenas reaproveitam o mesmo design system.
+ */
+
+/* Seção título — igual ao fn-secao-titulo da ficha */
+.fn-secao-titulo {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: #4a90e2;
+  text-transform: uppercase;
+  border-bottom: 1px solid #0f1e33;
+  padding-bottom: 4px;
+  margin-top: 4px;
+  margin-bottom: 6px;
+}
+
+/* Avatar placeholder com ícone centralizado */
+.fn-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Histórico — painel deslizante inferior */
+.fn-historico-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 3000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.fn-historico-painel {
+  background: #040a12;
+  border: 1px solid #4a90e2;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  width: 100%;
+  max-width: 500px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+}
+.fn-historico-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #0f1e33;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #4a90e2;
+  text-transform: uppercase;
+}
+.fn-historico-fechar {
+  background: none;
+  border: none;
+  color: #4a70a0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.fn-historico-lista {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fn-historico-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: #060d16;
+  border: 1px solid #0a1828;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+.fn-hist-label  { flex: 1; color: #7898b8; }
+.fn-hist-total  { font-weight: 700; width: 32px; text-align: right; }
+.fn-hist-ts     { color: #2a4060; font-size: 0.7rem; flex-shrink: 0; }
