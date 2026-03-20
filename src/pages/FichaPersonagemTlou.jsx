@@ -51,13 +51,15 @@ const calcularBonusDeHabilidades = (comprados) => {
 };
 
 // Gerador criptograficamente seguro — elimina repetições/vieses do Math.random()
-const rolarDado = (dadoStr) => {
+// floor: resultado mínimo (0 = sem restrição). Gerado pela função applyDiceFloor.
+const rolarDado = (dadoStr, floor = 0) => {
     const faces = parseInt(dadoStr.replace("D", ""), 10);
     if (!faces || faces < 2) return 1;
     // Usa crypto.getRandomValues para garantir distribuição uniforme real
     const array = new Uint32Array(1);
     crypto.getRandomValues(array);
-    return (array[0] % faces) + 1;
+    const resultado = (array[0] % faces) + 1;
+    return floor > 0 ? Math.max(resultado, floor) : resultado;
 };
 
 // ── RECURSOS DE FABRICAÇÃO ──
@@ -447,7 +449,7 @@ const parsearFormula = (formula) => {
 };
 
 // ── ARMASLOT com suporte a armas equipadas da mochila ──
-const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRef, dadosRef, isMelee = false, onRolar, slotData = {}, onSlotChange, durabilidadeBonus = 0, vidaAtualRef, adrTierRef }) => {
+const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRef, dadosRef, isMelee = false, onRolar, slotData = {}, onSlotChange, durabilidadeBonus = 0, vidaAtualRef, adrTierRef, diceFloor = 0 }) => {
     const [dano,          setDanoLocal]     = useState(slotData.dano          ?? "");
     const [bonusDano,     setBonusDanoLocal]= useState(slotData.bonusDano     ?? "");
     const [pente,         setPenteLocal]    = useState(slotData.pente         ?? "");
@@ -562,7 +564,7 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
             const qtd = parseInt(match[1] || "1", 10);
             const faces = parseInt(match[2], 10);
             const rollsGrupo = [];
-            for (let i = 0; i < qtd; i++) rollsGrupo.push(rolarDado(`D${faces}`));
+            for (let i = 0; i < qtd; i++) rollsGrupo.push(rolarDado(`D${faces}`, diceFloor));
             const somaGrupo = rollsGrupo.reduce((a, b) => a + b, 0);
             totalDano += somaGrupo;
             processado = processado.replace(match[0], "");
@@ -578,13 +580,13 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
         if (bonusTotal !== 0) tooltipDanoStr += ` ${bonusTotal >= 0 ? "+" : ""}${bonusTotal}`;
         const dadoPericia  = (dadosRef?.current ?? dados)?.["mira"] ?? "D10";
         const bonusPericia = parseInt((bonusRef?.current ?? bonus)?.["mira"], 10) || 0;
-        const rolagemAtaque = rolarDado(dadoPericia);
+        const rolagemAtaque = rolarDado(dadoPericia, diceFloor);
         // Corrida de Adrenalina: vida <= 10 -> dado extra no ataque
         const DADO_ADR = ["", "D4", "D6", "D8"];
         let adrRoll = null, adrDado = null;
         if ((adrTierRef?.current ?? 0) > 0 && (vidaAtualRef?.current ?? 999) <= 10) {
             adrDado = DADO_ADR[adrTierRef?.current ?? 0] || "D4";
-            adrRoll = rolarDado(adrDado);
+            adrRoll = rolarDado(adrDado, diceFloor);
         }
         const ataqueTotal   = rolagemAtaque + bonusPericia + (adrRoll ?? 0);
         const critico10     = rolagemAtaque === parseInt(dadoPericia.replace("D", ""), 10);
@@ -952,7 +954,7 @@ const ModalLoja = ({ pilulas, onGastarPilulas, comprados, onComprar, onFechar })
     );
 };
 
-const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAtaques, vidaAtualRef, adrTierRef }) => {
+const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAtaques, vidaAtualRef, adrTierRef, diceFloor = 0 }) => {
     const [formula, setFormula] = useState("");
     const [erro, setErro] = useState(false);
     const [exp, setExp] = useState({});
@@ -977,17 +979,17 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
         if (arremQtd <= 0) return;
         const bonusAtual = bonusRef?.current ?? bonus;
         const bonusPericia = parseInt(bonusAtual?.["mira"], 10) || 0;
-        const rolagemAtaque = rolarDado(dadoArremesso);
+        const rolagemAtaque = rolarDado(dadoArremesso, diceFloor);
         // Corrida de Adrenalina
         const DADO_ADR = ["", "D4", "D6", "D8"];
         let adrRoll = null, adrDado = null;
         if ((adrTierRef?.current ?? 0) > 0 && (vidaAtualRef?.current ?? 999) <= 10) {
             adrDado = DADO_ADR[adrTierRef?.current ?? 0] || "D4";
-            adrRoll = rolarDado(adrDado);
+            adrRoll = rolarDado(adrDado, diceFloor);
         }
         const ataqueTotal = rolagemAtaque + bonusPericia + (adrRoll ?? 0);
         const critico10 = rolagemAtaque === parseInt(dadoArremesso.replace("D", ""), 10);
-        const danoRoll = rolarDado("D4");
+        const danoRoll = rolarDado("D4", diceFloor);
         const danoFinal = critico10 ? danoRoll * 2 : danoRoll;
         onRolar({
             label: "Tijolo/Garrafa",
@@ -1013,7 +1015,7 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
             const q = parseInt(mAtq[1] || "1", 10);
             const f = parseInt(mAtq[2], 10);
             for (let i = 0; i < q; i++) {
-                const r = rolarDado(`D${f}`);
+                const r = rolarDado(`D${f}`, diceFloor);
                 rolls.push(r);
                 danoVal += r;
             }
@@ -1029,13 +1031,13 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
         const ataqueBonus = parseInt(ataque.ataqueBonus, 10) || 0;
         const dadoPericia = dadosAtual?.[ataque.pericia] ?? "D10";
         const facesPericia = parseInt(dadoPericia.replace("D", ""), 10);
-        const rolagemAtaque = rolarDado(dadoPericia);
+        const rolagemAtaque = rolarDado(dadoPericia, diceFloor);
         // Corrida de Adrenalina
         const DADO_ADR = ["", "D4", "D6", "D8"];
         let adrRoll = null, adrDado = null;
         if ((adrTierRef?.current ?? 0) > 0 && (vidaAtualRef?.current ?? 999) <= 10) {
             adrDado = DADO_ADR[adrTierRef?.current ?? 0] || "D4";
-            adrRoll = rolarDado(adrDado);
+            adrRoll = rolarDado(adrDado, diceFloor);
         }
         const ataqueTotal = rolagemAtaque + bonusPericia + (adrRoll ?? 0);
         const danoComBonus = danoVal + ataqueBonus;
@@ -1059,7 +1061,7 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
         setErro(false);
         const { qtd, faces, bonus: b, resto } = parsed;
         let soma = 0;
-        for (let i = 0; i < qtd; i++) soma += rolarDado(`D${faces}`);
+        for (let i = 0; i < qtd; i++) soma += rolarDado(`D${faces}`, diceFloor);
         onRolar({ label: formula.trim().toUpperCase(), dado: `${qtd}D${faces}`, valorDado: soma, bonus: b, formulaResto: resto || null, total: soma + b });
     };
 
@@ -2378,6 +2380,7 @@ const FichaPersonagemTlou = () => {
     const [ataquesCombate, setAtaquesCombate] = useState([]);
     const [coldresSlots, setColdresSlots] = useState({});
     const [dadoGeral, setDadoGeral] = useState("D6");
+    const [diceFloor, setDiceFloor] = useState(0); // piso de dado: 0 = sem restrição
     // ── NOVO: recursos de fabricação ──
     const [recursos, setRecursos] = useState({
         fita: 0, garrafa: 0, trapos: 0, alcool: 0, lamina: 0, polvora: 0, explosivo: 0,
@@ -2521,6 +2524,14 @@ const FichaPersonagemTlou = () => {
     }, [id]);
 
     useEffect(() => {
+        // Carrega o piso de dado do usuário logado
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/dice-floor`, { credentials: "include" })
+            .then(r => r.ok ? r.json() : { floor: 0 })
+            .then(d => setDiceFloor(d.floor ?? 0))
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
         fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}`, { credentials: "include" })
             .then(r => r.json())
             .then(data => {
@@ -2567,7 +2578,7 @@ const FichaPersonagemTlou = () => {
     const handleRolar = (key, label) => {
         const dado = dados[key] ?? "D10";
         const bv = parseInt(bonus[key], 10) || 0;
-        const v = rolarDado(dado);
+        const v = rolarDado(dado, diceFloor);
 
         // Corrida de Adrenalina: vida <= 10 → dado extra baseado no tier
         const tierAdr = compradosGlobal["adr"] ?? 0;
@@ -2575,7 +2586,7 @@ const FichaPersonagemTlou = () => {
         let adrBonus = 0, adrRoll = null, adrDado = null;
         if (tierAdr > 0 && vidaAtual <= 10) {
             adrDado = DADO_ADR[tierAdr] || "D4";
-            adrRoll = rolarDado(adrDado);
+            adrRoll = rolarDado(adrDado, diceFloor);
             adrBonus = adrRoll;
         }
 
@@ -2737,7 +2748,7 @@ const FichaPersonagemTlou = () => {
                                     className="ficha-btn-rolar"
                                     title={`Rolar ${dadoGeral}`}
                                     onClick={() => {
-                                        const v = rolarDado(dadoGeral);
+                                        const v = rolarDado(dadoGeral, diceFloor);
                                         handleRolarComHistorico({ label: dadoGeral, dado: dadoGeral, valorDado: v, bonus: 0, total: v });
                                     }}
                                 >
@@ -2753,21 +2764,21 @@ const FichaPersonagemTlou = () => {
                             <div className="ficha-status-campo"><span className="ficha-field-label">NÍV. FERRAMENTA</span><input className="ficha-input ficha-status-input" value={nivFerramenta} onChange={e => setNivFerramenta(e.target.value)} /></div>
                             <div className="ficha-status-campo"><span className="ficha-field-label">REMÉDIO</span><input className="ficha-input ficha-status-input" value={medicinaVal} onChange={e => setMedicinaVal(e.target.value)} /></div>
                         </div>
-                        <ArmaSlot titulo="ARMA LONGA"  armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["longa"]||{}} onSlotChange={onSlotChangeLonga} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
-                        <ArmaSlot titulo="ARMA CURTA"  armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["curta"]||{}} onSlotChange={onSlotChangeCurta} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
+                        <ArmaSlot titulo="ARMA LONGA"  armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} diceFloor={diceFloor} slotData={coldresSlots["longa"]||{}} onSlotChange={onSlotChangeLonga} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
+                        <ArmaSlot titulo="ARMA CURTA"  armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} diceFloor={diceFloor} slotData={coldresSlots["curta"]||{}} onSlotChange={onSlotChangeCurta} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
                         {coldreLongo && (
                             <div className="ficha-coldre-slot-wrapper">
-                                <ArmaSlot titulo="COLDRE ARMA LONGA" armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_longa"]||{}} onSlotChange={onSlotChangeColdreLonga} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
+                                <ArmaSlot titulo="COLDRE ARMA LONGA" armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} diceFloor={diceFloor} slotData={coldresSlots["coldre_longa"]||{}} onSlotChange={onSlotChangeColdreLonga} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
                                 <button className="ficha-coldre-remover-btn" onClick={() => setColdreLongo(false)} title="Remover coldre">✕</button>
                             </div>
                         )}
                         {coldreCurto && (
                             <div className="ficha-coldre-slot-wrapper">
-                                <ArmaSlot titulo="COLDRE ARMA CURTA" armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_curta"]||{}} onSlotChange={onSlotChangeColdreCurta} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
+                                <ArmaSlot titulo="COLDRE ARMA CURTA" armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} diceFloor={diceFloor} slotData={coldresSlots["coldre_curta"]||{}} onSlotChange={onSlotChangeColdreCurta} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
                                 <button className="ficha-coldre-remover-btn" onClick={() => setColdreCurto(false)} title="Remover coldre">✕</button>
                             </div>
                         )}
-                        <ArmaSlot titulo="MELEE" armasEquipadas={armasEquipadasMelee} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} isMelee onRolar={handleRolarComHistorico} slotData={coldresSlots["melee"]||{}} onSlotChange={onSlotChangeMelee} durabilidadeBonus={compradosGlobal["dur"] ?? 0} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
+                        <ArmaSlot titulo="MELEE" armasEquipadas={armasEquipadasMelee} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} isMelee onRolar={handleRolarComHistorico} diceFloor={diceFloor} slotData={coldresSlots["melee"]||{}} onSlotChange={onSlotChangeMelee} durabilidadeBonus={compradosGlobal["dur"] ?? 0} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />
                         <div className="ficha-coldre-adicionar">
                             {!coldreLongo && <div className="ficha-coldre-item"><span className="ficha-coldre-label">Adicionar Coldre de Arma Longa</span><button className="ficha-coldre-btn" onClick={() => setColdreLongo(true)}>+</button></div>}
                             {!coldreCurto && <div className="ficha-coldre-item"><span className="ficha-coldre-label">Adicionar Coldre de Arma Curta</span><button className="ficha-coldre-btn" onClick={() => setColdreCurto(true)}>+</button></div>}
@@ -2795,7 +2806,7 @@ const FichaPersonagemTlou = () => {
                         </button>
                     </div>
                     <div className="ficha-aba-conteudo">
-                        {abaAtiva === "combate"     && <AbaCombate onRolar={handleRolarComHistorico} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} ataques={ataquesCombate} setAtaques={setAtaquesCombate} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} />}
+                        {abaAtiva === "combate"     && <AbaCombate onRolar={handleRolarComHistorico} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} ataques={ataquesCombate} setAtaques={setAtaquesCombate} vidaAtualRef={vidaAtualRef} adrTierRef={adrTierRef} diceFloor={diceFloor} />}
                         {abaAtiva === "habilidades" && <AbaHabilidades pilulas={pilulas} onGastarPilulas={handleGastarPilulas} onDevolverPilulas={handleDevolverPilulas} compradosGlobal={compradosGlobal} onCompradosChange={setCompradosGlobal} dados={dados} onDadosChange={setDados} />}
                         {abaAtiva === "mochila"     && (
                             <AbaMochila

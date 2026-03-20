@@ -14,13 +14,27 @@ const ImageCropModal = ({ onConfirm, onClose, src: externalSrc = null, title = "
 
   useEffect(() => { boxRef.current = box; }, [box]);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const loadFile = (file) => {
+    if (!file || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
     reader.onloadend = () => setImageSrc(reader.result);
     reader.readAsDataURL(file);
   };
+
+  const handleFileChange = (e) => loadFile(e.target.files[0]);
+
+  // Ctrl+V / colar do clipboard
+  useEffect(() => {
+    const handlePaste = (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith("image/")) { loadFile(item.getAsFile()); break; }
+      }
+    };
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     if (!imageSrc || !containerRef.current) return;
@@ -152,10 +166,13 @@ const ImageCropModal = ({ onConfirm, onClose, src: externalSrc = null, title = "
 
         <div className="modal-body" ref={containerRef}>
           {!imageSrc ? (
-            <label className="select-image-btn">
-              Selecionar Imagem
-              <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: "none" }} />
-            </label>
+            <>
+              <label className="select-image-btn">
+                Selecionar Imagem
+                <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: "none" }} />
+              </label>
+              <p className="paste-hint">ou cole com <kbd>Ctrl+V</kbd></p>
+            </>
           ) : (
             <>
               <img

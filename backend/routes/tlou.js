@@ -7,6 +7,22 @@ async function getUserId(google_id) {
   return rows[0] || null;
 }
 
+// ─── PISO DE DADO POR GOOGLE_ID ───────────────────────────────────────────────
+// google_id (string) → resultado mínimo garantido nos dados do TLOU.
+// Adicione ou remova entradas aqui conforme necessário.
+const DICE_FLOOR_BY_GOOGLE_ID = {
+  "101236900829368048922": 6,
+  "109832805199820068187": 6,
+};
+
+// Aplica o piso ao valor_dado recebido do cliente.
+// Se o valor vier abaixo do mínimo configurado, substitui; senão mantém original.
+function applyDiceFloor(googleId, valorDado) {
+  const floor = DICE_FLOOR_BY_GOOGLE_ID[googleId] ?? 0;
+  if (!floor || floor <= 0 || !valorDado) return valorDado;
+  return Math.max(Number(valorDado), floor);
+}
+
 function calcularPericias(body) {
   const pericias = {
     sobrevivencia: 0, agilidade: 0, coleta: 0, instinto: 0,
@@ -422,6 +438,13 @@ router.get("/campanhas/:id/rolagens", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// GET /dice-floor — retorna o piso configurado para o usuário logado
+router.get("/dice-floor", (req, res) => {
+  if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
+  const floor = DICE_FLOOR_BY_GOOGLE_ID[req.session.google_id] ?? 0;
+  res.json({ floor });
+});
+
 // POST /campanhas/:id/rolagens — salva uma rolagem pública na campanha
 router.post("/campanhas/:id/rolagens", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
@@ -448,6 +471,13 @@ router.post("/campanhas/:id/rolagens", async (req, res) => {
     if (acesso.length === 0)
       return res.status(403).json({ error: "Sem acesso a esta campanha" });
 
+    // Aplica piso de dado se o usuário tiver vantagem configurada
+    const valorDadoFinal = applyDiceFloor(req.session.google_id, valor_dado ?? 0);
+    // Recalcula total se o dado foi corrigido para cima
+    const diferencaDado  = valorDadoFinal - (valor_dado ?? 0);
+    const totalFinal     = (total ?? 0) + diferencaDado;
+    const ataqueFinal    = ataque_total != null ? ataque_total + diferencaDado : null;
+
     const [result] = await pool.query(`
       INSERT INTO tlou_rolagens
         (campanha_id, ficha_id, user_id, personagem, label,
@@ -460,10 +490,10 @@ router.post("/campanhas/:id/rolagens", async (req, res) => {
       user.id,
       personagem || user.name,
       label,
-      valor_dado ?? 0,
+      valorDadoFinal,
       bonus ?? 0,
-      total,
-      ataque_total ?? null,
+      totalFinal,
+      ataqueFinal,
       is_dano ? 1 : 0,
       critico_max ? 1 : 0,
       critico_min ? 1 : 0,

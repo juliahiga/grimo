@@ -182,7 +182,19 @@ const ResultadoRolagem = ({ resultado, onFechar }) => {
     const grau = soma <= 3 ? 0 : soma <= 8 ? 1 : soma <= 11 ? 2 : soma <= 14 ? 3 : 4;
     const grauLabel = grau >= 2 ? `Grau ${grau} (×${grau})` : null;
     const tooltipAtaque = `2d8[${d1}, ${d2}] + ${precisao} = ${ataqueTotal}`;
-    const tooltipDano = grau >= 2 ? `Dano: ${total / grau} | ${grauLabel} = ${total}` : `Dano: ${total}`;
+    // Monta fórmula: [DANO] + FOR/DES/ESP(x) = TOTAL
+    const danoArmaBase = resultado.danoArmaBase ?? null;
+    const bonusAtrDano = resultado.bonusAtrDano ?? null;
+    const nomeAtrDano  = resultado.nomeAtrDano  ?? "ATR";
+    let tooltipDano;
+    if (danoArmaBase !== null && bonusAtrDano !== null) {
+      const base = danoArmaBase + bonusAtrDano;
+      tooltipDano = grau >= 2
+        ? `[${danoArmaBase}] + ${nomeAtrDano}(${bonusAtrDano}) = ${base} | ${grauLabel} = ${total}`
+        : `[${danoArmaBase}] + ${nomeAtrDano}(${bonusAtrDano}) = ${total}`;
+    } else {
+      tooltipDano = grau >= 2 ? `[${total / grau}] | ${grauLabel} = ${total}` : `[${total}]`;
+    }
     return (
       <div className="fn-rolagem-overlay" onClick={onFechar}>
         <div className={`fn-rolagem-painel ${animando ? "fn-rolagem-animando" : ""}`} onClick={e => e.stopPropagation()}>
@@ -643,7 +655,7 @@ const aptidoesRestritas = [
   },
   {
     id: "r_animais_mensageiros", nome: "Animais Mensageiros", cat: "restrita", cla: "mikoto", req: "Choujuu Giga 5, Criaturas Vivas, Arte 10, Rastrear 10",
-    desc: "Você usa pequenas criaturas de tinta para rastreio e envio de mensagens de forma sutil e eficiente.\n\n*Pré-requisitos:* Choujuu Giga 5; Criaturas Vivas; Arte 10; Rastrear 10.\n\n*Rastreio Limitado:* Ação padrão + 3 chakra → cria criaturas minúsculas que buscam assinaturas de chakra em raio de *5m × nível de Arte* centrado em você. No início do turno seguinte retornam informando posições.\n\n*Rato Mensageiro:* Ação padrão + 4 chakra → transforma texto de até 50 palavras em ratos que vão a um local já visitado. Aguardam assinatura específica ou pergaminho ao lado. Percorrem *10 km/dia* por *½ nível de Arte* dias.\n\n*Pássaro Mensageiro [requer Arte 14]:* Ação completa + 5 chakra → mensagem em dois pássaros. Percorrem *50 km/dia*. Pode aplicar mensagem secreta (Ocultismo Dif 7 + ESP/Arte do usuário para decodificar).",
+    desc: "Você usa pequenas criaturas de tinta para rastreio e envio de mensagens de forma sutil e eficiente.\n\n*Pré-requisitos:* Choujuu Giga 5; Criaturas Vivas; Arte 10; Rastrear 10.\n\n*Rastreio Limitado:* Ação padrão + 3 chakra → cria criaturas minúsculas que buscam assinaturas de chakra em raio de *5m × nível de Arte* centrado em você. No início do turno seguinte retornam informando posições.\n\n*Rato Mensageiro:* Ação padrão + 4 chakra → transforma texto de até 50 palavras em ratos que vão a um local já visitado. Aguardam assinatura específica ou pergaminho ao lado. Percorrem *10 km/dia* por *metade nível de Arte* dias.\n\n*Pássaro Mensageiro [requer Arte 14]:* Ação completa + 5 chakra → mensagem em dois pássaros. Percorrem *50 km/dia*. Pode aplicar mensagem secreta (Ocultismo Dif 7 + ESP/Arte do usuário para decodificar).",
     efeito: null
   },
   // KAGUYA
@@ -700,7 +712,7 @@ const aptidoesRestritas = [
   },
   {
     id: "r_animais_mensageiros", nome: "Animais Mensageiros", cat: "restrita", cla: "shimura", req: "Choujuu Giga 5, Criaturas Vivas, Arte 10, Rastrear 10",
-    desc: "Usa pequenas criaturas de tinta para rastreio e envio de mensagens de forma sutil e eficiente.\n\n*Pré-requisitos:* Choujuu Giga 5; Criaturas Vivas; Arte 10; Rastrear 10.\n\n*Rastreio Limitado:* Ação padrão + 3 chakra → criaturas minúsculas fazem busca por chakra em raio *5m × nível de Arte*. No início do próximo turno retornam informando posições.\n\n*Rato Mensageiro:* Ação padrão + 4 chakra → transforma até 50 palavras em ratos que vão a um local já visitado. Aguardam assinatura de chakra específica e/ou pergaminho. Percorrem *10km/dia* por *½ nível de Arte* dias.\n\n*Pássaro Mensageiro [requer Arte 14]:* Ação completa + 5 chakra → mensagem em 2 pássaros, *50km/dia*. Opcionalmente com mensagem secreta (Ocultismo Dif 7 + ESP/Arte do usuário para decodificar).",
+    desc: "Usa pequenas criaturas de tinta para rastreio e envio de mensagens de forma sutil e eficiente.\n\n*Pré-requisitos:* Choujuu Giga 5; Criaturas Vivas; Arte 10; Rastrear 10.\n\n*Rastreio Limitado:* Ação padrão + 3 chakra → criaturas minúsculas fazem busca por chakra em raio *5m × nível de Arte*. No início do próximo turno retornam informando posições.\n\n*Rato Mensageiro:* Ação padrão + 4 chakra → transforma até 50 palavras em ratos que vão a um local já visitado. Aguardam assinatura de chakra específica e/ou pergaminho. Percorrem *10km/dia* por *metade nível de Arte* dias.\n\n*Pássaro Mensageiro [requer Arte 14]:* Ação completa + 5 chakra → mensagem em 2 pássaros, *50km/dia*. Opcionalmente com mensagem secreta (Ocultismo Dif 7 + ESP/Arte do usuário para decodificar).",
     efeito: null
   },
   // YOTSUKI
@@ -782,7 +794,7 @@ const aptidoesRestritas = [
   },
   {
     id: "r_animais_mensageiros", nome: "Animais Mensageiros", cat: "restrita", cla: "shimura", req: "Choujuu Giga 5, Criaturas Vivas, Arte 10, Rastrear 10",
-    desc: "Usa pequenas criaturas de tinta como rastreadores e mensageiros sutis e eficientes.\n\n*Pré-requisitos:* Choujuu Giga 5; Criaturas Vivas; Arte 10; Rastrear 10.\n\n*Rastreio Limitado:* Ação padrão + 3 chakra → desenha criaturas minúsculas que buscam assinaturas de chakra em raio *5m × nível de Arte*. No início do próximo turno, retornam informando posições encontradas.\n\n*Rato Mensageiro:* Ação padrão + 4 chakra → transforma texto de até 50 palavras em ratos que viajam até local já visitado. Aguardam assinatura de chakra específica. Percorrem *10 km/dia* por *½ nível de Arte* dias.\n\n*Pássaro Mensageiro [requer Arte 14]:* Ação completa + 5 chakra → mensagem enviada como 2 pássaros. Percorrem *50 km/dia*. Opcionalmente com mensagem secreta — decodificar exige Ocultismo (Dif 7 + ESP/Arte do usuário).",
+    desc: "Usa pequenas criaturas de tinta como rastreadores e mensageiros sutis e eficientes.\n\n*Pré-requisitos:* Choujuu Giga 5; Criaturas Vivas; Arte 10; Rastrear 10.\n\n*Rastreio Limitado:* Ação padrão + 3 chakra → desenha criaturas minúsculas que buscam assinaturas de chakra em raio *5m × nível de Arte*. No início do próximo turno, retornam informando posições encontradas.\n\n*Rato Mensageiro:* Ação padrão + 4 chakra → transforma texto de até 50 palavras em ratos que viajam até local já visitado. Aguardam assinatura de chakra específica. Percorrem *10 km/dia* por *metade nível de Arte* dias.\n\n*Pássaro Mensageiro [requer Arte 14]:* Ação completa + 5 chakra → mensagem enviada como 2 pássaros. Percorrem *50 km/dia*. Opcionalmente com mensagem secreta — decodificar exige Ocultismo (Dif 7 + ESP/Arte do usuário).",
     efeito: null
   },
   // SARUTOBI
@@ -982,7 +994,7 @@ const verificarReq = (req, atr, pericias, hcCalc, aptidoes = [], poderes = []) =
       if (poderMatch) return (poderMatch.nivel ?? 0) >= num;
       // verifica se é nome conhecido de poder mesmo sem ter comprado
       if (PODERES_NOMES.includes(nomeNorm)) return false; // poder reconhecido mas não tem
-      // perícias pelo nome — total = ½atr base + pts gastos
+      // perícias pelo nome — total = metadeatr base + pts gastos
       const mapaAtr = {
         acrobacia: "agilidade", atletismo: "forca", furtividade: "agilidade",
         prontidao: "percepcao", prontidão: "percepcao",
@@ -993,6 +1005,9 @@ const verificarReq = (req, atr, pericias, hcCalc, aptidoes = [], poderes = []) =
         prestidigitacao: "destreza", prestidigitação: "destreza",
         escapar: "destreza", disfarces: "percepcao",
         prest: "destreza",
+        "lidar com animais": "percepcao",
+        "lidar_animais": "percepcao",
+        "lidar animais": "percepcao",
       };
       const nNorm = nome.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
       if (mapaAtr[nNorm]) {
@@ -1030,30 +1045,32 @@ const ModalLojaAptidoes = ({ aptidoes, onAdicionar, onFechar, atr, pericias, hcC
     setTimeout(() => setToast(null), 2200);
   };
 
+  const nomesAdquiridos = new Set(aptidoes.map(a => (a.nome || "").toLowerCase().trim()));
   const temAptidao = (id) => aptidoes.some(a => a.id === id);
+  const temAptidaoNome = (nome) => nomesAdquiridos.has((nome || "").toLowerCase().trim());
 
   // Aptidões normais custam 1 ponto cada (sem slots gratuitos)
   const isGratuita = catAtiva === "gratuita";
   const gratuitasUsadas = aptidoes.filter(a => a.cat === "gratuita").length;
-  const semSlots = isGratuita && gratuitasUsadas >= 3;
+  const slotGratuitoDisp = gratuitasUsadas < 3; // ainda tem slot grátis
   const custoApt = 1;
-  const semPontos = !isGratuita && (pontosRestantes !== undefined) && pontosRestantes < custoApt;
+  // Gratuitas: free se ainda tem slot, custa 1pt se slots esgotados
+  const gratuita_custa_pt = isGratuita && !slotGratuitoDisp;
+  const semPontos = ((!isGratuita || gratuita_custa_pt)) && (pontosRestantes !== undefined) && pontosRestantes < custoApt;
 
   const adicionar = (apt, obs = "") => {
-    if (!apt.generica && temAptidao(apt.id)) {
+    if (!apt.generica && (temAptidao(apt.id) || temAptidaoNome(apt.nome))) {
       mostrarToast(`${apt.nome} já adquirida!`, "erro");
       return;
     }
-    if (isGratuita && semSlots) {
-      mostrarToast(`Você já usou as 3 aptidões gratuitas.`, "erro");
-      return;
-    }
+
     if (semPontos) {
       mostrarToast(`Pontos insuficientes — precisas de 1 pt, restam ${pontosRestantes}.`, "erro");
       return;
     }
-    onAdicionar({ id: apt.id, nome: apt.nome, cat: isGratuita ? "gratuita" : apt.cat, obs, efeito: apt.efeito });
-    mostrarToast(`${apt.nome} adquirida!`, "ok");
+    const catFinal = isGratuita && !slotGratuitoDisp ? "geral" : (isGratuita ? "gratuita" : apt.cat);
+    onAdicionar({ id: apt.id, nome: apt.nome, cat: catFinal, obs, efeito: apt.efeito });
+    mostrarToast(`${apt.nome} adquirida!${gratuita_custa_pt ? " (−1 pt)" : ""}`, "ok");
     setModalGenerica(null);
   };
 
@@ -1063,9 +1080,11 @@ const ModalLojaAptidoes = ({ aptidoes, onAdicionar, onFechar, atr, pericias, hcC
       : catAtiva === "gratuita"
         ? aptidoesGratuitasConfig
         : aptidoesConfig.filter(a => a.cat === catAtiva)
-  ).filter(a =>
-    busca === "" || a.nome.toLowerCase().includes(busca.toLowerCase()) || a.desc.toLowerCase().includes(busca.toLowerCase())
-  );
+  ).filter(a => {
+    if (busca !== "" && !a.nome.toLowerCase().includes(busca.toLowerCase()) && !a.desc.toLowerCase().includes(busca.toLowerCase())) return false;
+    if (!a.generica && catAtiva !== "gratuita" && temAptidaoNome(a.nome)) return false;
+    return true;
+  });
 
   const catCor = { gratuita: "#22c55e", combate: "#e05050", manobra: "#f39c12", tecnica: "#4a90e2", shinobi: "#9b59b6", geral: "#27ae60", restrita: "#c79255" };
   const cor = catCor[catAtiva] || "#4a90e2";
@@ -1081,13 +1100,19 @@ const ModalLojaAptidoes = ({ aptidoes, onAdicionar, onFechar, atr, pericias, hcC
             <div style={{
               fontSize: "0.72rem", fontFamily: "'Google Sans',sans-serif",
               padding: "3px 10px", borderRadius: "6px",
-              background: isGratuita ? (semSlots ? "#1a0505" : "#051a0d") : semPontos ? "#1a0505" : "#051a0d",
-              color: isGratuita ? (semSlots ? "#ef4444" : "#22c55e") : semPontos ? "#ef4444" : "#22c55e",
-              border: `1px solid ${isGratuita ? (semSlots ? "#ef444433" : "#22c55e33") : semPontos ? "#ef444433" : "#22c55e33"}`,
+              background: isGratuita ? (gratuita_custa_pt ? "#1a0505" : "#051a0d") : semPontos ? "#1a0505" : "#051a0d",
+              color: isGratuita ? (gratuita_custa_pt ? "#ef4444" : "#22c55e") : semPontos ? "#ef4444" : "#22c55e",
+              border: `1px solid ${isGratuita ? (gratuita_custa_pt ? "#ef444433" : "#22c55e33") : semPontos ? "#ef444433" : "#22c55e33"}`,
               fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px",
             }}>
               {isGratuita
-                ? (() => { const usadas = aptidoes.filter(a => a.cat === "gratuita").length; const restam = Math.max(0, 3 - usadas); return `${restam} restante${restam !== 1 ? "s" : ""}`; })()
+                ? (() => {
+                    const usadas = aptidoes.filter(a => a.cat === "gratuita").length;
+                    const restam = Math.max(0, 3 - usadas);
+                    return restam > 0
+                      ? `${restam} slot${restam !== 1 ? "s" : ""} grátis restante${restam !== 1 ? "s" : ""}`
+                      : `3/3 usados — próximas custam −1 pt`;
+                  })()
                 : `${pontosRestantes} pts restante${pontosRestantes !== 1 ? "s" : ""}`
               }
             </div>
@@ -1120,7 +1145,7 @@ const ModalLojaAptidoes = ({ aptidoes, onAdicionar, onFechar, atr, pericias, hcC
         {/* Lista */}
         <div className="fn-loja-lista">
           {filtrados.map(apt => {
-            const ativa = !apt.generica && !apt.niveis && temAptidao(apt.id);
+            const ativa = !apt.generica && !apt.niveis && (temAptidao(apt.id) || temAptidaoNome(apt.nome));
             const liberada = verificarReq(apt.req, atr, pericias, hcCalc, aptidoes, poderes);
             const exp = expandidos[apt.id];
 
@@ -1145,6 +1170,7 @@ const ModalLojaAptidoes = ({ aptidoes, onAdicionar, onFechar, atr, pericias, hcC
                     <div className="fn-fn-loja-item-nome-row">
                       <span className="fn-fn-loja-item-nome" style={{ color: ativa || nivel1Adq ? cor : liberada ? "#ccc" : "#555" }}>{apt.nome}</span>
                       {!apt.niveis && ativa && <span className="fn-loja-badge-max">✓</span>}
+                      {!apt.niveis && !ativa && temAptidaoNome(apt.nome) && <span className="fn-loja-badge-max" style={{ background: "#0a1a0a", color: "#22c55e", borderColor: "#22c55e44" }}>✓ já adquirida</span>}
                       {!liberada && <span className="fn-loja-badge-max" style={{ background: "#2a1a1a", color: "#c0392b", borderColor: "#c0392b44" }}>REQUER: {apt.req}</span>}
                     </div>
                     {apt.req && liberada && <span style={{ fontSize: "0.6rem", color: "#555", fontFamily: "'Google Sans',sans-serif", letterSpacing: "0.5px" }}>Req: {apt.req}</span>}
@@ -1162,13 +1188,13 @@ const ModalLojaAptidoes = ({ aptidoes, onAdicionar, onFechar, atr, pericias, hcC
                         {/* Pip nível 1 */}
                         {!nivel1Adq && liberada ? (
                           <button
-                            title={(isGratuita && semSlots) ? "Limite de 3 gratuitas atingido" : "Adquirir Nível 1"}
-                            onClick={e => { e.stopPropagation(); if (!(isGratuita && semSlots)) adicionar(apt); }}
+                            title={gratuita_custa_pt ? "Slots esgotados — custa −1 pt" : "Adquirir Nível 1"}
+                            onClick={e => { e.stopPropagation(); adicionar(apt); }}
                             style={{
-                              width: 28, height: 28, borderRadius: "50%", border: `2px solid ${(isGratuita && semSlots) ? "#444" : cor}`,
-                              background: "transparent", color: (isGratuita && semSlots) ? "#444" : cor,
-                              fontSize: "0.85rem", fontWeight: 800, cursor: (isGratuita && semSlots) ? "not-allowed" : "pointer",
-                              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: (isGratuita && semSlots) ? 0.4 : 1,
+                              width: 28, height: 28, borderRadius: "50%", border: `2px solid ${cor}`,
+                              background: "transparent", color: cor,
+                              fontSize: "0.85rem", fontWeight: 800, cursor: "pointer",
+                              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: 1,
                             }}
                           >+</button>
                         ) : (
@@ -1242,10 +1268,10 @@ const ModalLojaAptidoes = ({ aptidoes, onAdicionar, onFechar, atr, pericias, hcC
                       !ativa && liberada && (
                         <button
                           className="fn-fn-loja-item-add"
-                          style={(semPontos && !isGratuita) || (isGratuita && semSlots)
+                          style={(semPontos && !isGratuita) || gratuita_custa_pt
                             ? { borderColor: "#555", color: "#555", cursor: "not-allowed", opacity: 0.5 }
                             : { borderColor: cor, color: cor }}
-                          title={(isGratuita && semSlots) ? "Limite de 3 gratuitas atingido" : semPontos ? "Pontos insuficientes" : "Adquirir"}
+                          title={gratuita_custa_pt ? "Slots esgotados — custa −1 pt" : semPontos ? "Pontos insuficientes" : "Adquirir"}
                           onClick={e => { e.stopPropagation(); if (apt.generica) setModalGenerica(apt); else adicionar(apt); }}
                         ><i className="fas fa-plus" /></button>
                       )
@@ -1549,14 +1575,14 @@ const AbaPericiasNova = ({ periciasConfig, atributosConfig, atr, pericias, setPe
             <tbody>
               {periciasConfig.map(p => {
                 const atrEfetivo = getAtrEfetivo(p);
-                // Livro SNS: nível inicial = ½ Atributo (arredondado para cima)
+                // Livro SNS: nível inicial = metade Atributo (arredondado para cima)
                 const base = Math.ceil((atr[atrEfetivo.id] ?? 0) / 2);
                 // pontos gastos distribuídos pelo jogador
                 const extra = pericias[p.id] ?? 0;
                 // bônus de aptidão Perito (+2 na perícia)
                 const aptKey = p.id.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 const aptBonus = aptPericiaBonus[aptKey] ?? 0;
-                // total usado nas rolagens = ½Atr + pts gastos + bônus aptidões
+                // total usado nas rolagens = metadeAtr + pts gastos + bônus aptidões
                 const totalCalc = base + extra + aptBonus;
                 const total = totalCalc;
                 const trocado = !!atrOverride[p.id];
@@ -1650,7 +1676,7 @@ const testesConfig = [
   {
     id: "atuacao",
     nome: "Atuação",
-    formula: "Carisma + ½ Arte",
+    formula: "Carisma + metade Arte",
     base: "carisma",
     pericia: "arte",
     descricao: "Impressione uma plateia com música, canto, poesia ou outra manifestação artística.",
@@ -1658,7 +1684,7 @@ const testesConfig = [
   {
     id: "mudar_atitude",
     nome: "Mudar Atitude",
-    formula: "Manipulação + ½ Percepção",
+    formula: "Manipulação + metade Percepção",
     base: "manipulacao",
     pericia: "percepcao",
     descricao: "Mude a atitude de alguém em uma categoria. Resistido por Inteligência do alvo.",
@@ -1666,7 +1692,7 @@ const testesConfig = [
   {
     id: "barganha",
     nome: "Barganha",
-    formula: "Carisma + ½ Percepção",
+    formula: "Carisma + metade Percepção",
     base: "carisma",
     pericia: "percepcao",
     descricao: "Negocie preços. Resistido pelo teste de Barganha do outro negociante.",
@@ -1674,7 +1700,7 @@ const testesConfig = [
   {
     id: "blefar",
     nome: "Blefar",
-    formula: "Manipulação + ½ Inteligência",
+    formula: "Manipulação + metade Inteligência",
     base: "manipulacao",
     pericia: "inteligencia",
     descricao: "Leve outros a tirar conclusões erradas. Resistido por Inteligência da vítima.",
@@ -1682,7 +1708,7 @@ const testesConfig = [
   {
     id: "intimidacao",
     nome: "Intimidação",
-    formula: "Manipulação + ½ Percepção",
+    formula: "Manipulação + metade Percepção",
     base: "manipulacao",
     pericia: "percepcao",
     descricao: "Force obediência por ameaças ou coação. Resistido por Inteligência do alvo.",
@@ -1690,7 +1716,7 @@ const testesConfig = [
   {
     id: "obter_informacao",
     nome: "Obter Informação",
-    formula: "Carisma + ½ Inteligência",
+    formula: "Carisma + metade Inteligência",
     base: "carisma",
     pericia: "inteligencia",
     descricao: "Faça contatos e descubra informações. Exige um dia inteiro e alguns Ryos.",
@@ -1708,7 +1734,7 @@ const ModalTesteSocial = ({ aberto, onFechar, ficha, atr, pericias, handleRolar 
   if (!aberto) return null;
 
   const calcPrecisao = (teste) => {
-    // Livro SNS: Carisma/Manipulação + ½ atributo-ou-perícia (arredondado para cima)
+    // Livro SNS: Carisma/Manipulação + metade atributo-ou-perícia (arredondado para cima)
     const baseVal = ficha?.[teste.base] ?? 0;
     const atrPericia = atr?.[teste.pericia];
     let halfPericia;
@@ -1716,7 +1742,7 @@ const ModalTesteSocial = ({ aberto, onFechar, ficha, atr, pericias, handleRolar 
       // É um atributo direto (Percepção, Inteligência)
       halfPericia = Math.ceil(atrPericia / 2);
     } else {
-      // É uma perícia (Arte): nível total = ½Atr + pts gastos
+      // É uma perícia (Arte): nível total = metadeAtr + pts gastos
       // arte -> atributo: inteligencia
       const pCfg = { arte: "inteligencia" };
       const atrLink = pCfg[teste.pericia] ?? "inteligencia";
@@ -1776,10 +1802,11 @@ const PODER_COR = {
   "Raiton": "#f1c40f",
   "Suiton": "#1abc9c",
   "Fuuinjutsu": "#e67e22",
+  "Iryou Ninjutsu": "#27ae60",
   "Rasengan": "#c0392b",
 };
 
-const PODERES_ORDEM = ["Básico", "Ninpou", "Doton", "Fuuton", "Katon", "Raiton", "Suiton", "Fuuinjutsu", "Rasengan"];
+const PODERES_ORDEM = ["Básico", "Ninpou", "Doton", "Fuuton", "Katon", "Raiton", "Suiton", "Fuuinjutsu", "Iryou Ninjutsu", "Rasengan"];
 
 const jutsosLivroConfig = [
   {
@@ -2010,84 +2037,222 @@ const jutsosLivroConfig = [
     custo: "= nível", dano: "ver texto", selos: "", req: "Poder Suiton nível 6",
     desc: "Conjura ondas massivas de água colidindo contra os inimigos. Exclusivo do Suiton."
   },
+  // ─── FUUINJUTSU (Nv 1–10) ──────────────────────────────────────────────────
   {
-    id: "chakra_no_mesu", nome: "Chakra no Mesu (Bisturi de Chakra)", poder: "Fuuinjutsu", nivel: 1,
-    acao: "Padrão", alcance: "Toque", duracao: "Concentração",
-    custo: "= nível", dano: "", selos: "Não", req: "Aptidão Ninja Médico; Espírito 6",
-    desc: "Cria bisturis de chakra na mão para cirurgias delicadas. Pode fazer cortes internos sem ferida aberta, reduzindo risco de infecção. Requer Ninja Médico e Espírito 6."
+    id: "fuuin_armazenamento", nome: "Fuuinjutsu Nv1 — Selo de Armazenamento", poder: "Fuuinjutsu", nivel: 1,
+    acao: "1 rodada (selar) / Parcial ou Padrão (liberar)", alcance: "Toque", duracao: "Permanente",
+    custo: "1 por compartimento/jutsu selado", dano: "-", selos: "Sim (liberar jutsu)", req: "Poder Fuuinjutsu nível 1",
+    desc: "Sela em um pergaminho: até 3 compartimentos de itens, até 3 pontos de chakra ou 1 jutsu de ataque à distância (Ninpou/elemental). Liberar itens/armas: ação parcial, sem selos de mão. Liberar jutsu: ação padrão, requer selos mesmo que o jutsu não precise. Jutsus de Hijutsu (ex: Mokuton) só podem ser liberados por quem possui o mesmo Hijutsu. Kage/Moku Bunshin liberam itens; liberar jutsus exige Clone Verdadeiro. Qualquer personagem desfaz selos sem custo. Jutsu liberado segue NC do usuário."
   },
   {
-    id: "shousen_no_jutsu", nome: "Shousen no Jutsu (Mão Mística)", poder: "Rasengan", nivel: 1,
-    acao: "Padrão", alcance: "Toque", duracao: "Concentração",
-    custo: "= nível", dano: "", selos: "Não", req: "Poder Iryou Ninjutsu nível 7",
-    desc: "Técnica médica que envia chakra para ferida ou região afetada, aumentando a capacidade de cura. Trata pelo padrão de cura do poder Iryou Ninjutsu. Requer Iryou Ninjutsu nível 7."
+    id: "fuuin_armazenamento_maior", nome: "Fuuinjutsu Nv2 — Selo de Armazenamento Maior", poder: "Fuuinjutsu", nivel: 2,
+    acao: "ver texto", alcance: "Toque", duracao: "Permanente",
+    custo: "ver texto", dano: "-", selos: "Sim", req: "Poder Fuuinjutsu nível 2",
+    desc: "Como o Selo de Armazenamento, mas expande para 6 compartimentos de itens ou até 1 ponto de chakra + 1 por nível do poder. Com Fuuinjutsu nível 3: armazena 1 objeto de tamanho Médio (ocupa todos os compartimentos). Com nível 5: tamanho Grande."
   },
+  {
+    id: "fuuin_misshi", nome: "Fuuinjutsu Nv3 — Misshi (Mensageiro)", poder: "Fuuinjutsu", nivel: 3,
+    acao: "Padrão", alcance: "Toque", duracao: "Permanente (até reprodução)",
+    custo: "3", dano: "-", selos: "Sim", req: "Poder Fuuinjutsu nível 3",
+    desc: "Selo Avançado: grava uma mensagem de até 20 palavras no selo, no idioma e tom do criador. O usuário escolhe uma assinatura de chakra específica para ativar o selo. Quando a criatura com aquela assinatura tocar o selo, a mensagem é reproduzida e o selo se autodestrói. O criador sabe imediatamente quando foi reproduzida. Selos avançados são destruídos por dano cortante ou fogo; só podem ser usados pelo criador."
+  },
+  {
+    id: "fuuin_bakudan", nome: "Fuuinjutsu Nv4 — Bakudan (Bomba)", poder: "Fuuinjutsu", nivel: 4,
+    acao: "Padrão", alcance: "Toque", duracao: "Permanente",
+    custo: "1 por tarja (criação); metade do nível do poder (ativação)", dano: "2 por nível usado", selos: "Sim", req: "Poder Fuuinjutsu nível 4",
+    desc: "Selo Avançado: cria tarjas explosivas customizadas. Explosão em esfera com diâmetro de 2m por nível do poder; dano 2 por nível usado. Dif para defesa contra ativação remota: 9 + 2× nível do poder. Somente 1 Bakudan por vez; sem acúmulo por tarjas adicionais. Aceita meta-aptidões (ex: Potencializar — gaste ação de movimento no momento da explosão). Pode criar armadilhas com Mecanismos (dano máximo ainda limitado pela perícia)."
+  },
+  {
+    id: "fuuin_gensou", nome: "Fuuinjutsu Nv5 — Gensou no In (Selo de Ilusão)", poder: "Fuuinjutsu", nivel: 5,
+    acao: "Padrão", alcance: "Toque", duracao: "Permanente",
+    custo: "5", dano: "-", selos: "Sim", req: "Poder Fuuinjutsu nível 5",
+    desc: "Selo Avançado: cria a ilusão de que algo existe no local (objetos ou criaturas), com até 1m por nível de Inteligência em cada dimensão. Para reconhecer: precisa interagir fisicamente. Por ser Ninjutsu, não pode ser cancelada pelo Kai. Desaparece quando o selo é removido ou destruído."
+  },
+  {
+    id: "fuuin_wana", nome: "Fuuinjutsu Nv6 — Ninjutsu no Wana (Armadilha de Ninjutsu)", poder: "Fuuinjutsu", nivel: 6,
+    acao: "1 rodada (criação)", alcance: "Toque", duracao: "Permanente (até ativação)",
+    custo: "4 + chakra do ninjutsu selado", dano: "ver técnica selada (−1 precisão defensiva)", selos: "Sim", req: "Poder Fuuinjutsu nível 6; Mecanismos 10",
+    desc: "Armazena um ninjutsu de ataque à distância (nível máx 8, não restrito) em armadilha fixa. Área de ativação: círculo de 0,5m de diâmetro por nível de Inteligência. A 1ª criatura que passar pela área sofre a técnica com −1 de precisão em sua defesa. Técnicas com área de efeito transformam-se em cone a partir do selo. Não pode ser desarmada; só se dissipar ou forçar ativação. Dif para Procurar/Prontidão: 7 + 2× nível do poder (somente criaturas com Ocultismo ou Fuuinjutsu fazem o teste)."
+  },
+  {
+    id: "fuuin_chakra_souin", nome: "Fuuinjutsu Nv7 — Chakra no Souin (Selo de Contenção de Chakra)", poder: "Fuuinjutsu", nivel: 7,
+    acao: "Completa (ativação)", alcance: "Toque", duracao: "Permanente",
+    custo: "Reduz chakra do usuário a 1 (req. mín. 15 antes)", dano: "−2 chakra/turno por criatura na área", selos: "Sim", req: "Poder Fuuinjutsu nível 7; Fuuinjutsu (perícia) 7",
+    desc: "Selo Avançado de absorção de chakra. Não pode ser colocado em objetos em movimento nem movido após criado. Área: círculo de 1m de diâmetro por nível de Inteligência. Toda criatura sobre a área (mesmo sem pisar) perde 2 chakra por turno. Não drena criaturas com mesma assinatura de chakra do criador; não reduz chakra abaixo de 1 ponto. Na ativação o chakra do usuário vai a 1 (deve ter mínimo 15 antes, incluindo chakra de Kage Bunshins)."
+  },
+  {
+    id: "fuuin_kekkai", nome: "Fuuinjutsu Nv8 — Kekkai no In (Barreira de Selo)", poder: "Fuuinjutsu", nivel: 8,
+    acao: "Completa", alcance: "Toque", duracao: "Permanente",
+    custo: "8", dano: "-", selos: "Sim", req: "Poder Fuuinjutsu nível 8",
+    desc: "Cria uma parede invisível e indestrutível de chakra (1cm de espessura, formato quadrado). Altura e largura: 0,5m por nível de Inteligência. O selo pode ser uma das pontas ou o centro do quadrado. Nenhuma criatura ou objeto atravessa; concede cobertura defensiva. Não bloqueia técnicas de espaço-tempo (Hiraishin) nem doujutsus. Cancelada se o selo for movido, removido ou destruído."
+  },
+  {
+    id: "fuuin_shishou", nome: "Fuuinjutsu Nv8 — Shishou Fuuin (Selo dos Quatro Símbolos)", poder: "Fuuinjutsu", nivel: 8,
+    acao: "3 dias (ritual)", alcance: "20m", duracao: "Permanente",
+    custo: "16", dano: "-", selos: "Sim", req: "Poder Fuuinjutsu nível 8; Ocultismo 16",
+    desc: "Selo Épico (Rank A). Ritual de 3 dias para selar uma Bijuu em pote especial (até 10 anos) ou em uma pessoa (transformando-a em Jinchuuriki). Mínimo 10 participantes; pelo menos 1 deve conhecer a técnica. Qualquer perturbação cancela e reinicia o ritual. Pode ser executado instantaneamente ao final do Shiki Fuujin."
+  },
+  {
+    id: "fuuin_keiyaku", nome: "Fuuinjutsu Nv9 — Keiyaku Fuuin (Selo Anticontrato)", poder: "Fuuinjutsu", nivel: 9,
+    acao: "Padrão", alcance: "Toque", duracao: "Permanente",
+    custo: "8", dano: "-", selos: "Sim", req: "Poder Fuuinjutsu nível 9; Ocultismo 16",
+    desc: "Selos Épicos (Rank A). Cancela imediatamente o controle que um usuário de Mangekyou Sharingan exerce sobre uma Bijuu através da Hipnose Sharingan. Sem testes além do toque contra o alvo."
+  },
+  {
+    id: "fuuin_shiki_fuujin", nome: "Fuuinjutsu Nv10 — Shiki Fuujin (Selamento do Demônio da Morte)", poder: "Fuuinjutsu", nivel: 10,
+    acao: "Padrão + preparação (1 turno)", alcance: "Longo (75m)", duracao: "Permanente",
+    custo: "10", dano: "Morte do alvo + morte do usuário (5 min após)", selos: "Sim", req: "Poder Fuuinjutsu nível 10; Ocultismo 20",
+    desc: "Selos Épicos (Rank S). Invoca o Shinigami para extrair e selar a alma do alvo junto com a do usuário. Execução: 1 turno de preparação (usuário pode agir livremente). Turno seguinte: braços do Shinigami projetados — agarrar é Sucesso Automático (invisível). Alvo fica indefeso/imóvel. Alma extraída no início do próximo turno do usuário → mata o alvo imediatamente. Concentração interrompida por dano: teste de Concentração (dif pelo Mestre), falha = +1 turno. Selamento parcial (ação parcial): sela partes do corpo — vítima fica exausta permanentemente e sem uso dos membros selados (incurável por medicina normal). Mais alvos: +1 por Kage Bunshin (máx +2). Pode selar Bijuu em si mesmo ou em outra pessoa (Jinchuuriki). Usuário vive 5 min após selar; depois o Shinigami consome ambas as almas (irreversível)."
+  },
+  // ─── IRYOU NINJUTSU (técnicas específicas) ──────────────────────────────────
+  {
+    id: "iryou_cura_geral", nome: "Iryou Ninjutsu — Cura Geral", poder: "Iryou Ninjutsu", nivel: 1,
+    acao: "Padrão (concentração)", alcance: "Toque", duracao: "Concentração",
+    custo: "= nível usado do poder", dano: "-", selos: "Não", req: "Aptidão Ninja Médico; Espírito 6",
+    desc: "Concentra chakra nas mãos e acelera a regeneração celular do paciente. Ambos devem estar imóveis. Ao final de cada turno de tratamento: recupera Nível do Poder + metade de Medicina (↑) de Vitalidade. +1 com Perito: Medicina; +1 com Perícia Inata: Medicina. Cura sangramento e cortes do Bisturi de Chakra no 1º turno. Em si mesmo: cura somente a metade (superado com nível 4+)."
+  },
+  {
+    id: "chakra_no_mesu", nome: "Chakra no Mesu — Bisturi de Chakra", poder: "Iryou Ninjutsu", nivel: 1,
+    acao: "Movimento (preparar)", alcance: "Toque", duracao: "Sustentada",
+    custo: "= nível usado do poder", dano: "2 por nível usado (técnica de toque)", selos: "Não", req: "Poder Iryou Ninjutsu nível 6",
+    desc: "Cria duas lâminas de chakra nas mãos para cirurgia ou combate. Ofensivo: técnica de toque, dano letal 2 por nível usado; pode usar com Ataque Múltiplo. Sem Bloqueio desarmado contra ele. Se atingido 3 vezes: testa Vigor (Dif 7 + nível + metade de Medicina) ou fica Lento e Debilitado por 2 meses (cura: 1 turno de Iryou Ninjutsu ou 1 mês de repouso)."
+  },
+  {
+    id: "inyu_shometsu", nome: "In'yu Shōmetsu — Recuperação Secreta", poder: "Iryou Ninjutsu", nivel: 1,
+    acao: "Movimento (reação defensiva)", alcance: "Pessoal", duracao: "Instantânea",
+    custo: "1 por 2 Vit curada", dano: "-", selos: "Não", req: "Poder Iryou Ninjutsu nível 6; Perito e Perícia Inata: Medicina",
+    desc: "Cura instantânea em si mesmo ao sofrer dano (até o limite do dano recebido). Sem testes; não funciona contra acertos críticos nem ataques em área. Somente 1 vez por dia."
+  },
+  {
+    id: "shousen_no_jutsu", nome: "Shousen no Jutsu — Mão Mística", poder: "Iryou Ninjutsu", nivel: 1,
+    acao: "Padrão (concentração)", alcance: "Toque", duracao: "Concentração",
+    custo: "= nível usado do poder", dano: "ver texto (modo ofensivo)", selos: "Não", req: "Poder Iryou Ninjutsu nível 7",
+    desc: "Cura pelo padrão do Iryou Ninjutsu (toque). Ofensivo: envia chakra em excesso desorganizando a circulação do alvo. Alvo testa Vigor (Dif 7 + nível + metade de Medicina): falha → Atordoado até fim do próximo turno; falha crítica → repete o teste, nova falha → Inconsciente."
+  },
+  // ─── RASENGAN ────────────────────────────────────────────────────────────────
   {
     id: "rasengan_basico", nome: "Rasengan Básico", poder: "Rasengan", nivel: 1,
-    acao: "Completa", alcance: "Toque", duracao: "Instantânea ou Sustentada",
-    custo: "1 por nível do poder", dano: "Nível do Poder + Espírito", selos: "Não", req: "Poder Rasengan nível 1",
-    desc: "Bola giratória de chakra na palma da mão. Requer ação completa para preparar e atacar. Pode usar Kage Bunshin para ajudar, reduzindo para ação padrão o ataque."
+    acao: "Completa (ou Padrão com ajuda de Kage Bunshin)", alcance: "Toque", duracao: "Instantânea ou Sustentada",
+    custo: "1 por nível do poder", dano: "2 + Nível do Poder + metade de ESP (arred. acima)", selos: "Não", req: "Poder Rasengan nível 1; Espírito 8",
+    desc: "Bola giratória de chakra. Teste CC contra a defesa do alvo. Ação completa para preparar e atacar. Com Kage Bunshin (ação de movimento do clone): ataca com ação padrão — mesmo clone comum funciona. Dano = 2 + Nível + metade de ESP (arred. acima). Alvo arremessado 3m; testa Vigor (Dif 7 + Nível + metade de ESP (arred. acima)) para não cair, ou Acrobacia (+2 Dif). Destrói armas usadas como bloqueio. Pode manter na mão (ação parcial, duração sustentada). Incompatível com meta-aptidões."
   },
   {
     id: "rasengan_completo", nome: "Rasengan Completo", poder: "Rasengan", nivel: 6,
-    acao: "Padrão", alcance: "Toque", duracao: "Instantânea",
+    acao: "Padrão (ou com Kage Bunshin: ação livre do clone)", alcance: "Toque", duracao: "Instantânea",
     custo: "1 por nível do poder", dano: "Nível do Poder + Espírito", selos: "Não", req: "Poder Rasengan nível 6; Espírito 14 (ou 12 + Chakra Expandido)",
-    desc: "Versão aperfeiçoada do Rasengan com maior controle. Apenas ação padrão para preparar e atacar. Requer Rasengan nível 6 e Espírito 14."
+    desc: "Rasengan aperfeiçoado: apenas ação padrão para preparar e atacar. Com Kage Bunshin: clone usa ação livre. Dano = Nível do Poder + Espírito (sem o +2 do Básico). Demais regras do Rasengan Básico se aplicam."
   },
   {
     id: "oodama_rasengan", nome: "Oodama Rasengan", poder: "Rasengan", nivel: 7,
-    acao: "Completa (Padrão + Meta-aptidão)", alcance: "Toque", duracao: "Instantânea",
-    custo: "1 por nível do poder", dano: "2 + Nível do Poder + 1/2 Espírito", selos: "Não", req: "Poder Rasengan nível 7; Espírito 16 (ou 14 + Chakra Expandido); aptidão Técnica Poderosa",
-    desc: "Rasengan em tamanho surreal (~0,5m). Arremessa o alvo 3m e causa teste de Vigor para não cair. Destrói armas usadas como bloqueio. Requer Rasengan 7, Espírito 16 e Técnica Poderosa."
+    acao: "Completa (Padrão + meta-aptidão Técnica Poderosa)", alcance: "Toque", duracao: "Instantânea",
+    custo: "1 por nível do poder", dano: "Rasengan Completo + Técnica Poderosa (grau +0,5 ↑)", selos: "Não", req: "Poder Rasengan nível 7; Espírito 16 (ou 14 + Chakra Expandido); aptidão Técnica Poderosa",
+    desc: "Rasengan amplificado (~0,5m de diâmetro). Funciona como Rasengan Completo com Técnica Poderosa aplicada automaticamente. Teste para não cair recebe +1 de dificuldade adicional."
   },
   {
     id: "rasengan_elemental", nome: "Rasengan Elemental", poder: "Rasengan", nivel: 9,
-    acao: "Completa", alcance: "Toque", duracao: "Instantânea",
-    custo: "2 + 1 por nível do poder", dano: "Área de efeito 10m", selos: "Não", req: "Poder Rasengan nível 9; Poder elemental (Katon/Raiton/Fuuton) nível 2",
-    desc: "Rasengan combinado com elemento (Enka Rasengan para Katon, Raiou Rasengan para Raiton, Rasen Shuriken para Fuuton). Dano irresistível mínimo grau 2. Explode atingindo todos a 10m. Causa dano colateral grau 1 ao usuário."
+    acao: "Completa", alcance: "Toque (explosão 10m após impacto)", duracao: "Instantânea",
+    custo: "2 + 1 por nível do poder", dano: "Nível + ESP; grau mínimo 2 (alvo direto); área 10m", selos: "Não", req: "Poder Rasengan nível 9; Katon, Raiton ou Fuuton nível 2",
+    desc: "Rasengan com elemento: Enka Rasengan (Katon), Raiöu Rasengan (Raiton) ou Rasen Shuriken (Fuuton). Adquire vantagens/desvantagens do elemento (sem bônus de dano elemental). Dano Irresistível: mínimo grau 2 no alvo direto. Após impacto explode em 10m (criaturas extras não recebem Dano Irresistível). Dano Colateral: usuário sofre dano base com grau 1. Senpou Rasengan: gaste 1 Chakra Senjutsu adicional → transforma em ataque à distância (CD, alcance do poder elemental usado) sem dano colateral."
   },
 ];
 
 // Verifica se personagem atinge um requisito textual
 const verificarRequisito = (req, ficha, poderes) => {
   if (!req) return true;
-  const r = req.toLowerCase();
-  const aptidoesArr = Array.isArray(ficha?.aptidoes) ? ficha.aptidoes : [];
+  const norm = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const r = norm(req);
+
+  // Normalizar arrays
+  let aptidoesArr = [];
+  if (Array.isArray(ficha?.aptidoes)) aptidoesArr = ficha.aptidoes;
+  else if (typeof ficha?.aptidoes === "string") {
+    try { aptidoesArr = JSON.parse(ficha.aptidoes); } catch { aptidoesArr = []; }
+  }
   const poderesArr = Array.isArray(poderes) ? poderes : [];
-  // Aptidão Ninja Médico
-  if (r.includes("ninja médico")) {
-    if (!aptidoesArr.some(a => a.nome?.toLowerCase().includes("ninja médico"))) return false;
-  }
-  // Técnica Poderosa
-  if (r.includes("técnica poderosa")) {
-    if (!aptidoesArr.some(a => a.nome?.toLowerCase().includes("técnica poderosa"))) return false;
-  }
-  // Espírito X
-  const mEsp = r.match(/espírito\s*(\d+)/);
+  const pericias = ficha?.pericias || {};
+
+  // Helper: nível de um poder pelo nome ou id parcial
+  const nivelPoder = (nomeParcial) => {
+    const np = norm(nomeParcial);
+    const p = poderesArr.find(p => norm(p.nome || "").includes(np) || norm(p.id || "").includes(np));
+    return p ? (parseInt(p.nivel) || 0) : 0;
+  };
+
+  // Helper: valor de perícia
+  const valPericia = (nomeParcial) => {
+    const np = norm(nomeParcial);
+    const key = Object.keys(pericias).find(k => norm(k).includes(np));
+    return key ? (parseInt(pericias[key]) || 0) : 0;
+  };
+
+  // Helper: tem aptidão por nome
+  const temApt = (nomeApt) => {
+    const na = norm(nomeApt);
+    return aptidoesArr.some(a => norm(a.nome || "").includes(na) || norm(a.id || "").replace(/_/g," ").includes(na));
+  };
+
+  // ── Aptidões específicas ─────────────────────────────────────────
+  if (r.includes("ninja medico") && !temApt("ninja medico")) return false;
+  if (r.includes("tecnica poderosa") && !temApt("tecnica poderosa")) return false;
+  if (r.includes("perito") && r.includes("medicina") && !temApt("perito")) return false;
+  if (r.includes("pericia inata") && r.includes("medicina") && !temApt("pericia inata")) return false;
+  if (r.includes("chakra expandido") && !temApt("chakra expandido")) return false;
+
+  // ── Espírito X ───────────────────────────────────────────────────
+  const mEsp = r.match(/espirito\s*(\d+)/);
   if (mEsp) {
-    const espNec = parseInt(mEsp[1]);
-    const espAtual = parseInt(ficha?.espirito || ficha?.espírito || 0);
-    if (espAtual < espNec) return false;
+    const espAtual = parseInt(ficha?.espirito || ficha?.atr_espirito || 0);
+    if (espAtual < parseInt(mEsp[1])) return false;
   }
-  // Poder X nível Y
-  const mPoder = r.match(/poder\s+([\w\s]+?)\s+nível\s*(\d+)/g);
-  if (mPoder) {
-    for (const mp of mPoder) {
-      const m2 = mp.match(/poder\s+([\w\s]+?)\s+nível\s*(\d+)/);
-      if (!m2) continue;
-      const poderNome = m2[1].trim();
-      const nivelNec = parseInt(m2[2]);
-      const poderAtual = poderesArr.find(p => p.nome?.toLowerCase().includes(poderNome.toLowerCase()));
-      if (!poderAtual || (parseInt(poderAtual.nivel) || 0) < nivelNec) return false;
-    }
+
+  // ── Poder X nível Y — cobre "Poder Fuuinjutsu nível 6", "Poder Iryou Ninjutsu nível 7" etc.
+  const mPoderes = r.matchAll(/poder\s+([\w\s]+?)\s+n[ií]vel\s*(\d+)/g);
+  for (const mp of mPoderes) {
+    const pNome = mp[1].trim();
+    const pNivel = parseInt(mp[2]);
+    if (nivelPoder(pNome) < pNivel) return false;
   }
-  // Iryou Ninjutsu nível Y (sem palavra "poder")
-  const mIryou = r.match(/iryou ninjutsu\s+nível\s*(\d+)/);
-  if (mIryou) {
-    const nivelNec = parseInt(mIryou[1]);
-    const poderAtual = poderesArr.find(p => p.nome?.toLowerCase().includes("iryou"));
-    if (!poderAtual || (parseInt(poderAtual.nivel) || 0) < nivelNec) return false;
+
+  // ── Fuuinjutsu nível Y como poder (sem palavra "poder") ──────────
+  const mFuuin = r.match(/fuuinjutsu\s+(?:nivel|n[ií]vel)\s*(\d+)/);
+  if (mFuuin && !r.includes("poder fuuinjutsu")) {
+    if (nivelPoder("fuuinjutsu") < parseInt(mFuuin[1])) return false;
   }
+
+  // ── Iryou Ninjutsu nível Y (sem palavra "poder") ─────────────────
+  const mIryou = r.match(/iryou ninjutsu\s+(?:nivel|n[ií]vel)\s*(\d+)/);
+  if (mIryou && !r.includes("poder iryou")) {
+    if (nivelPoder("iryou") < parseInt(mIryou[1])) return false;
+  }
+
+  // ── Rasengan nível Y (sem palavra "poder") ───────────────────────
+  const mRasengan = r.match(/rasengan\s+n[ií]vel\s*(\d+)/);
+  if (mRasengan && !r.includes("poder rasengan")) {
+    if (nivelPoder("rasengan") < parseInt(mRasengan[1])) return false;
+  }
+
+  // ── Elemento nível Y — "Katon, Raiton ou Fuuton nível 2" ────────
+  const mElem = r.match(/(?:katon|raiton|fuuton|suiton|doton).*?n[ií]vel\s*(\d+)/);
+  if (mElem) {
+    const nivelNec = parseInt(mElem[1]);
+    const elementais = ["katon", "raiton", "fuuton", "suiton", "doton"];
+    const temElemental = elementais.some(el => r.includes(el) && nivelPoder(el) >= nivelNec);
+    if (!temElemental) return false;
+  }
+
+  // ── Perícias numéricas — "Mecanismos 10", "Ocultismo 16", "Fuuinjutsu (perícia) 7" ──
+  const mPericias = r.matchAll(/([a-záàâãéêíóôõúçüñ\s]+?)\s*(?:\([^)]*\))?\s*(\d{1,2})(?!\s*de\s*n[ií]vel)/g);
+  for (const mp of mPericias) {
+    const pNome = mp[1].trim();
+    const pVal = parseInt(mp[2]);
+    // Ignorar padrões que são atributos ou expressões já tratadas
+    if (["espirito","vigor","forca","destreza","agilidade","inteligencia","percepcao",
+         "poder","nivel","nc","nv"].some(kw => pNome.includes(kw))) continue;
+    if (pNome.length < 3) continue;
+    const perVal = valPericia(pNome);
+    if (perVal < pVal) return false;
+  }
+
   return true;
 };
 
@@ -2179,8 +2344,41 @@ const ModalLojaJutsus = ({ jutsus, onAdicionar, onFechar, ficha, poderes, pontos
 
   const jaAdicionado = (id) => jutsus.some(j => j.fromLivro === id);
 
-  const adicionar = (cfg, bloqueado) => {
-    if (bloqueado) { mostrarToast("Requisitos não atingidos.", "erro"); return; }
+  // Cadeia de pré-requisitos: jutsu X só pode ser comprado se os anteriores da série já foram adquiridos
+  const CADEIA_JUTSUS = {
+    // Fuuinjutsu — sequência obrigatória Nv1→2→3→4→5→6→7→8→9→10
+    fuuin_armazenamento_maior: ["fuuin_armazenamento"],
+    fuuin_misshi:              ["fuuin_armazenamento", "fuuin_armazenamento_maior"],
+    fuuin_bakudan:             ["fuuin_armazenamento", "fuuin_armazenamento_maior", "fuuin_misshi"],
+    fuuin_gensou:              ["fuuin_armazenamento", "fuuin_armazenamento_maior", "fuuin_misshi", "fuuin_bakudan"],
+    fuuin_wana:                ["fuuin_armazenamento", "fuuin_armazenamento_maior", "fuuin_misshi", "fuuin_bakudan", "fuuin_gensou"],
+    fuuin_chakra_souin:        ["fuuin_armazenamento", "fuuin_armazenamento_maior", "fuuin_misshi", "fuuin_bakudan", "fuuin_gensou", "fuuin_wana"],
+    fuuin_kekkai:              ["fuuin_armazenamento", "fuuin_armazenamento_maior", "fuuin_misshi", "fuuin_bakudan", "fuuin_gensou", "fuuin_wana", "fuuin_chakra_souin"],
+    fuuin_shishou:             ["fuuin_armazenamento", "fuuin_armazenamento_maior", "fuuin_misshi", "fuuin_bakudan", "fuuin_gensou", "fuuin_wana", "fuuin_chakra_souin"],
+    fuuin_keiyaku:             ["fuuin_armazenamento", "fuuin_armazenamento_maior", "fuuin_misshi", "fuuin_bakudan", "fuuin_gensou", "fuuin_wana", "fuuin_chakra_souin", "fuuin_kekkai"],
+    fuuin_shiki_fuujin:        ["fuuin_armazenamento", "fuuin_armazenamento_maior", "fuuin_misshi", "fuuin_bakudan", "fuuin_gensou", "fuuin_wana", "fuuin_chakra_souin", "fuuin_kekkai", "fuuin_keiyaku"],
+    // Iryou Ninjutsu — técnicas avançadas requerem a cura base
+    chakra_no_mesu:   ["iryou_cura_geral"],
+    inyu_shometsu:    ["iryou_cura_geral"],
+    shousen_no_jutsu: ["iryou_cura_geral"],
+    // Rasengan — sequência obrigatória
+    rasengan_completo:   ["rasengan_basico"],
+    oodama_rasengan:     ["rasengan_basico", "rasengan_completo"],
+    rasengan_elemental:  ["rasengan_basico", "rasengan_completo"],
+  };
+
+  const bloqueadoPorCadeia = (cfgId) => {
+    const reqs = CADEIA_JUTSUS[cfgId];
+    if (!reqs) return { bloqueado: false, motivo: null };
+    const faltando = reqs.filter(reqId => !jaAdicionado(reqId));
+    if (faltando.length === 0) return { bloqueado: false, motivo: null };
+    // Mostra só o primeiro que falta (o mais próximo na cadeia)
+    const cfg = jutsosLivroConfig.find(j => j.id === faltando[0]);
+    return { bloqueado: true, motivo: `Requer primeiro: ${cfg?.nome || faltando[0]}` };
+  };
+
+  const adicionar = (cfg, bloqueado, motivoBloqueio) => {
+    if (bloqueado) { mostrarToast(motivoBloqueio || "Requisitos não atingidos.", "erro"); return; }
     if (jaAdicionado(cfg.id)) { mostrarToast(`${cfg.nome} já está na lista.`, "erro"); return; }
     const custo = cfg.nivel ?? 0;
     if (custo > 0 && pontosRestantes !== undefined && custo > pontosRestantes) {
@@ -2248,7 +2446,10 @@ const ModalLojaJutsus = ({ jutsus, onAdicionar, onFechar, ficha, poderes, pontos
 
         <div className="fn-loja-lista">
           {filtrados.map(cfg => {
-            const bloqueado = !verificarRequisito(cfg.req, ficha || {}, poderes || []);
+            const bloqueadoReq = !verificarRequisito(cfg.req, ficha || {}, poderes || []);
+            const { bloqueado: bloqueadoCadeia, motivo: motivoCadeia } = bloqueadoPorCadeia(cfg.id);
+            const bloqueado = bloqueadoReq || bloqueadoCadeia;
+            const motivoBloqueio = bloqueadoCadeia ? motivoCadeia : "Requisitos não atingidos";
             const adicionado = jaAdicionado(cfg.id);
             const exp = expandidos[cfg.id];
             const poderCor = PODER_COR[cfg.poder] || "#888";
@@ -2279,8 +2480,8 @@ const ModalLojaJutsus = ({ jutsus, onAdicionar, onFechar, ficha, poderes, pontos
                   {!adicionado && (
                     <button className="fn-fn-loja-item-add"
                       style={{ borderColor: (bloqueado || semPts) ? "#2a2a2a" : "#4a90e2", color: (bloqueado || semPts) ? "#2a2a2a" : "#4a90e2", cursor: (bloqueado || semPts) ? "not-allowed" : "pointer", opacity: (bloqueado || semPts) ? 0.4 : 1 }}
-                      title={semPts ? `Pontos insuficientes (restam ${pontosRestantes})` : bloqueado ? "Requisitos não atingidos" : "Adicionar jutsu"}
-                      onClick={e => { e.stopPropagation(); adicionar(cfg, bloqueado); }}>
+                      title={semPts ? `Pontos insuficientes (restam ${pontosRestantes})` : bloqueado ? motivoBloqueio : "Adicionar jutsu"}
+                      onClick={e => { e.stopPropagation(); adicionar(cfg, bloqueado, motivoBloqueio); }}>
                       <i className="fas fa-plus" />
                     </button>
                   )}
@@ -2288,10 +2489,10 @@ const ModalLojaJutsus = ({ jutsus, onAdicionar, onFechar, ficha, poderes, pontos
                 {exp && (
                   <div className="fn-fn-loja-item-corpo">
                     <p className="fn-fn-loja-item-desc" style={{ color: bloqueado ? "#333" : "#777", fontSize: "0.9rem" }}>{cfg.desc}</p>
-                    {cfg.req && (
+                    {(cfg.req || bloqueadoCadeia) && (
                       <div style={{ marginTop: 6, padding: "5px 8px", background: bloqueado ? "#1a0a0a" : "#0a1628", border: `1px solid ${bloqueado ? "#3a1a1a" : "#1a3050"}`, borderRadius: 4 }}>
                         <span style={{ fontSize: "0.78rem", color: bloqueado ? "#c0392b" : "#4a90e2", fontFamily: "'Be Vietnam Pro',sans-serif", letterSpacing: 0.5 }}>
-                          {bloqueado ? "BLOQUEADO — " : "Req: "}{cfg.req}
+                          {bloqueadoCadeia ? motivoCadeia : bloqueadoReq ? `BLOQUEADO — ${cfg.req}` : `Req: ${cfg.req}`}
                         </span>
                       </div>
                     )}
@@ -2328,7 +2529,7 @@ const TIPO_JUTSU_COR = {
 const PODERES_CONFIG = [
   {
     id: "ninpou", nome: "Ninpou", cor: "#9b59b6",
-    desc: "Poder base de ninjutsu. Determina alcance dos jutsus e custo base de chakra. A cada nível você ganha ou evolui um Efeito (Canhão, Raio, Orbe, etc.). Dano base = nível usado + ½ Espírito.",
+    desc: "Poder base de ninjutsu. Determina alcance dos jutsus e custo base de chakra. A cada nível você ganha ou evolui um Efeito (Canhão, Raio, Orbe, etc.). Dano base = nível usado + metade Espírito.",
     niveis: [
       {
         n: 1, info: "Tier 1 — desbloqueia Canhão",
@@ -2458,7 +2659,7 @@ const PODERES_CONFIG = [
       },
       {
         n: 6, info: "Tier 6 — desbloqueia Colisão de Ondas; Afogar [Hōzuki]",
-        detalhe: "• Colisão de Ondas (Padrão, onda tamanho comum, Concentração): 10 de dano base. Construções sofrem dano dobrado. Pode manter por concentração (½ chakra/turno): falhar na defesa = capturado pelas ondas. Capturado: ação de movimento + teste Atletismo para voltar à superfície, ou sofre sufocamento (dano fixo = dano base). Ação padrão: sobe sem teste.\n  – Pode continuar atacando novos alvos enquanto concentrado (novo teste de acerto). Alvos submersos não são afetados.\n  – Evolução Nv8: Dano Base 14.\n  – Evolução Nv10: Dano Base 18; vítima não pode mais usar ação padrão para nadar sem testes.\n\n*Efeito Exclusivo — Afogar (Nv6) [requer Suika]:*\n*Ação:* Movimento (em alvo agarrado)  *Alcance:* Toque  *Duração:* Contínua\n\nLiquefaz parte do corpo e envolve a cabeça do alvo com água, criando uma bolha separada. O alvo sofre *sufocamento* com dano fixo igual ao dano base comum do poder.\n\nA bolha possui *absorção 1*, dureza comum do poder e as mesmas vantagens/desvantagens da aptidão Suika (Imunidade Fluida). Para se libertar, a vítima precisa causar qualquer dano à bolha.\n\nAlternativa: como ação preparada após bloqueio desarmado bem-sucedido — ao entrar em contato com o alvo, separa a parte do corpo criando a bolha."
+        detalhe: "• Colisão de Ondas (Padrão, onda tamanho comum, Concentração): 10 de dano base. Construções sofrem dano dobrado. Pode manter por concentração (metade chakra/turno): falhar na defesa = capturado pelas ondas. Capturado: ação de movimento + teste Atletismo para voltar à superfície, ou sofre sufocamento (dano fixo = dano base). Ação padrão: sobe sem teste.\n  – Pode continuar atacando novos alvos enquanto concentrado (novo teste de acerto). Alvos submersos não são afetados.\n  – Evolução Nv8: Dano Base 14.\n  – Evolução Nv10: Dano Base 18; vítima não pode mais usar ação padrão para nadar sem testes.\n\n*Efeito Exclusivo — Afogar (Nv6) [requer Suika]:*\n*Ação:* Movimento (em alvo agarrado)  *Alcance:* Toque  *Duração:* Contínua\n\nLiquefaz parte do corpo e envolve a cabeça do alvo com água, criando uma bolha separada. O alvo sofre *sufocamento* com dano fixo igual ao dano base comum do poder.\n\nA bolha possui *absorção 1*, dureza comum do poder e as mesmas vantagens/desvantagens da aptidão Suika (Imunidade Fluida). Para se libertar, a vítima precisa causar qualquer dano à bolha.\n\nAlternativa: como ação preparada após bloqueio desarmado bem-sucedido — ao entrar em contato com o alvo, separa a parte do corpo criando a bolha."
       },
       {
         n: 7, info: "Tier 7 — Monstro de Água [Hōzuki]",
@@ -2608,7 +2809,7 @@ const PODERES_CONFIG = [
     niveis: [
       {
         n: 1, info: "Nível 1 — Shintenshin no Jutsu (Técnica da Troca de Mente)",
-        detalhe: "*Ninjutsu* Rank C / Hijutsu\n*Ação:* Padrão  *Alcance:* Curto (5m + 1m/INT)  *Duração:* 1 dia por nível do poder  *Custo:* nível do poder\n\nO usuário transfere totalmente sua consciência para o corpo de um alvo, assumindo controle completo por um período de tempo. A vítima permanece consciente mas sem controle do corpo.\n\n*Alvo:* Deve estar impedido, agarrado, atordoado, indefeso ou surpreso. Usar em alvos fora dessas condições: o alvo pode fazer um teste de *Agilidade ou Prontidão (Dif padrão −3)* como reação — se bem-sucedido, o Shintenshin falha e o usuário fica *inconsciente* até o próximo turno.\n\n*Teste:* Sem teste de acerto. A vítima controla por 1 rodada. No 2º turno sob controle, faz teste de *Inteligência (Dif padrão)*. Se falhar, permanece sob controle pela duração. Animais e capangas não resistem.\n\n*Cancelamento:* Ao realizar ação contrária à natureza da vítima, ela ganha novo teste com *−2 de dificuldade*. Três testes bem-sucedidos (consecutivos ou não) cancelam a técnica. Também se cancela em tentativas suicidas.\n\n*Controle:* Todas as técnicas ativas são canceladas. O Yamanaka usa CC/CD/ESQ/LM, FOR/DES/VIG/ESP e PER do alvo; INT e suas perícias do próprio Yamanaka. Não pode usar outras técnicas deste poder durante o controle.\n\n*Corpo Inconsciente:* O corpo do usuário fica imóvel e indefeso. Dano sofrido durante o controle é refletido no corpo original sem redução de dureza. Se a Vit do corpo chegar a 0, a técnica é cancelada.\n\n*Distância:* Pode ficar até 100× o alcance da técnica distante do corpo.\n\n*Resistência:* Dif 9 + nível do poder + ½ INT do usuário (arredondado para cima). Capangas falham automaticamente."
+        detalhe: "*Ninjutsu* Rank C / Hijutsu\n*Ação:* Padrão  *Alcance:* Curto (5m + 1m/INT)  *Duração:* 1 dia por nível do poder  *Custo:* nível do poder\n\nO usuário transfere totalmente sua consciência para o corpo de um alvo, assumindo controle completo por um período de tempo. A vítima permanece consciente mas sem controle do corpo.\n\n*Alvo:* Deve estar impedido, agarrado, atordoado, indefeso ou surpreso. Usar em alvos fora dessas condições: o alvo pode fazer um teste de *Agilidade ou Prontidão (Dif padrão −3)* como reação — se bem-sucedido, o Shintenshin falha e o usuário fica *inconsciente* até o próximo turno.\n\n*Teste:* Sem teste de acerto. A vítima controla por 1 rodada. No 2º turno sob controle, faz teste de *Inteligência (Dif padrão)*. Se falhar, permanece sob controle pela duração. Animais e capangas não resistem.\n\n*Cancelamento:* Ao realizar ação contrária à natureza da vítima, ela ganha novo teste com *−2 de dificuldade*. Três testes bem-sucedidos (consecutivos ou não) cancelam a técnica. Também se cancela em tentativas suicidas.\n\n*Controle:* Todas as técnicas ativas são canceladas. O Yamanaka usa CC/CD/ESQ/LM, FOR/DES/VIG/ESP e PER do alvo; INT e suas perícias do próprio Yamanaka. Não pode usar outras técnicas deste poder durante o controle.\n\n*Corpo Inconsciente:* O corpo do usuário fica imóvel e indefeso. Dano sofrido durante o controle é refletido no corpo original sem redução de dureza. Se a Vit do corpo chegar a 0, a técnica é cancelada.\n\n*Distância:* Pode ficar até 100× o alcance da técnica distante do corpo.\n\n*Resistência:* Dif 9 + nível do poder + metade INT do usuário (arredondado para cima). Capangas falham automaticamente."
       },
       { n: 2, info: "Nível 2", detalhe: "*Nível 2 — Sem técnica nova.* Os parâmetros do Shintenshin crescem com o nível do poder (duração, alcance e dificuldade de resistência)." },
       {
@@ -2658,7 +2859,7 @@ const PODERES_CONFIG = [
       },
       {
         n: 7, info: "Nível 7 — Golem; Mokujin no Jutsu",
-        detalhe: "*Efeito Exclusivo — Golem (Nv7):*\n*Ação:* Padrão  *Alcance:* Pessoal  *Duração:* Contínua\n\nCria um gigantesco monstro de madeira (qualquer aparência). Ficha: mesmos atributos do usuário, mas Força é substituída por Espírito. Tamanho *Imenso*, dureza zero, apenas *metade da Vitalidade*. Habilidades de Combate iguais às do usuário (incluindo Especialista, Maestria, Reflexos, Intuição, Acuidade). Perícias em nível zero. Ataque corporal: dano comum do poder.\n\nSegue regras de Parceiro (controlado diretamente, sem precisar de instruções). Não possui mente — imune a Genjutsus. Requer *concentração* para controlar (sem ela, fica imóvel como objeto inanimado). Somente 1 golem por cena.\n\nO golem pode utilizar qualquer técnica Mokuton usando suas próprias ações. Ação de movimento + ½ custo de chakra: cura até *metade da Vitalidade total* do golem.\n*(Evolução Nv10:* tamanho Colossal; ataques corporais comuns recebem gratuitamente o efeito Selar Chakra.)\n\n――――――――\n\n*Mokujin no Jutsu (Golem de Madeira):*\n*Pré-req:* Mokuton 7 (Golem)  *Ação:* Padrão  *Alcance:* Pessoal  *Duração:* Contínua\n\nCria uma enorme criatura humanoide semelhante a uma estátua de madeira com rosto de demônio japonês e um dragão enrolado no tronco — poderoso avatar de batalha comparável a uma Bijuu ou ao Susanoo. Segue as regras do efeito Golem."
+        detalhe: "*Efeito Exclusivo — Golem (Nv7):*\n*Ação:* Padrão  *Alcance:* Pessoal  *Duração:* Contínua\n\nCria um gigantesco monstro de madeira (qualquer aparência). Ficha: mesmos atributos do usuário, mas Força é substituída por Espírito. Tamanho *Imenso*, dureza zero, apenas *metade da Vitalidade*. Habilidades de Combate iguais às do usuário (incluindo Especialista, Maestria, Reflexos, Intuição, Acuidade). Perícias em nível zero. Ataque corporal: dano comum do poder.\n\nSegue regras de Parceiro (controlado diretamente, sem precisar de instruções). Não possui mente — imune a Genjutsus. Requer *concentração* para controlar (sem ela, fica imóvel como objeto inanimado). Somente 1 golem por cena.\n\nO golem pode utilizar qualquer técnica Mokuton usando suas próprias ações. Ação de movimento + metade custo de chakra: cura até *metade da Vitalidade total* do golem.\n*(Evolução Nv10:* tamanho Colossal; ataques corporais comuns recebem gratuitamente o efeito Selar Chakra.)\n\n――――――――\n\n*Mokujin no Jutsu (Golem de Madeira):*\n*Pré-req:* Mokuton 7 (Golem)  *Ação:* Padrão  *Alcance:* Pessoal  *Duração:* Contínua\n\nCria uma enorme criatura humanoide semelhante a uma estátua de madeira com rosto de demônio japonês e um dragão enrolado no tronco — poderoso avatar de batalha comparável a uma Bijuu ou ao Susanoo. Segue as regras do efeito Golem."
       },
       { n: 8, info: "Nível 8", detalhe: "*Nível 8 — Sem técnica nova.* O poder e seus efeitos continuam evoluindo." },
     ],
@@ -2734,7 +2935,7 @@ const PODERES_CONFIG = [
       },
       {
         n: 7, info: "Nível 7 — Juuho Soushiken (Punho dos Leões Gêmeos)", req: [{ apt: "ataque_multiplo" }],
-        detalhe: "*Taijutsu* / Kekkei Genkai; Controle de Chakra\n*Pré-requisito:* Ataque Múltiplo\n*Ação:* Movimento (ver texto)\n*Alcance:* Pessoal\n*Duração:* Sustentada\n*Custo:* ½ nível do poder por turno\n\nTécnica secreta de alto nível. Você concentra chakra em ambas as mãos na forma de cabeças de leão e ataca o oponente causando grande dano.\n\nApós usar, você pode fazer o *Ataque Múltiplo* de forma especial: cada golpe individual causa *dano base = nível usado do poder*.\n\n*Ação padrão* = 2 golpes; *Ação completa* = 3 golpes.\n\nNão pode ser usado com Selamento de Tenketsu nem outras aptidões de manobra. As demais regras do Ataque Múltiplo são mantidas."
+        detalhe: "*Taijutsu* / Kekkei Genkai; Controle de Chakra\n*Pré-requisito:* Ataque Múltiplo\n*Ação:* Movimento (ver texto)\n*Alcance:* Pessoal\n*Duração:* Sustentada\n*Custo:* metade nível do poder por turno\n\nTécnica secreta de alto nível. Você concentra chakra em ambas as mãos na forma de cabeças de leão e ataca o oponente causando grande dano.\n\nApós usar, você pode fazer o *Ataque Múltiplo* de forma especial: cada golpe individual causa *dano base = nível usado do poder*.\n\n*Ação padrão* = 2 golpes; *Ação completa* = 3 golpes.\n\nNão pode ser usado com Selamento de Tenketsu nem outras aptidões de manobra. As demais regras do Ataque Múltiplo são mantidas."
       },
       {
         n: 8, info: "Nível 8 — Hakke Hyakunijuuhachi Shou (128 Pontos do Octograma)", req: [{ apt: "r_tenketsu" }, { apt: "ataque_multiplo" }],
@@ -2786,7 +2987,7 @@ const PODERES_CONFIG = [
     niveis: [
       {
         n: 1, info: "Nível 1 — Kage Shibari no Jutsu (Prisão das Sombras)",
-        detalhe: "*Ninjutsu* / Hijutsu\n*Ação:* Padrão\n*Alvo:* 1 ou mais criaturas (ver texto)\n*Alcance:* Curto (5m + 2m por nível do poder)\n*Duração:* Concentração (ver texto)\n*Custo:* 1 por nível do poder\n\nEstende a sombra sobre qualquer superfície até o alcance. Ao tocar a sombra de um alvo, ambas se conectam e o alvo fica *paralisado* pela duração.\n\n*Uso:* Teste de CD contra a defesa do alvo. O usuário deve se manter imóvel e concentrado ou a técnica é desfeita.\n\n*Técnica Silenciosa:* Se usada sob camuflagem, cobertura ou furtividade, o alvo recebe *−3 na Esquiva e em Antecipar*, sem direito a outras defesas.\n\n*Técnica Lenta:* Às vistas do alvo, o usuário recebe *−3 em CD*.\n\n*Resistência:* Ação padrão + teste de *Força (Dif 9 + nível usado + ½ INT do usuário)* para escapar.\n\n*Alcance:* +1m/nível sob sol nascente/poente ou bomba luminosa; −1m/nível sob sol do meio-dia. Impossível em total escuridão. Cada sombra de objeto no caminho concede +1m adicional.\n\n*Duração:* 1 + 1/nível de turnos (máx 6). Cada reuso na mesma cena reduz em 1 (mínimo 2 turnos).\n\n*Mais de 1 alvo:* máx 1 alvo a cada 2 níveis; duração mínima de 2 turnos (dobrada contra capangas)."
+        detalhe: "*Ninjutsu* / Hijutsu\n*Ação:* Padrão\n*Alvo:* 1 ou mais criaturas (ver texto)\n*Alcance:* Curto (5m + 2m por nível do poder)\n*Duração:* Concentração (ver texto)\n*Custo:* 1 por nível do poder\n\nEstende a sombra sobre qualquer superfície até o alcance. Ao tocar a sombra de um alvo, ambas se conectam e o alvo fica *paralisado* pela duração.\n\n*Uso:* Teste de CD contra a defesa do alvo. O usuário deve se manter imóvel e concentrado ou a técnica é desfeita.\n\n*Técnica Silenciosa:* Se usada sob camuflagem, cobertura ou furtividade, o alvo recebe *−3 na Esquiva e em Antecipar*, sem direito a outras defesas.\n\n*Técnica Lenta:* Às vistas do alvo, o usuário recebe *−3 em CD*.\n\n*Resistência:* Ação padrão + teste de *Força (Dif 9 + nível usado + metade INT do usuário)* para escapar.\n\n*Alcance:* +1m/nível sob sol nascente/poente ou bomba luminosa; −1m/nível sob sol do meio-dia. Impossível em total escuridão. Cada sombra de objeto no caminho concede +1m adicional.\n\n*Duração:* 1 + 1/nível de turnos (máx 6). Cada reuso na mesma cena reduz em 1 (mínimo 2 turnos).\n\n*Mais de 1 alvo:* máx 1 alvo a cada 2 níveis; duração mínima de 2 turnos (dobrada contra capangas)."
       },
       {
         n: 2, info: "Nível 2",
@@ -2802,11 +3003,11 @@ const PODERES_CONFIG = [
       },
       {
         n: 5, info: "Nível 5 — Kage Kubishibari no Jutsu (Estrangulamento das Sombras)",
-        detalhe: "*Ninjutsu* / Hijutsu\n*Ação:* Movimento\n*Alvo:* Criatura capturada pelo Kage Mane ou Kage Shibari\n*Duração:* A mesma do Kage Mane ou Shibari\n*Custo:* 1 por nível do poder\n\nExtende a sombra até o pescoço das vítimas do Kage Mane/Shibari e os estrangula. 1 alvo por cada 6 pontos de Espírito.\n\nUsa a ação de movimento. Ao final de cada turno seu, causa *dano fixo de sufocamento = nível usado do poder + ½ INT* (mesmo se a vítima prender a respiração).\n\n*Resistindo:* Ação padrão + teste de *Força* para se libertar. Se bem-sucedido, ainda estará preso pelo Kage Mane e deverá escapar dele também. Ao ficar totalmente livre, fica *fatigado* até o fim de seu próximo turno."
+        detalhe: "*Ninjutsu* / Hijutsu\n*Ação:* Movimento\n*Alvo:* Criatura capturada pelo Kage Mane ou Kage Shibari\n*Duração:* A mesma do Kage Mane ou Shibari\n*Custo:* 1 por nível do poder\n\nExtende a sombra até o pescoço das vítimas do Kage Mane/Shibari e os estrangula. 1 alvo por cada 6 pontos de Espírito.\n\nUsa a ação de movimento. Ao final de cada turno seu, causa *dano fixo de sufocamento = nível usado do poder + metade INT* (mesmo se a vítima prender a respiração).\n\n*Resistindo:* Ação padrão + teste de *Força* para se libertar. Se bem-sucedido, ainda estará preso pelo Kage Mane e deverá escapar dele também. Ao ficar totalmente livre, fica *fatigado* até o fim de seu próximo turno."
       },
       {
         n: 6, info: "Nível 6 — Kageyose no Jutsu (Coleção das Sombras) + Kage Nui (Costura das Sombras)",
-        detalhe: "*KAGEYOSE NO JUTSU*\n*Ninjutsu* / Hijutsu\n*Ação:* Movimento (criar filamentos) / Padrão (reunir)\n*Alcance:* Curto\n*Duração:* Sustentada ou Concentração (Algemar)\n*Custo:* 1 por nível do poder\n\nMaterializa a sombra em *filamentos negros* — máx 2 por nível usado do poder. Como ação padrão, pode reunir todos em um ponto, trazendo objetos que carreguem (útil com kunais ou tarjas explosivas).\n\n*Lançar Projétil:* Apanha projétil com a sombra e o arremessa usando CD normalmente.\n\n*Algema de Sombra:* Enrola um alvo por filamentos (2 filamentos por alvo) seguindo regras do Efeito Algemar Nv 6. Dureza dos filamentos = nível usado + ½ INT. Dificuldade de escape = Kage Mane.\n\n――――――――\n\n*KAGE NUI (Costura das Sombras)*\n*Ninjutsu* / Hijutsu\n*Ação:* Padrão (ou Completa para Costurar)\n*Alvo:* Uma ou mais criaturas\n*Duração:* Instantânea (ver texto)\n*Custo:* 1 por nível do poder\n\nFilamentos pontiagudos — mesma quantidade do Kageyose. Cada agulha causa *1 de dano base* com alcance e regras do Kage Mane, mas *sem penalidade de técnica lenta*.\n\n*Costurar (ação completa):* Se causar grau 3+ de dano, o alvo fica *impedido* por duração sustentada (regras de Algema de Sombra). Novo uso no mesmo alvo com qualquer grau = *paralisado* por concentração. O alvo não pode usar Escapar. Ao se libertar (Força ou outro método), todas as condições são removidas de uma vez."
+        detalhe: "*KAGEYOSE NO JUTSU*\n*Ninjutsu* / Hijutsu\n*Ação:* Movimento (criar filamentos) / Padrão (reunir)\n*Alcance:* Curto\n*Duração:* Sustentada ou Concentração (Algemar)\n*Custo:* 1 por nível do poder\n\nMaterializa a sombra em *filamentos negros* — máx 2 por nível usado do poder. Como ação padrão, pode reunir todos em um ponto, trazendo objetos que carreguem (útil com kunais ou tarjas explosivas).\n\n*Lançar Projétil:* Apanha projétil com a sombra e o arremessa usando CD normalmente.\n\n*Algema de Sombra:* Enrola um alvo por filamentos (2 filamentos por alvo) seguindo regras do Efeito Algemar Nv 6. Dureza dos filamentos = nível usado + metade INT. Dificuldade de escape = Kage Mane.\n\n――――――――\n\n*KAGE NUI (Costura das Sombras)*\n*Ninjutsu* / Hijutsu\n*Ação:* Padrão (ou Completa para Costurar)\n*Alvo:* Uma ou mais criaturas\n*Duração:* Instantânea (ver texto)\n*Custo:* 1 por nível do poder\n\nFilamentos pontiagudos — mesma quantidade do Kageyose. Cada agulha causa *1 de dano base* com alcance e regras do Kage Mane, mas *sem penalidade de técnica lenta*.\n\n*Costurar (ação completa):* Se causar grau 3+ de dano, o alvo fica *impedido* por duração sustentada (regras de Algema de Sombra). Novo uso no mesmo alvo com qualquer grau = *paralisado* por concentração. O alvo não pode usar Escapar. Ao se libertar (Força ou outro método), todas as condições são removidas de uma vez."
       },
       { n: 7, info: "Nível 7", detalhe: "*Nível 7 — Sem técnica nova.* Desbloqueias *Sombra Preparada* no Kage Mane (requer nível 7)." },
       {
@@ -2973,6 +3174,19 @@ const CLA_INICIALIZACAO = {
     ],
     poderes: [
       { id: "katon", nome: "Katon", nivel: 1 },
+    ],
+    jutsus: [
+      {
+        id: "j_uchiha_goukakyuu",
+        nome: "Katon: Goukakyuu no Jutsu",
+        tipo: "ninjutsu",
+        acao: "Padrão",
+        alcance: "Médio",
+        custo: "Metade do ESP (mín. 1)",
+        nivel_poder: "4",
+        anotacoes: "Técnica gratuita do Elemento Natural: Katon. Usa o efeito Sopro Destrutivo Nv 4 mesmo sem possuir o poder Katon e mesmo em Genin. Dano base = Espírito + 2 (bônus Katon). Ao comprar Katon recebe Sopro Destrutivo Nv 4 gratuitamente (evolui em Nv 7 e 10).",
+        obs: "Grátis — Elemento Natural: Katon",
+      },
     ],
     itens: [],
   },
@@ -3730,7 +3944,12 @@ const PainelPontos = ({ nc, atr, pericias, poderes, aptidoes, jutsus, ficha, set
   }, 0);
   const aptsPagas = aptidoes.filter(a => a.cat !== "gratuita" && a.cat !== "restrita").length;
   const gastosAptidoes = aptsPagas;
-  const gastosJutsus = jutsus.length;
+  const JUTSUS_BASICOS_IDS = new Set(["bunshin_no_jutsu","henge_no_jutsu","kai","kawarimi_no_jutsu","kinobori","shunshin_no_jutsu","tadayou"]);
+  const gastosJutsus = jutsus.filter(j => {
+    if (j.fromLivro && JUTSUS_BASICOS_IDS.has(j.fromLivro)) return false;
+    if ((j.obs || "").toLowerCase().includes("grátis") || (j.obs || "").toLowerCase().includes("gratis")) return false;
+    return true;
+  }).length;
 
   const gastosPoder = gastosPoderes + gastosAptidoes + gastosJutsus;
 
@@ -3827,8 +4046,23 @@ const AbaCombate = ({ ataques, setAtaques, hcCalc, handleRolar, salvarAgora, atr
     const critico = soma >= criticoMin;
     const grau = soma <= 3 ? 0 : soma <= 8 ? 1 : soma <= 11 ? 2 : soma <= 14 ? 3 : 4;
     const ataqueTotal = soma + hcVal;
-    // Calcula dano
+
+    // Bônus de metade atributo no dano:
+    // CC → metade Força (ou metade Destreza com Acuidade)
+    // CD → metade Destreza
+    const temAcuidade = aptidoes.some(a => a.id === "acuidade" || a.id === "g_acuidade" || (a.nome || "").toLowerCase() === "acuidade");
+    let bonusAtrDano = 0;
+    let nomeAtrDano = "FOR";
+    if (atq.tipo === "CC") {
+      if (temAcuidade) { bonusAtrDano = Math.floor((atr.destreza ?? 0) / 2); nomeAtrDano = "DES"; }
+      else              { bonusAtrDano = Math.floor((atr.forca    ?? 0) / 2); nomeAtrDano = "FOR"; }
+    } else {
+      bonusAtrDano = Math.floor((atr.destreza ?? 0) / 2); nomeAtrDano = "DES";
+    }
+
+    // Calcula dano: danoArmaBase + bonusAtrDano (metade atr), depois × grau
     let danoRolls = [0], danoBonus = 0, danoTotal = 0;
+    let danoArmaBase = 0;
     if (atq.dano) {
       const str = String(atq.dano).toUpperCase().replace(/\s/g, "");
       const dadoRx = /([0-9]*)D([0-9]+)/g;
@@ -3841,15 +4075,23 @@ const AbaCombate = ({ ataques, setAtaques, hcCalc, handleRolar, salvarAgora, atr
       }
       if (danoRolls.length === 0) {
         const n = parseInt(str.replace(/[^0-9-]/g, ""), 10);
-        danoRolls = [isNaN(n) ? 0 : Math.abs(n)];
-        const danoBase = danoRolls[0];
-        danoTotal = grau >= 2 ? danoBase * grau : danoBase;
+        danoArmaBase = isNaN(n) ? 0 : Math.abs(n);
+        danoRolls = [danoArmaBase];
+        danoBonus = bonusAtrDano;
+        const danoBaseFinal = danoArmaBase + bonusAtrDano;
+        danoTotal = grau >= 2 ? danoBaseFinal * grau : danoBaseFinal;
       } else {
         const bonusMatch = processado.replace(/\s/g, "").match(/^([+-][0-9]+)$/);
-        danoBonus = bonusMatch ? parseInt(bonusMatch[1], 10) : 0;
-        const danoBase = danoRolls.reduce((a, b) => a + b, 0) + danoBonus;
-        danoTotal = grau >= 2 ? danoBase * grau : danoBase;
+        const bonusArma = bonusMatch ? parseInt(bonusMatch[1], 10) : 0;
+        danoArmaBase = danoRolls.reduce((a, b) => a + b, 0) + bonusArma;
+        danoBonus = bonusArma + bonusAtrDano;
+        const danoBaseFinal = danoRolls.reduce((a, b) => a + b, 0) + danoBonus;
+        danoTotal = grau >= 2 ? danoBaseFinal * grau : danoBaseFinal;
       }
+    } else if (bonusAtrDano > 0) {
+      danoArmaBase = 0;
+      danoRolls = [bonusAtrDano];
+      danoTotal = grau >= 2 ? bonusAtrDano * grau : bonusAtrDano;
     }
     handleRolar(null, null, null, {
       label: `${atq.nome} — ${atq.tipo}`,
@@ -3857,6 +4099,9 @@ const AbaCombate = ({ ataques, setAtaques, hcCalc, handleRolar, salvarAgora, atr
       total: danoTotal, ataqueTotal,
       critico, falhaCritica, grau,
       isDano: true, danoRolls, danoBonus,
+      danoArmaBase,
+      bonusAtrDano,
+      nomeAtrDano,
       timestamp: makeTimestamp(),
     });
   };
@@ -4071,7 +4316,7 @@ const ModalCriarAtaque = ({ inicial, onSalvar, onFechar }) => {
   );
 };
 
-const ModalEditarJutsu = ({ jutsu, onSalvar, onFechar, poderes = [] }) => {
+const ModalEditarJutsu = ({ jutsu, onSalvar, onFechar, poderes = [], atr = {} }) => {
   const [tmp, setTmp] = useState({ ...jutsu });
   const set = (k, v) => setTmp(p => ({ ...p, [k]: v }));
   return (
@@ -4130,6 +4375,21 @@ const ModalEditarJutsu = ({ jutsu, onSalvar, onFechar, poderes = [] }) => {
           </div>
         </div>
 
+        {/* ATRIBUTO */}
+        <div className="fn-editar-field">
+          <label className="fn-editar-label">Atributo</label>
+          <select className="fn-editar-input" value={tmp.atributo_acerto || ""} onChange={e => set("atributo_acerto", e.target.value)}>
+            <option value="">— Nenhum —</option>
+            <option value="forca">Força ({atr.forca ?? 0})</option>
+            <option value="destreza">Destreza ({atr.destreza ?? 0})</option>
+            <option value="agilidade">Agilidade ({atr.agilidade ?? 0})</option>
+            <option value="percepcao">Percepção ({atr.percepcao ?? 0})</option>
+            <option value="inteligencia">Inteligência ({atr.inteligencia ?? 0})</option>
+            <option value="vigor">Vigor ({atr.vigor ?? 0})</option>
+            <option value="espirito">Espírito ({atr.espirito ?? 0})</option>
+          </select>
+        </div>
+
         {/* DESCRIÇÃO — altura fixa */}
         <div className="fn-editar-field">
           <label className="fn-editar-label">Descrição</label>
@@ -4147,7 +4407,7 @@ const ModalEditarJutsu = ({ jutsu, onSalvar, onFechar, poderes = [] }) => {
 };
 
 
-const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, setPoderes, pontosRestantes, salvarAgora, pericias = {}, atr = {} }) => {
+const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, setPoderes, pontosRestantes, salvarAgora, pericias = {}, atr = {}, aptidoes = [] }) => {
   const [filtro, setFiltro] = useState("");
   const [exp, setExp] = useState({});
   const [lojaAberta, setLojaAberta] = useState(false);
@@ -4156,7 +4416,7 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
   const espiritoBase = atr.espirito ?? 0;
   const danoEspBonus = Math.ceil(espiritoBase / 2);
 
-  const calcAcerto = (j) => hcCalc[j.teste || "CD"] ?? 0;
+  const calcAcerto = (j) => (hcCalc[j.teste || "CD"] ?? 0) + (j.atributo_acerto ? (atr[j.atributo_acerto] ?? 0) : 0);
   const calcDano = (j) => (parseInt(j.nivel_poder, 10) || 0) + danoEspBonus;
 
   return (
@@ -4184,6 +4444,11 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
                   <span className="fn-fn-aba-item-nome fn-fn-fn-aba-item-nome">{j.nome || <em style={{ color: "#555" }}>Sem nome</em>}</span>
                   {j.tipo && <span style={{ fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.72rem", color: cor }}>{j.tipo.charAt(0).toUpperCase() + j.tipo.slice(1)}</span>}
                 </div>
+                {(() => {
+                  const BASICOS_SEM_ROLAR = new Set(["bunshin_no_jutsu","henge_no_jutsu","kai","kawarimi_no_jutsu","kinobori","shunshin_no_jutsu","tadayou"]);
+                  const ehUtilitario = (j.fromLivro && BASICOS_SEM_ROLAR.has(j.fromLivro)) || (!j.nivel_poder && !j.teste);
+                  if (ehUtilitario) return null;
+                  return (
                 <button className="fn-aba-icon-btn" onClick={e => {
                   e.stopPropagation();
                   const { d1, d2 } = rolar2d8();
@@ -4206,6 +4471,8 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
                 }}>
                   <i className="fas fa-dice-d20" />
                 </button>
+                  );
+                })()}
               </div>
 
               {/* EXPANDIDO: info + botões */}
@@ -4238,13 +4505,14 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
       </div>
 
       {lojaAberta && (
-        <ModalLojaJutsus jutsus={jutsus} onAdicionar={j => { setJutsus(p => [...p, j]); setTimeout(salvarAgora, 100); }} onFechar={() => setLojaAberta(false)} ficha={ficha} poderes={poderes} pontosRestantes={pontosRestantes} />
+        <ModalLojaJutsus jutsus={jutsus} onAdicionar={j => { setJutsus(p => [...p, j]); setTimeout(salvarAgora, 100); }} onFechar={() => setLojaAberta(false)} ficha={{ ...ficha, aptidoes: aptidoes, espirito: atr.espirito ?? ficha?.atr_espirito ?? 0 }} poderes={poderes} pontosRestantes={pontosRestantes} />
       )}
 
       {editando && (
         <ModalEditarJutsu
           jutsu={editando}
           poderes={poderes}
+          atr={atr}
           onSalvar={novo => { setJutsus(p => p.map(x => x.id === novo.id ? novo : x)); setTimeout(salvarAgora, 100); }}
           onFechar={() => setEditando(null)}
         />
@@ -4305,6 +4573,11 @@ const ModalLojaItens = ({ ryos, onComprar, onFechar, claId, aptidoes = [] }) => 
             preco: item.preco,
             desc: item.descricao,
             comp: item.comp,
+            dano: item.dano ?? null,
+            hc: item.hc ?? null,
+            critico: item.critico ?? null,
+            tipo: item.tipo ?? null,
+            alcance: item.alcance ?? null,
           });
         });
         setCatalogo(agrupado);
@@ -4580,7 +4853,7 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
   const filtrados = itens.filter(i => i.nome.toLowerCase().includes(filtro.toLowerCase()));
 
   // Rola ataque (2d8 + hcVal) e dano separados, com crítico customizável
-  const handleRolarArma = (item, hcKey, hcVal, danoDesc, criticoMin = 15) => {
+  const handleRolarArma = (item, hcKey, hcVal, danoDesc, criticoMin = 15, bonusAtr = 0, nomeAtr = "ATR") => {
     if (!handleRolar) return;
     const { d1, d2 } = rolar2d8();
     const soma = d1 + d2;
@@ -4588,10 +4861,11 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
     const grau = soma <= 3 ? 0 : soma <= 8 ? 1 : soma <= 11 ? 2 : soma <= 14 ? 3 : 4;
     const critico = soma >= criticoMin;
     const ataqueTotal = soma + hcVal;
-    // Rola dano se tiver desc (ex: "+4", "1d6+2")
+    // Rola dano: danoBase (arma) + bonusAtr (metade atributo), depois × grau
     let danoRolls = [0];
     let danoBonus = 0;
     let danoTotal = 0;
+    let danoArmaBase = 0; // dano puro da arma (sem metade atr)
     if (danoDesc) {
       const str = String(danoDesc).toUpperCase().replace(/\s/g, "");
       const dadoRx = /([0-9]*)D([0-9]+)/g;
@@ -4605,19 +4879,27 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
         processado = processado.replace(m[0], "");
       }
       if (danoRolls.length === 0) {
-        // Soma todos os termos (+4+2 → 6, +4-1 → 3)
+        // Só termos fixos (ex: "+4", "+2")
         const terms = str.match(/[+-]?\d+/g) || [];
         const n = terms.reduce((acc, t) => acc + parseInt(t, 10), 0);
-        danoRolls = [isNaN(n) ? 0 : Math.abs(n)];
-        danoBonus = 0;
-        const danoBase = danoRolls[0];
-        danoTotal = grau >= 2 ? danoBase * grau : danoBase;
+        danoArmaBase = isNaN(n) ? 0 : Math.abs(n);
+        danoRolls = [danoArmaBase];
+        danoBonus = bonusAtr;
+        const danoBaseFinal = danoArmaBase + bonusAtr;
+        danoTotal = grau >= 2 ? danoBaseFinal * grau : danoBaseFinal;
       } else {
         const bonusMatch = processado.replace(/\s/g, "").match(/^([+-][0-9]+)$/);
-        danoBonus = bonusMatch ? parseInt(bonusMatch[1], 10) : 0;
-        const danoBase = danoRolls.reduce((a, b) => a + b, 0) + danoBonus;
-        danoTotal = grau >= 2 ? danoBase * grau : danoBase;
+        const bonusArma = bonusMatch ? parseInt(bonusMatch[1], 10) : 0;
+        danoArmaBase = danoRolls.reduce((a, b) => a + b, 0) + bonusArma;
+        danoBonus = bonusArma + bonusAtr;
+        const danoBaseFinal = danoRolls.reduce((a, b) => a + b, 0) + danoBonus;
+        danoTotal = grau >= 2 ? danoBaseFinal * grau : danoBaseFinal;
       }
+    } else if (bonusAtr > 0) {
+      danoArmaBase = 0;
+      danoRolls = [bonusAtr];
+      danoBonus = 0;
+      danoTotal = grau >= 2 ? bonusAtr * grau : bonusAtr;
     } else {
       danoRolls = [0]; danoTotal = 0;
     }
@@ -4630,6 +4912,9 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
       grau,
       isDano: true,
       danoRolls, danoBonus,
+      danoArmaBase,
+      bonusAtrDano: bonusAtr,
+      nomeAtrDano: nomeAtr,
       timestamp: makeTimestamp(),
     };
     handleRolar(null, null, null, entrada);
@@ -4683,14 +4968,24 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
           const temDanoNaDesc = /dano/i.test(item.descricao || "");
           const isArma = isArmaCC || isArmaCD || (temDanoNaDesc && catKey === "");
           // Dano dinâmico: se item.danoEscala existir, calcula com base nos atributos atuais
-          const temAcuidade = aptidoes.some(a => a.id === "acuidade" || (a.nome || "").toLowerCase() === "acuidade");
-          const calcDano = () => {
-            // Bônus de atributo: metade FOR (arredondado p/ baixo), ou metade DES com Acuidade
-            const bonusAtr = temAcuidade
-              ? Math.floor((atr.destreza ?? 0) / 2)
-              : Math.floor((atr.forca ?? 0) / 2);
-            const bonus = bonusAtr > 0 ? `+${bonusAtr}` : bonusAtr < 0 ? `${bonusAtr}` : "";
+          const temAcuidade = aptidoes.some(a => a.id === "acuidade" || a.id === "g_acuidade" || (a.nome || "").toLowerCase() === "acuidade");
+          // Espada de Chakra Branco (Hatake): usa Espírito no lugar de Força no dano
+          const isEspadaChakraBranco = item.catalogId === "espada_chakra_branco" || item.id === "espada_chakra_branco" || (item.nome || "").toLowerCase().includes("chakra branco");
+          // metade atributo para somar ao dano SEPARADO (passado para handleRolarArma)
+          const { bonusAtrMochila, nomeAtrMochila } = (() => {
+            if (item.atributo_dano) {
+              const k = item.atributo_dano;
+              return { bonusAtrMochila: Math.floor((atr[k] ?? 0) / 2), nomeAtrMochila: k.slice(0,3).toUpperCase() };
+            }
+            if (isEspadaChakraBranco) return { bonusAtrMochila: Math.floor((atr.espirito ?? 0) / 2), nomeAtrMochila: "ESP" };
+            if (isArmaCD)             return { bonusAtrMochila: Math.floor((atr.destreza ?? 0) / 2), nomeAtrMochila: "DES" };
+            if (temAcuidade)          return { bonusAtrMochila: Math.floor((atr.destreza ?? 0) / 2), nomeAtrMochila: "DES" };
+            return                           { bonusAtrMochila: Math.floor((atr.forca    ?? 0) / 2), nomeAtrMochila: "FOR" };
+          })();
 
+          const calcDano = () => {
+            // Retorna apenas o dano base da arma (sem embutir o metade atributo)
+            // O metade atributo é passado separado via bonusAtrMochila → handleRolarArma
             let base = null;
             if (item.danoEscala && Array.isArray(item.danoEscala)) {
               let dano = item.dano ?? "+0";
@@ -4708,9 +5003,7 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
                   ? (item.descricao.match(/\*[+]?(\d+[dD]\d+[+\-\d]*|[+]?\d+)\*\s*dano/i) || [])[1] ?? null
                   : null;
             }
-            if (!base) return null;
-            // Soma o bônus de atributo à string de dano
-            return bonus ? `${base}${bonus}` : base;
+            return base; // só o base; o metade atributo entra no handleRolarArma
           };
           const danoDesc = calcDano();
           const hcKey = isArmaCD ? "CD" : "CC";
@@ -4738,8 +5031,8 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
                 {isArma && handleRolar ? (
                   <button
                     className="fn-btn-rolar fn-hc-rolar"
-                    title={`Rolar ${hcKey}${danoDesc ? ` | Dano: ${danoDesc}` : ""}${criticoCustom ? ` | Crítico: ${criticoCustom}` : ""}`}
-                    onClick={e => { e.stopPropagation(); handleRolarArma(item, hcKey, hcVal, danoDesc, criticoCustom ? parseInt(criticoCustom.split("-")[0], 10) : 15); }}
+                    title={`Rolar ${hcKey}${danoDesc ? ` | Dano: ${danoDesc}+metadeAtr(${bonusAtrMochila})` : bonusAtrMochila ? ` | Dano: metadeAtr(${bonusAtrMochila})` : ""}${criticoCustom ? ` | Crítico: ${criticoCustom}` : ""}`}
+                    onClick={e => { e.stopPropagation(); handleRolarArma(item, hcKey, hcVal, danoDesc, criticoCustom ? parseInt(criticoCustom.split("-")[0], 10) : 15, bonusAtrMochila, nomeAtrMochila); }}
                   >
                     <i className="fas fa-dice-d20" />
                   </button>
@@ -4756,9 +5049,6 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
                   <div className="fn-ataque-expandido-info" style={{ flex: 1, maxHeight: 220, overflowY: "auto", paddingRight: 4 }}>
                     {isArma && (
                       <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                        <span className="fn-ataque-detalhe">
-                          {hcKey}: <strong style={{ color: "#4a90e2" }}>{hcVal}</strong>
-                        </span>
                         {danoDesc && (
                           <span className="fn-ataque-detalhe">
                             Dano: <strong style={{ color: "#22c55e" }}>{danoDesc}</strong>
@@ -4767,11 +5057,6 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
                         {criticoCustom && (
                           <span className="fn-ataque-detalhe">
                             Crítico: <strong style={{ color: "#f0a020" }}>{criticoCustom}</strong>
-                          </span>
-                        )}
-                        {item.alcance && item.alcance !== "---" && (
-                          <span className="fn-ataque-detalhe">
-                            Alcance: <strong style={{ color: "#aaa" }}>{item.alcance}</strong>
                           </span>
                         )}
                         {item.tipo && (
@@ -4842,6 +5127,23 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
               </div>
             ))}
             <div className="fn-editar-field">
+              <label className="fn-editar-label">Atributo</label>
+              <select
+                className="fn-editar-input"
+                value={editando.atributo_dano ?? ""}
+                onChange={e => setEditando(p => ({ ...p, atributo_dano: e.target.value }))}
+              >
+                <option value="">Nenhum</option>
+                <option value="forca">Força</option>
+                <option value="destreza">Destreza</option>
+                <option value="agilidade">Agilidade</option>
+                <option value="percepcao">Percepção</option>
+                <option value="inteligencia">Inteligência</option>
+                <option value="vigor">Vigor</option>
+                <option value="espirito">Espírito</option>
+              </select>
+            </div>
+            <div className="fn-editar-field">
               <label className="fn-editar-label">Descrição</label>
               <textarea
                 className="fn-editar-textarea"
@@ -4890,6 +5192,8 @@ const FichaPersonagemNaruto = () => {
   const [iniciativaBonus, setIniciativaBonus] = useState(0);
   const [reacaoBonus, setReacaoBonus] = useState(0);
   const [deslocamentoBonus, setDeslocamentoBonus] = useState(0);
+  const [reducaoDano, setReducaoDano] = useState(0);
+  const [pontosVisao, setPontosVisao] = useState(10);
 
   // Perícias — pontos gastos extras (além do base)
   const [pericias, setPericias] = useState({});
@@ -4955,6 +5259,8 @@ const FichaPersonagemNaruto = () => {
   const iniciativaBonusRef = useRef(0);
   const reacaoBonusRef = useRef(0);
   const deslocamentoBonusRef = useRef(0);
+  const reducaoDanoRef = useRef(0);
+  const pontosVisaoRef = useRef(10);
   useEffect(() => { jutsusRef.current = jutsus; }, [jutsus]);
   useEffect(() => { ataquesRef.current = ataques; }, [ataques]);
   useEffect(() => { poderesRef.current = poderes; }, [poderes]);
@@ -4967,6 +5273,8 @@ const FichaPersonagemNaruto = () => {
   useEffect(() => { iniciativaBonusRef.current = iniciativaBonus; }, [iniciativaBonus]);
   useEffect(() => { reacaoBonusRef.current = reacaoBonus; }, [reacaoBonus]);
   useEffect(() => { deslocamentoBonusRef.current = deslocamentoBonus; }, [deslocamentoBonus]);
+  useEffect(() => { reducaoDanoRef.current = reducaoDano; }, [reducaoDano]);
+  useEffect(() => { pontosVisaoRef.current = pontosVisao; }, [pontosVisao]);
 
   // ── Fetch ficha ──
   useEffect(() => {
@@ -5021,6 +5329,8 @@ const FichaPersonagemNaruto = () => {
             if (extras.iniciativaBonus !== undefined) setIniciativaBonus(extras.iniciativaBonus);
             if (extras.reacaoBonus !== undefined) setReacaoBonus(extras.reacaoBonus);
             if (extras.deslocamentoBonus !== undefined) setDeslocamentoBonus(extras.deslocamentoBonus);
+            if (extras.reducaoDano !== undefined) setReducaoDano(extras.reducaoDano);
+            if (extras.pontosVisao !== undefined) setPontosVisao(extras.pontosVisao);
             if (extras.aptidoes) setAptidoes(extras.aptidoes);
             if (extras.jutsus) setJutsus(extras.jutsus);
             if (extras.ataques) setAtaques(extras.ataques);
@@ -5036,9 +5346,10 @@ const FichaPersonagemNaruto = () => {
             if (init.aptidoes?.length) setAptidoes(init.aptidoes);
             if (init.poderes?.length) setPoderes(init.poderes.map(p => ({ ...p, efeitos: [] })));
             if (init.itens?.length) setItensMochila(init.itens.map((it, i) => ({ ...it, id: it.id || (Date.now() + i) })));
+            if (init.jutsus?.length) setJutsus(init.jutsus.map((j, i) => ({ ...j, id: j.id || (Date.now() + i + 1000) })));
           }
         }
-        setTimeout(() => { fichaCarregada.current = true; }, 200);
+        setTimeout(() => { fichaCarregada.current = true; }, 600);
       })
       .catch(() => setFicha(null))
       .finally(() => setCarregando(false));
@@ -5053,6 +5364,7 @@ const FichaPersonagemNaruto = () => {
       iniciativaBonus: iniciativaBonusRef.current,
       reacaoBonus: reacaoBonusRef.current,
       deslocamentoBonus: deslocamentoBonusRef.current,
+      reducaoDano: reducaoDanoRef.current,
       aptidoes: aptidoesRef.current,
       jutsus: jutsusRef.current,
       ataques: ataquesRef.current,
@@ -5097,6 +5409,10 @@ const FichaPersonagemNaruto = () => {
   }, [id]);
   useEffect(() => {
     if (!fichaCarregada.current) return;
+    const atrAtual = atrEditRef.current;
+    const temAtrSalvo = ficha && (ficha.atr_forca || ficha.atr_destreza || ficha.atr_agilidade ||
+      ficha.atr_percepcao || ficha.atr_inteligencia || ficha.atr_vigor || ficha.atr_espirito);
+    if (temAtrSalvo && Object.keys(atrAtual).length === 0) return;
     const payload = {
       nome_personagem: nomePersonagem,
       nome_jogador: nomeJogador,
@@ -5108,7 +5424,7 @@ const FichaPersonagemNaruto = () => {
       ryos: ryos === null || ryos === "" ? 0 : Number(ryos),
       dados_pericias: JSON.stringify(pericias),
       historico_rolagens: JSON.stringify(historico),
-      dados_extras: JSON.stringify({ atrEdit, hcBonus, iniciativaBonus, reacaoBonus, deslocamentoBonus, aptidoes, jutsus, ataques, poderes, itensMochila }),
+      dados_extras: JSON.stringify({ atrEdit, hcBonus, iniciativaBonus, reacaoBonus, deslocamentoBonus, reducaoDano, pontosVisao, aptidoes, jutsus, ataques, poderes, itensMochila }),
     };
     payloadRef.current = payload;
     clearTimeout(salvarTimer.current);
@@ -5137,6 +5453,7 @@ const FichaPersonagemNaruto = () => {
           iniciativaBonus: iniciativaBonusRef.current,
           reacaoBonus: reacaoBonusRef.current,
           deslocamentoBonus: deslocamentoBonusRef.current,
+          reducaoDano: reducaoDanoRef.current,
           aptidoes: aptidoesRef.current,
           jutsus: jutsusRef.current,
           ataques: ataquesRef.current,
@@ -5353,15 +5670,6 @@ const FichaPersonagemNaruto = () => {
               COMPANHEIRO →
             </button>
           )}
-          {getClaIdFull(ficha) === "aburame" && aptidoes.some(a => a.id === "r_kikaichuu") && (
-            <button
-              className="fn-voltar-btn"
-              style={{ color: "#4a90e2", borderColor: "#4a90e2" }}
-              onClick={() => navigate(`/personagem-naruto/${id}/inseto`)}
-            >
-              INSETOS →
-            </button>
-          )}
           {(() => {
             const temKuchiyose = poderes.some(p =>
               p.id === "kuchiyose" ||
@@ -5554,42 +5862,53 @@ const FichaPersonagemNaruto = () => {
 
             {/* Stats rápidos */}
             <div className="fn-stats-rapidos">
-              <div className="fn-stat-item">
-                <span className="fn-stat-label">INICIATIVA</span>
-                <CampoNumerico
-                  valor={iniciativaCalc}
-                  onChange={v => setIniciativaBonus(v - ((atr.agilidade ?? 0) + prontidaoCalc))}
-                  min={0}
-                  className="fn-stat-val"
-                />
-                <button className="fn-btn-rolar fn-stat-rolar" onClick={() => handleRolar1d8("Iniciativa", iniciativaCalc)}>
-                  <i className="fas fa-dice-d20" />
-                </button>
-              </div>
-              <div className="fn-stat-item fn-stat-item--center">
-                <span className="fn-stat-label">REAÇÃO ESQ</span>
-                <CampoNumerico
-                  valor={reacaoEsqCalc}
-                  onChange={v => setReacaoBonus(v - ((hcCalc.ESQ ?? 0) + 9))}
-                  min={0}
-                  className="fn-stat-val"
-                />
-              </div>
-              <div className="fn-stat-item">
-                <span className="fn-stat-label">DESLOCAMENTO</span>
-                <CampoNumerico
-                  valor={deslocamentoCalc}
-                  onChange={v => {
-                    const base = temApt("velocista")
-                      ? 10 + (atr.agilidade ?? 0)
-                      : 10 + Math.floor((atr.agilidade ?? 0) / 2);
-                    setDeslocamentoBonus(v - base);
-                  }}
-                  min={0}
-                  className="fn-stat-val"
-                />
-                <span style={{ fontSize: "0.6rem", color: "#4a6080" }}>m</span>
-              </div>
+              {[
+                {
+                  label: "INICIATIVA",
+                  node: <CampoNumerico valor={iniciativaCalc} onChange={v => setIniciativaBonus(v - ((atr.agilidade ?? 0) + prontidaoCalc))} min={0} className="fn-stat-val" />,
+                  extra: <button className="fn-btn-rolar fn-stat-rolar" onClick={() => handleRolar1d8("Iniciativa", iniciativaCalc)}><i className="fas fa-dice-d20" /></button>,
+                },
+                {
+                  label: "REAÇÃO ESQ",
+                  node: <CampoNumerico valor={reacaoEsqCalc} onChange={v => setReacaoBonus(v - ((hcCalc.ESQ ?? 0) + 9))} min={0} className="fn-stat-val" />,
+                },
+                {
+                  label: "DESLOCAMENTO",
+                  node: <CampoNumerico valor={deslocamentoCalc} onChange={v => { const base = temApt("velocista") ? 10 + (atr.agilidade ?? 0) : 10 + Math.floor((atr.agilidade ?? 0) / 2); setDeslocamentoBonus(v - base); }} min={0} className="fn-stat-val" />,
+                  sufixo: "m",
+                },
+                {
+                  label: "RED. DANO",
+                  node: <CampoNumerico valor={reducaoDano} onChange={v => setReducaoDano(Math.max(0, v))} min={0} className="fn-stat-val" />,
+                },
+                ...(() => {
+                  const temMangekyou = aptidoes.some(a =>
+                    a.id === "r_mangekyou" || (a.nome || "").toLowerCase().includes("mangekyou")
+                  );
+                  if (!temMangekyou) return [];
+                  return [{
+                    label: "VISÃO",
+                    node: <CampoNumerico valor={pontosVisao} onChange={v => setPontosVisao(Math.max(0, Math.min(10, v)))} min={0} className="fn-stat-val" />,
+                    extra: <span style={{ fontSize: "0.55rem", color: pontosVisao <= 3 ? "#ef4444" : "#4a90e2" }}>/10 pts</span>,
+                  }];
+                })(),
+              ].map(({ label, node, extra, sufixo }) => (
+                <div key={label} style={{
+                  flex: 1, minWidth: 70,
+                  background: "#0c1424", border: "1px solid #0f1e33", borderRadius: 6,
+                  padding: "6px 8px",
+                  display: "flex", flexDirection: "column",
+                  alignItems: "center", justifyContent: "center",
+                  gap: 2, textAlign: "center",
+                }}>
+                  <span className="fn-stat-label">{label}</span>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    {node}
+                    {sufixo && <span style={{ fontSize: "0.6rem", color: "#4a6080" }}>{sufixo}</span>}
+                  </div>
+                  {extra && extra}
+                </div>
+              ))}
             </div>
 
             {/* Sociais */}
@@ -5689,7 +6008,12 @@ const FichaPersonagemNaruto = () => {
                 return total + (gratis1 ? Math.max(0, p.nivel - 1) : p.nivel);
               }, 0);
               const gastosAptidoes = aptidoes.filter(a => a.cat !== "gratuita" && a.cat !== "restrita").length;
-              const gastosJutsus = jutsus.length;
+              const JUTSUS_BASICOS_IDS2 = new Set(["bunshin_no_jutsu","henge_no_jutsu","kai","kawarimi_no_jutsu","kinobori","shunshin_no_jutsu","tadayou"]);
+              const gastosJutsus = jutsus.filter(j => {
+                if (j.fromLivro && JUTSUS_BASICOS_IDS2.has(j.fromLivro)) return false;
+                if ((j.obs || "").toLowerCase().includes("grátis") || (j.obs || "").toLowerCase().includes("gratis")) return false;
+                return true;
+              }).length;
               const gastosPoder = gastosPoderes + gastosAptidoes + gastosJutsus;
               const ptsPoder = ((ficha?.pontos_poder > 0) ? ficha.pontos_poder : evo.poderes) - gastosPoder;
               return (
@@ -5718,6 +6042,7 @@ const FichaPersonagemNaruto = () => {
                       salvarAgora={salvarAgora}
                       pericias={pericias}
                       atr={atr}
+                      aptidoes={aptidoes}
                     />
                   )}
                   {abaAtiva === "poderes" && (

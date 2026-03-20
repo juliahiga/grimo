@@ -105,3 +105,22 @@
 .confirm-btn:hover {
   background-color: #7a5c3b;
 }
+
+.paste-hint {
+  margin-top: 12px;
+  color: #888;
+  font-family: 'Google Sans', sans-serif;
+  font-size: 13px;
+  text-align: center;
+}
+
+.paste-hint kbd {
+  display: inline-block;
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #ccc;
+}

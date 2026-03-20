@@ -634,7 +634,7 @@ router.post("/campanhas/:id/rolagens", async (req, res) => {
 router.get("/itens", async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, categoria, nome, preco, descricao, comp FROM naruto_itens ORDER BY categoria, nome"
+      "SELECT id, categoria, nome, preco, descricao, comp, dano, hc, critico, tipo, alcance FROM naruto_itens ORDER BY categoria, nome"
     );
     res.json(rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
