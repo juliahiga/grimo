@@ -1540,7 +1540,7 @@ const AbaAptidoes = ({ aptidoes, setAptidoes, atr, pericias, hcCalc = {}, claId,
     </div>
   );
 };// ── Sub-componente: aba de perícias com atributo trocável e bônus editável ───
-const AbaPericiasNova = ({ periciasConfig, atributosConfig, atr, pericias, setPericias, aptPericiaBonus = {}, aptidoes = [], handleRolar }) => {
+const AbaPericiasNova = ({ periciasConfig, atributosConfig, atr, pericias, setPericias, aptPericiaBonus = {}, aptidoes = [], handleRolar, penArmadura = 0, penComp = 0 }) => {
   const [atrOverride, setAtrOverride] = useState({});
   const [dropdownAberto, setDropdownAberto] = useState(null);
   const [editandoTotal, setEditandoTotal] = useState(null);
@@ -1590,7 +1590,12 @@ const AbaPericiasNova = ({ periciasConfig, atributosConfig, atr, pericias, setPe
                 return (
                   <tr key={p.id}>
                     <td className="fnt-pericia-rolar">
-                      <button className="fn-btn-rolar" onClick={() => handleRolar(p.nome, total, 0)} title={`Rolar ${p.nome}`}>
+                      <button className="fn-btn-rolar" onClick={() => {
+                        const isAgi = atrEfetivo.id === "agilidade";
+                        const isFor = atrEfetivo.id === "forca";
+                        const pen = (isAgi ? penArmadura : 0) + ((isAgi || isFor) ? penComp : 0);
+                        handleRolar(p.nome, total, -pen);
+                      }} title={`Rolar ${p.nome}`}>
                         <i className="fas fa-dice-d20" />
                       </button>
                     </td>
@@ -1990,16 +1995,16 @@ const jutsosLivroConfig = [
     desc: "Emite chakra pelas pontas dos dedos criando lâminas de vento em alta rotação arremessadas repetidamente contra o alvo. As lâminas se desfazem imediatamente após atingir."
   },
   {
-    id: "meteoros", nome: "Meteoros", poder: "Katon", nivel: 5,
-    acao: "Movimento", alcance: "Comum do poder", duracao: "Instantânea",
-    custo: "3 + chakra do efeito de combustão", dano: "bônus (ver texto)", selos: "", req: "Poder Katon nível 5",
-    desc: "Lança meteoros de fogo na área. Uma criatura ao alcance da explosão de mais de um meteoro recebe o dano de todos. É possível mirar em alvos específicos com -3 de precisão, impedindo defesas de Esquiva."
+    id: "meteoros", nome: "Meteoros", poder: "Katon", nivel: 9,
+    acao: "Completa", alcance: "Comum do poder", duracao: "Instantânea",
+    custo: "ver texto", dano: "especial", selos: "", req: "Poder Katon nível 9",
+    desc: "Produz seis meteoros que voam até um ponto à escolha. Cada meteoro causa *1 de dano fixo por nível usado do poder* (sem dano base nem bônus de dano de qualquer tipo). Uma criatura ao alcance de mais de um meteoro recebe o dano de todos.\n\nVocê pode mirar os meteoros em criaturas específicas ao custo de *−3 de precisão* — se fizer isso, o alvo não tem direito a se defender com Esquiva ou Antecipar.\n\nÁrea de Efeito: Seis esferas de 5m de diâmetro."
   },
   {
     id: "inflamavel", nome: "Inflamável", poder: "Katon", nivel: 5,
     acao: "Movimento", alcance: "Comum do poder", duracao: "Instantânea",
-    custo: "3 + chakra do efeito de combustão", dano: "bônus (ver texto)", selos: "", req: "Poder Katon nível 5",
-    desc: "Imbui um efeito de Katon com propriedade inflamável, fazendo alvos ou superfícies pegarem fogo. Combina com outros efeitos de Katon para potencializar o dano por combustão."
+    custo: "3 + chakra do efeito de combustão", dano: "-", selos: "", req: "Poder Katon nível 5",
+    desc: "Cria um líquido, névoa ou gás altamente inflamável que se espalha em área circular de diâmetro comum do poder. Não causa dano por si só, mas potencializa o dano de qualquer técnica Katon ou Raiton usada depois.\n\nCom ação padrão, use Canhão (Katon ou Raiton) para criar uma faísca e gerar combustão instantânea — a explosão tem a área do efeito Canhão com *+2 de bônus de dano*. Não é possível usar meta-aptidões com Inflamável.\n\n*Inflamável Nv 8:* Pode usar qualquer efeito de Katon ou Raiton de duração instantânea e alcance comum do poder para criar a combustão."
   },
   {
     id: "lamina_de_raios", nome: "Lâmina de Raios", poder: "Raiton", nivel: 1,
@@ -2388,6 +2393,7 @@ const ModalLojaJutsus = ({ jutsus, onAdicionar, onFechar, ficha, poderes, pontos
     onAdicionar({
       id: Date.now(), fromLivro: cfg.id,
       nome: cfg.nome, tipo: "ninjutsu",
+      poder: cfg.poder || null,
       custo: cfg.custo, alcance: cfg.alcance,
       anotacoes: cfg.desc,
     });
@@ -2529,7 +2535,7 @@ const TIPO_JUTSU_COR = {
 const PODERES_CONFIG = [
   {
     id: "ninpou", nome: "Ninpou", cor: "#9b59b6",
-    desc: "Poder base de ninjutsu. Determina alcance dos jutsus e custo base de chakra. A cada nível você ganha ou evolui um Efeito (Canhão, Raio, Orbe, etc.). Dano base = nível usado + metade Espírito.",
+    desc: "Representa o domínio do personagem em uma arte ninja única — técnicas passadas de geração em geração ou desenvolvidas pelo próprio shinobi.\n\n*Poder Geral:* As regras do Ninpou também servem de base para os poderes de ninjutsu elementais (Doton, Fuuton, Katon, Raiton, Suiton e kekkei genkais de elemento). Cada elemento pode ter parâmetros numéricos diferentes (dano, alcance).\n\n*Visual e Estilo:* Ao comprar o poder, escolha como ele funciona — um material específico, por exemplo. O Ninpou não possui vantagem ou desvantagem em confrontos contra ninjutsus elementais. Dê também um nome ao seu Ninpou (ex: Ninpou: Hari Jizou).\n\n*Comprando e Evoluindo:* No 1º nível você ganha um Efeito. A cada novo nível, escolha um novo Efeito (do mesmo nível ou menor), sem pular. Você pode comprar o poder uma 2ª vez para ganhar mais efeitos — o nível 1 da 2ª compra é gratuito, e usa-se o nível mais alto para todos os parâmetros.\n\n*Limite de Nível:* O nível máximo de qualquer poder é igual à metade do NC (arredondado para baixo). Ex: NC 9 → máximo nível 4.\n\n*Usando Efeitos:* Declare qual efeito usa em cada ação. Somente um efeito por vez (salvo quando o texto do efeito permitir combinar).\n\n*Custo de Chakra:* Igual ao nível do efeito usado.\n\n*Dano Base:* Nível usado + ½ Espírito (arredondado para cima).\n\n*Dificuldade dos Testes:* 9 + Nível usado + ½ Espírito (arredondado para cima).\n\n*Dureza:* Nível usado + ½ Espírito (arredondado para cima).\n\n*Alcance:* Médio (10m + 2m por nível de Espírito).\n\n*Tamanho:* Escala Grande (1m por nível de Espírito).\n\n*Criação Livre:* Ação padrão, custo = nível usado, sem uso ofensivo. Parâmetros cortados pela metade.\n\n*Evoluindo Efeitos:* Alguns efeitos podem ser escolhidos 2 ou 3 vezes para evoluir. Não é possível pular evoluções.",
     niveis: [
       {
         n: 1, info: "Tier 1 — desbloqueia Canhão",
@@ -3172,9 +3178,7 @@ const CLA_INICIALIZACAO = {
       { id: "r_katon_nat", nome: "Elemento Natural: Katon", cat: "restrita", obs: "", efeito: null },
       { id: "r_sharingan", nome: "Sharingan", cat: "restrita", obs: "", efeito: null },
     ],
-    poderes: [
-      { id: "katon", nome: "Katon", nivel: 1 },
-    ],
+    poderes: [],
     jutsus: [
       {
         id: "j_uchiha_goukakyuu",
@@ -3183,6 +3187,7 @@ const CLA_INICIALIZACAO = {
         acao: "Padrão",
         alcance: "Médio",
         custo: "Metade do ESP (mín. 1)",
+        poder: "Katon",
         nivel_poder: "4",
         anotacoes: "Técnica gratuita do Elemento Natural: Katon. Usa o efeito Sopro Destrutivo Nv 4 mesmo sem possuir o poder Katon e mesmo em Genin. Dano base = Espírito + 2 (bônus Katon). Ao comprar Katon recebe Sopro Destrutivo Nv 4 gratuitamente (evolui em Nv 7 e 10).",
         obs: "Grátis — Elemento Natural: Katon",
@@ -3222,19 +3227,31 @@ const PODERES_RESTRITOS_CONFIG = [
     id: "kuchiyose", nome: "Kuchiyose (Invocação)", cor: "#c79255",
     restrito: true,
     req: [{ atr: "ESP", val: 6, ou: true }, { atr: "INT", val: 6, ou: true }],
-    desc: "Poder Restrito. Ninjutsu / Jikuukan. Permite invocar animais ou criaturas com as quais o shinobi possui um contrato de sangue.\n\n*Alcance:* Pessoal  *Ação:* Padrão  *Duração:* Contínua\n\nO usuário morde o polegar, esfrega o sangue nas mãos e realiza os selos necessários. A criatura invocada atua como Parceiro com ficha própria.\n\n*Pré-requisito:* Espírito ou Inteligência 6.",
+    desc: "Poder Restrito. Ninjutsu / Jikuukan. Permite invocar animais ou criaturas com as quais o shinobi possui um contrato de sangue.\n\n*Alcance:* Pessoal  *Ação:* Padrão  *Duração:* Contínua\n\n*Pré-requisito:* Espírito ou Inteligência 6.\n\n*Quantidade:* você pode invocar até 2 criaturas por uso. Algumas espécies permitem mais (ex: Cães, até 8).\n\n*NC Máximo da invocação:* igual ao dobro do nível usado. Com 2 criaturas, o NC máximo é reduzido em 2.\n\n*Custo de Chakra:* igual ao dobro do nível usado, independente da quantidade.\n\n*Duração:* Contínua. A criatura retorna se Vitalidade ≤ 0 ou por vontade própria.\n\n*Hijutsu vs. Poder Comum:* como Hijutsu, o Comandar Parceiro não penaliza o dano ao usar ação padrão. Como poder comum, as criaturas são capangas com −3 de precisão em HC e dificuldades.",
     niveis: [
       {
-        n: 1, info: "Nível 1 — Kuchiyose básico",
-        detalhe: "Você pode invocar uma criatura de tamanho Médio ou menor com a qual possui contrato de sangue. O custo de chakra é determinado pelo Mestre de acordo com a criatura invocada.\n\nA criatura invocada é tratada como Parceiro e age no turno do usuário."
+        n: 1, info: "Nível 1 — NC máx. 2",
+        detalhe: "Você pode invocar 1 criatura de NC 2, ou 2 criaturas de NC 0. Custo: 2 chakra."
       },
       {
-        n: 2, info: "Nível 2 — Invocações maiores",
-        detalhe: "Você pode invocar criaturas de tamanho Grande. Invocações múltiplas simultâneas passam a ser possíveis (máx 2), cada uma custando chakra separadamente."
+        n: 2, info: "Nível 2 — NC máx. 4",
+        detalhe: "Você pode invocar 1 criatura de NC 4, ou 2 criaturas de NC 2. Custo: 4 chakra."
       },
       {
-        n: 3, info: "Nível 3 — Chefe da Invocação",
-        detalhe: "Você pode invocar a criatura-chefe do seu contrato (normalmente de tamanho Enorme ou maior). Essa invocação é única por cena e não pode ser combinada com outras invocações simultâneas."
+        n: 3, info: "Nível 3 — NC máx. 6",
+        detalhe: "Você pode invocar 1 criatura de NC 6, ou 2 criaturas de NC 4. Custo: 6 chakra."
+      },
+      {
+        n: 4, info: "Nível 4 — NC máx. 8",
+        detalhe: "Você pode invocar 1 criatura de NC 8, ou 2 criaturas de NC 6. Custo: 8 chakra."
+      },
+      {
+        n: 5, info: "Nível 5 — NC máx. 10",
+        detalhe: "Você pode invocar 1 criatura de NC 10, ou 2 criaturas de NC 8. Custo: 10 chakra.\n\nDesbloqueia: Kaeru Kaeru no Jutsu (req. Sapos ou Cobras)."
+      },
+      {
+        n: 6, info: "Nível 6 — NC máx. 12",
+        detalhe: "Você pode invocar 1 criatura de NC 12, ou 2 criaturas de NC 10. Custo: 12 chakra.\n\nDesbloqueia:\n• Dokugiri (Salamandra)\n• Rashōmon (req. Cobras + Ocultismo 12, ou Mokuton 6 + Ocultismo 12)\n• Kaeru Kaeru no Jutsu (req. Sapos ou Cobras)"
       },
     ],
   },
@@ -3279,11 +3296,27 @@ const ModalLojaPoderes = ({ poderes, onComprar, onFechar, pontosRestantes, ficha
       mostrarToast(`Pontos insuficientes — restam ${pontosRestantes}.`, "erro");
       return;
     }
+
+    // ── Limite de nível por NC ────────────────────────────────────────────────
+    const ncNum = parseInt(ficha?.nc ?? ficha?.atributos?.nc ?? 0, 10) || 0;
+    if (ncNum > 0) {
+      const limiteBase = Math.floor(ncNum / 2);
+      const isHoshigaki = claId === "hoshigaki";
+      const limite = isHoshigaki ? limiteBase + 1 : limiteBase;
+      const proximoNivelAlvo = PODERES_COM_EFEITOS.includes(cfg.id) ? atual + 1 : nivel;
+      if (!nivel1Gratis && proximoNivelAlvo > limite) {
+        mostrarToast(`Limite de nível para NC ${ncNum}: máximo ${limite}${isHoshigaki ? " (Hoshigaki +1)" : ""}.`, "erro");
+        return;
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (PODERES_COM_EFEITOS.includes(cfg.id) && nivel > atual) {
       const proximoNivel = atual + 1;
-      onComprar({ id: cfg.id, nome: cfg.nome, nivel: proximoNivel });
-      // Yuki: primeira compra de Hyouton (nível 1) concede Suiton e Fuuton nível 1 gratuitos
+
+      // Yuki: primeira compra de Hyouton (nível 1) concede Suiton, Fuuton e Ninpou nível 1 gratuitos
       if (claId === "yuki" && cfg.id === "hyouton" && proximoNivel === 1) {
+        onComprar({ id: cfg.id, nome: cfg.nome, nivel: proximoNivel });
         const temSuiton = poderes.some(p => p.id === "suiton" && p.nivel >= 1);
         const temFuuton = poderes.some(p => p.id === "fuuton" && p.nivel >= 1);
         const temNinpou = poderes.some(p => p.id === "ninpou" && p.nivel >= 1);
@@ -3291,7 +3324,35 @@ const ModalLojaPoderes = ({ poderes, onComprar, onFechar, pontosRestantes, ficha
         if (!temFuuton) onComprar({ id: "fuuton", nome: "Fuuton", nivel: 1, gratis: true });
         if (!temNinpou) onComprar({ id: "ninpou", nome: "Ninpou", nivel: 1, gratis: true });
         mostrarToast(`Hyouton nível 1 adquirido! Ninpou, Suiton e Fuuton nível 1 concedidos gratuitamente.`);
+
+      // Yuki: ao subir Ninpou, Hyouton sobe junto gratuitamente
+      } else if (claId === "yuki" && cfg.id === "ninpou") {
+        onComprar({ id: cfg.id, nome: cfg.nome, nivel: proximoNivel });
+        const nivelHyoutonAtual = nivelAtual("hyouton");
+        if (nivelHyoutonAtual > 0 && nivelHyoutonAtual < proximoNivel) {
+          onComprar({ id: "hyouton", nome: "Hyouton", nivel: proximoNivel, gratis: true });
+          mostrarToast(`Ninpou nível ${proximoNivel} adquirido! Hyouton subiu junto para nível ${proximoNivel} (gratuito).`);
+        } else {
+          mostrarToast(`${cfg.nome} nível ${proximoNivel} adquirido!${(ehCla && proximoNivel > 1) ? " (−1 pt)" : ehCla ? "" : " (−1 pt)"}`);
+        }
+
+      // Uchiha: ao atingir Katon nível 4, Sopro Destrutivo é adicionado automaticamente
+      } else if (claId === "uchiha" && cfg.id === "katon" && proximoNivel === 4) {
+        const efeitosAtuais = poderes.find(p => p.id === "katon")?.efeitos || [];
+        const novosEfeitos = efeitosAtuais.includes("sopro_destrutivo") ? efeitosAtuais : [...efeitosAtuais, "sopro_destrutivo"];
+        onComprar({ id: "katon", nome: "Katon", nivel: proximoNivel, efeitos: novosEfeitos });
+        mostrarToast(`Katon nível 4 adquirido! Sopro Destrutivo Nv 4 adicionado automaticamente. (−1 pt)`);
+
+      // Uchiha: Sopro Destrutivo evolui automaticamente nos níveis 7 e 10
+      } else if (claId === "uchiha" && cfg.id === "katon" && (proximoNivel === 7 || proximoNivel === 10)) {
+        const efeitosAtuais = poderes.find(p => p.id === "katon")?.efeitos || [];
+        const evolucaoId = proximoNivel === 7 ? "sopro_destrutivo_nv7" : "sopro_destrutivo_nv10";
+        const novosEfeitos = efeitosAtuais.includes(evolucaoId) ? efeitosAtuais : [...efeitosAtuais, evolucaoId];
+        onComprar({ id: "katon", nome: "Katon", nivel: proximoNivel, efeitos: novosEfeitos });
+        mostrarToast(`Katon nível ${proximoNivel} adquirido! Sopro Destrutivo evoluiu para Nv ${proximoNivel}. (−1 pt)`);
+
       } else {
+        onComprar({ id: cfg.id, nome: cfg.nome, nivel: proximoNivel });
         mostrarToast(`${cfg.nome} nível ${proximoNivel} adquirido!${(ehCla && proximoNivel > 1) ? " (−1 pt)" : ehCla ? "" : " (−1 pt)"}`);
       }
       return;
@@ -3923,7 +3984,7 @@ const AbaPoderes = ({ poderes, setPoderes, pontosRestantes, salvarAgora, ficha =
 
 // ── PainelPontos ─────────────────────────────────────────────────────────────
 // Exibe os contadores de EXP Ganha / Restante para cada categoria
-const PainelPontos = ({ nc, atr, pericias, poderes, aptidoes, jutsus, ficha, setFicha, salvarAgora }) => {
+const PainelPontos = ({ nc, atr, pericias, poderes, aptidoes, jutsus, ficha, setFicha, salvarAgora, onPontosChange }) => {
   const evo = getEvolucao(parseInt(nc, 10) || 4);
   // Usa valores do banco se disponíveis e válidos (> 0), senão fallback para tabela hardcoded
   const totalAtr = (ficha?.pontos_atributo > 0) ? ficha.pontos_atributo : evo.atributos;
@@ -3939,8 +4000,8 @@ const PainelPontos = ({ nc, atr, pericias, poderes, aptidoes, jutsus, ficha, set
   const gastosPoderes = poderes.reduce((total, p) => {
     if (p.nivel <= 0) return total;
     const cfg = PODERES_CONFIG.find(c => c.id === p.id) || PODERES_RESTRITOS_CONFIG.find(c => c.id === p.id);
-    const gratis1 = p.gratis || (!!cfg?.cla && !cfg?.restrito); // nível 1 grátis para poderes de clã (não restritos)
-    return total + (gratis1 ? Math.max(0, p.nivel - 1) : p.nivel);
+    const gratis = p.gratis || (!!cfg?.cla && !cfg?.restrito);
+    return total + (gratis ? 0 : 1); // sempre 1 ponto por poder, independente do nível
   }, 0);
   const aptsPagas = aptidoes.filter(a => a.cat !== "gratuita" && a.cat !== "restrita").length;
   const gastosAptidoes = aptsPagas;
@@ -3962,6 +4023,8 @@ const PainelPontos = ({ nc, atr, pericias, poderes, aptidoes, jutsus, ficha, set
   const handleTotalChange = (chave, novoValor) => {
     if (!setFicha) return;
     setFicha(prev => ({ ...prev, [chave]: novoValor }));
+    onPontosChange?.(chave, novoValor);
+    console.log('[handleTotalChange]', chave, novoValor);
     setTimeout(() => salvarAgora?.(), 100);
   };
 
@@ -3982,12 +4045,7 @@ const PainelPontos = ({ nc, atr, pericias, poderes, aptidoes, jutsus, ficha, set
               <div className="fn-ponto-counters">
                 <div className="fn-ponto-counter-group">
                   <span className="fn-ponto-counter-sub">TOTAL</span>
-                  <CampoNumerico
-                    valor={total}
-                    onChange={v => handleTotalChange(chave, Math.max(0, v))}
-                    min={0}
-                    className="fn-ponto-counter-val fn-ponto-total-editavel"
-                  />
+                  <span className="fn-ponto-counter-val" style={{ color: "#aaa" }}>{total}</span>
                 </div>
                 <div className="fn-ponto-sep">|</div>
                 <div className="fn-ponto-counter-group">
@@ -3997,9 +4055,12 @@ const PainelPontos = ({ nc, atr, pericias, poderes, aptidoes, jutsus, ficha, set
                 <div className="fn-ponto-sep">|</div>
                 <div className="fn-ponto-counter-group">
                   <span className="fn-ponto-counter-sub">RESTANTE</span>
-                  <span className="fn-ponto-counter-val" style={{ color: restante < 0 ? "#ef4444" : restante > 0 ? "#22c55e" : "#555", fontWeight: 800 }}>
-                    {restante > 0 ? `+${restante}` : restante}
-                  </span>
+                  <CampoNumerico
+                    valor={restante}
+                    onChange={v => handleTotalChange(chave, Math.max(0, gastos + v))}
+                    min={-999}
+                    className={`fn-ponto-counter-val fn-ponto-total-editavel${restante < 0 ? " fn-ponto-neg" : ""}`}
+                  />
                 </div>
               </div>
             </div>
@@ -4360,6 +4421,24 @@ const ModalEditarJutsu = ({ jutsu, onSalvar, onFechar, poderes = [], atr = {} })
           </div>
         </div>
 
+        {/* PODER | NÍVEL USADO */}
+        <div style={{ display: "flex", gap: 12 }}>
+          <div className="fn-editar-field" style={{ flex: 1 }}>
+            <label className="fn-editar-label">Poder</label>
+            <select className="fn-editar-input" value={tmp.poder || ""} onChange={e => set("poder", e.target.value)}>
+              <option value="">— Nenhum —</option>
+              {PODERES_ORDEM.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div className="fn-editar-field" style={{ flex: 1 }}>
+            <label className="fn-editar-label">Nível Usado</label>
+            <input className="fn-editar-input" type="number" min="0" max="20"
+              placeholder="auto"
+              value={tmp.nivel_poder ?? ""}
+              onChange={e => set("nivel_poder", e.target.value === "" ? undefined : parseInt(e.target.value, 10))} />
+          </div>
+        </div>
+
         {/* CUSTO DE CHAKRA | TESTE */}
         <div style={{ display: "flex", gap: 12 }}>
           <div className="fn-editar-field" style={{ flex: 1 }}>
@@ -4414,10 +4493,49 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
   const [editando, setEditando] = useState(null);
 
   const espiritoBase = atr.espirito ?? 0;
-  const danoEspBonus = Math.ceil(espiritoBase / 2);
+  const danoEspBonus = Math.floor(espiritoBase / 2);
+
+  // Busca o nível atual do poder do personagem pelo nome do poder no jutsu
+  const getNivelPoder = (j) => {
+    const poderNome = j.poder || (j.fromLivro ? (jutsosLivroConfig.find(c => c.id === j.fromLivro)?.poder) : null);
+    const nivelManual = j.nivel_poder != null && j.nivel_poder !== "" ? parseInt(j.nivel_poder, 10) : null;
+    if (!poderNome || poderNome === "Básico") return nivelManual ?? 0;
+    const norm = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const poderNorm = norm(poderNome);
+    const direto =
+      poderes.find(p => norm(p.id || "") === poderNorm || norm(p.nome || "") === poderNorm) ||
+      poderes.find(p => norm(p.id || "").includes(poderNorm) || norm(p.nome || "").includes(poderNorm));
+    const nivelDoPoder = direto ? (parseInt(direto.nivel, 10) || 1) : null;
+    if (nivelManual !== null && nivelDoPoder !== null) return Math.min(nivelManual, nivelDoPoder);
+    if (nivelManual !== null) return nivelManual;
+    if (nivelDoPoder !== null) return nivelDoPoder;
+    if (poderNorm === "ninpou") {
+      const elementoIds = ["katon", "raiton", "suiton", "doton", "fuuton", "ninpou"];
+      const niveis = poderes
+        .filter(p => elementoIds.some(e => norm(p.id || "").includes(e) || norm(p.nome || "").includes(e)))
+        .map(p => parseInt(p.nivel, 10) || 1);
+      if (niveis.length > 0) return Math.max(...niveis);
+    }
+    return 0;
+  };
 
   const calcAcerto = (j) => (hcCalc[j.teste || "CD"] ?? 0) + (j.atributo_acerto ? (atr[j.atributo_acerto] ?? 0) : 0);
-  const calcDano = (j) => (parseInt(j.nivel_poder, 10) || 0) + danoEspBonus;
+  const calcDano = (j) => {
+    // Todos os jutsus usam nivelPoder + ESP/2
+    return getNivelPoder(j) + danoEspBonus;
+  };
+
+  // Jutsu é utilitário se: básico sem dano, ou dano explicitamente "-", ou sem poder e sem teste
+  const ehUtilitario = (j) => {
+    const BASICOS_SEM_ROLAR = new Set(["bunshin_no_jutsu","henge_no_jutsu","kai","kawarimi_no_jutsu","kinobori","shunshin_no_jutsu","tadayou"]);
+    if (j.fromLivro && BASICOS_SEM_ROLAR.has(j.fromLivro)) return true;
+    // Busca config do livro para checar o campo dano
+    const cfg = jutsosLivroConfig.find(c => c.id === j.fromLivro);
+    if (cfg && (cfg.dano === "-" || !cfg.dano)) return true;
+    // Jutsu manual sem nivel_poder nem teste configurado
+    if (!j.fromLivro && !j.nivel_poder && !j.teste) return true;
+    return false;
+  };
 
   return (
     <div className="fn-aba-content fn-aba-conteudo-inner">
@@ -4434,7 +4552,6 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
           const testeLabel = j.teste || "CD";
           const acertoVal = calcAcerto(j);
           const danoVal = calcDano(j);
-          const nivelUsado = parseInt(j.nivel_poder, 10) || 0;
           return (
             <div key={j.id} className="fn-aba-item fn-fn-aba-item" style={{ borderLeft: `3px solid ${cor}44` }}>
               {/* HEADER colapsado */}
@@ -4445,9 +4562,7 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
                   {j.tipo && <span style={{ fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.72rem", color: cor }}>{j.tipo.charAt(0).toUpperCase() + j.tipo.slice(1)}</span>}
                 </div>
                 {(() => {
-                  const BASICOS_SEM_ROLAR = new Set(["bunshin_no_jutsu","henge_no_jutsu","kai","kawarimi_no_jutsu","kinobori","shunshin_no_jutsu","tadayou"]);
-                  const ehUtilitario = (j.fromLivro && BASICOS_SEM_ROLAR.has(j.fromLivro)) || (!j.nivel_poder && !j.teste);
-                  if (ehUtilitario) return null;
+                  if (ehUtilitario(j)) return null;
                   return (
                 <button className="fn-aba-icon-btn" onClick={e => {
                   e.stopPropagation();
@@ -4458,6 +4573,7 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
                   const critico = soma >= criticoMin;
                   const grau = soma <= 3 ? 0 : soma <= 8 ? 1 : soma <= 11 ? 2 : soma <= 14 ? 3 : 4;
                   const ataqueTotal = soma + acertoVal;
+                  const nivelP = getNivelPoder(j);
                   const danoBase = danoVal;
                   const danoTotal = grau >= 2 ? danoBase * grau : danoBase;
                   handleRolar(null, null, null, {
@@ -4466,6 +4582,9 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
                     total: danoTotal, ataqueTotal,
                     critico, falhaCritica, grau,
                     isDano: true, danoRolls: [danoBase], danoBonus: 0,
+                    danoArmaBase: nivelP,
+                    bonusAtrDano: danoEspBonus,
+                    nomeAtrDano: "ESP",
                     timestamp: makeTimestamp(),
                   });
                 }}>
@@ -4480,9 +4599,15 @@ const AbaJutsus = ({ jutsus, setJutsus, handleRolar, hcCalc, ficha, poderes, set
                 <div className="fn-ataque-expandido fn-fn-ataque-expandido">
                   <div className="fn-ataque-expandido-info" style={{ flex: 1, maxHeight: 200, overflowY: "auto", paddingRight: 4 }}>
                     <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                      <span className="fn-ataque-detalhe">{testeLabel}: <strong style={{ color: "#4a90e2" }}>{acertoVal}</strong></span>
-                      <span className="fn-ataque-detalhe">Dano: <strong style={{ color: "#22c55e" }}>{danoVal}</strong></span>
-                      {nivelUsado > 0 && <span className="fn-ataque-detalhe">Nível usado: <strong style={{ color: "#aaa" }}>{nivelUsado}</strong></span>}
+                      {!ehUtilitario(j) && <>
+                        <span className="fn-ataque-detalhe">{testeLabel}: <strong style={{ color: "#4a90e2" }}>{acertoVal}</strong></span>
+                        <span className="fn-ataque-detalhe">
+                          Dano: <strong style={{ color: "#22c55e" }}>{danoVal}</strong>
+                          <span style={{ color: "#2a4060", fontSize: "0.7rem", marginLeft: 4 }}>
+                            (Nv {getNivelPoder(j)} + ESP {danoEspBonus})
+                          </span>
+                        </span>
+                      </>}
                       {j.acao && <span className="fn-ataque-detalhe">Ação: <strong style={{ color: "#aaa" }}>{j.acao}</strong></span>}
                       {j.alcance && j.alcance !== "-" && <span className="fn-ataque-detalhe">Alcance: <strong style={{ color: "#aaa" }}>{j.alcance}</strong></span>}
                       {j.alvo && <span className="fn-ataque-detalhe">Alvo: <strong style={{ color: "#aaa" }}>{j.alvo}</strong></span>}
@@ -4578,6 +4703,8 @@ const ModalLojaItens = ({ ryos, onComprar, onFechar, claId, aptidoes = [] }) => 
             critico: item.critico ?? null,
             tipo: item.tipo ?? null,
             alcance: item.alcance ?? null,
+            penalidade_agi: item.penalidade_agi ?? null,
+            bonus_absorcao: item.bonus_absorcao ?? null,
           });
         });
         setCatalogo(agrupado);
@@ -4748,6 +4875,16 @@ const ModalLojaItens = ({ ryos, onComprar, onFechar, claId, aptidoes = [] }) => 
                                 {item.comp}
                               </span>
                             )}
+                            {(item._cat === "armaduras" || item.categoria === "armaduras") && item.bonus_absorcao > 0 && (
+                              <span style={{ fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.6rem", fontWeight: 800, color: "#22c55e", background: "#0a1a0a", border: "1px solid #22c55e44", borderRadius: 3, padding: "1px 5px", marginLeft: 4 }}>
+                                +{item.bonus_absorcao} ABS
+                              </span>
+                            )}
+                            {(item._cat === "armaduras" || item.categoria === "armaduras") && item.penalidade_agi != null && item.penalidade_agi > 0 && (
+                              <span style={{ fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.6rem", fontWeight: 800, color: "#ef4444", background: "#ef444420", border: "1px solid #ef444440", borderRadius: 3, padding: "1px 5px", marginLeft: 4 }}>
+                                −{item.penalidade_agi} AGI
+                              </span>
+                            )}
                           </div>
                         </div>
                         <button
@@ -4774,25 +4911,58 @@ const ModalLojaItens = ({ ryos, onComprar, onFechar, claId, aptidoes = [] }) => 
 
                       {exp && (
                         <div className="fn-fn-loja-item-corpo" style={{ background: "#04090f", borderColor: "#0d1a28" }}>
-                          <div style={{ fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.8rem", lineHeight: 1.8, color: "#7ab3e0" }}>
-                            {(item.desc || "").split(".").map(s => s.trim()).filter(Boolean).map((parte, i) => {
-                              const labelMatch = parte.match(/^\*([^*]+)\*\s*(.*)$/);
-                              if (labelMatch) {
-                                const label = labelMatch[1];
-                                const rest = labelMatch[2];
-                                const isPositive = /^\+/.test(rest);
-                                const isNegative = /^[–-]/.test(rest);
-                                const valColor = isPositive ? "#22c55e" : isNegative ? "#ef4444" : "#c9d6e3";
-                                return (
-                                  <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                                    <span style={{ color: cor, fontWeight: 700 }}>{label}</span>
-                                    {rest && <span style={{ color: valColor, fontWeight: isPositive || isNegative ? 700 : 400 }}>{rest}</span>}
-                                  </div>
-                                );
-                              }
-                              return <div key={i} style={{ color: "#4a7090" }}>{parte}</div>;
-                            })}
-                          </div>
+                          {(item._cat === "armaduras" || item.categoria === "armaduras") ? (
+                            <div style={{ fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.82rem", lineHeight: 2, display: "flex", flexDirection: "column", gap: 0 }}>
+                              {item.bonus_absorcao != null && (
+                                <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+                                  <span style={{ color: "#4a90e2", fontWeight: 700 }}>Absorção:</span>
+                                  <span style={{ color: item.bonus_absorcao > 0 ? "#22c55e" : "#7898b8", fontWeight: 700 }}>
+                                    {item.bonus_absorcao > 0 ? `+${item.bonus_absorcao}` : item.bonus_absorcao}
+                                  </span>
+                                </div>
+                              )}
+                              <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+                                <span style={{ color: "#4a90e2", fontWeight: 700 }}>Penalidade:</span>
+                                <span style={{ color: item.penalidade_agi > 0 ? "#ef4444" : "#22c55e", fontWeight: 700 }}>
+                                  {item.penalidade_agi > 0 ? `−${item.penalidade_agi}` : "—"}
+                                </span>
+                                {item.penalidade_agi > 0 && (
+                                  <span style={{ color: "#2a4060", fontSize: "0.72rem" }}>em testes de Agilidade</span>
+                                )}
+                              </div>
+                              {item.comp && (
+                                <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+                                  <span style={{ color: "#4a90e2", fontWeight: 700 }}>Compartimento:</span>
+                                  <span style={{ color: "#7898b8", fontWeight: 700 }}>{item.comp}</span>
+                                </div>
+                              )}
+                              {item.desc && (
+                                <div style={{ color: "#4a7090", fontSize: "0.75rem", marginTop: 4, borderTop: "1px solid #0d1a28", paddingTop: 4 }}>
+                                  {item.desc}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div style={{ fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.8rem", lineHeight: 1.8, color: "#7ab3e0" }}>
+                              {(item.desc || "").split(".").map(s => s.trim()).filter(Boolean).map((parte, i) => {
+                                const labelMatch = parte.match(/^\*([^*]+)\*\s*(.*)$/);
+                                if (labelMatch) {
+                                  const label = labelMatch[1];
+                                  const rest = labelMatch[2];
+                                  const isPositive = /^\+/.test(rest);
+                                  const isNegative = /^[–-]/.test(rest);
+                                  const valColor = isPositive ? "#22c55e" : isNegative ? "#ef4444" : "#c9d6e3";
+                                  return (
+                                    <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                                      <span style={{ color: cor, fontWeight: 700 }}>{label}</span>
+                                      {rest && <span style={{ color: valColor, fontWeight: isPositive || isNegative ? 700 : 400 }}>{rest}</span>}
+                                    </div>
+                                  );
+                                }
+                                return <div key={i} style={{ color: "#4a7090" }}>{parte}</div>;
+                              })}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -4804,7 +4974,7 @@ const ModalLojaItens = ({ ryos, onComprar, onFechar, claId, aptidoes = [] }) => 
     </div>
   );
 };
-const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcCalc = {}, claId, atr = {}, aptidoes = [] }) => {
+const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcCalc = {}, claId, atr = {}, aptidoes = [], compUsados = 0, compExcedente = 0, compLimite = 3 }) => {
   const [filtro, setFiltro] = useState("");
   const [exp, setExp] = useState({});
   const [lojaAberta, setLojaAberta] = useState(false);
@@ -4834,6 +5004,8 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
         tipo: item.tipo ?? null,
         alcance: item.alcance ?? null,
         danoEscala: item.danoEscala ?? null,
+        penalidade_agi: item.penalidade_agi ?? null,
+        bonus_absorcao: item.bonus_absorcao ?? null,
       }]);
     }
     if (item.preco > 0) {
@@ -4944,6 +5116,36 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
         />
       </div>
 
+      {/* Compartimentos */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "6px 14px", borderBottom: "1px solid #0d1a28", flexShrink: 0,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <i className="fas fa-box" style={{ color: compExcedente > 0 ? "#ef4444" : "#4a90e2", fontSize: "0.8rem" }} />
+          <span style={{ fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.58rem", fontWeight: 800, color: compExcedente > 0 ? "#ef444488" : "#4a90e288", letterSpacing: "2px" }}>
+            COMPARTIMENTOS
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {compExcedente > 0 && (
+            <span style={{
+              fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.62rem", fontWeight: 700,
+              color: "#ef4444", background: "#ef444418", border: "1px solid #ef444440",
+              borderRadius: 4, padding: "1px 7px",
+            }}>
+              −{compExcedente * 3}m deslocamento · −{compExcedente} precisão
+            </span>
+          )}
+          <span style={{
+            fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "1rem", fontWeight: 900,
+            color: compExcedente > 0 ? "#ef4444" : compUsados >= 3 ? "#f0a020" : "#4a90e2",
+          }}>
+            {compUsados} <span style={{ fontSize: "0.65rem", fontWeight: 500, color: "#2a4060" }}>/ {compLimite}</span>
+          </span>
+        </div>
+      </div>
+
       {/* Filtro + botão adicionar */}
       <div className="fn-aba-filtro-row fn-aba-filtro-com-btn" style={{ flexShrink: 0 }}>
         <input className="fn-fn-aba-filtro-input" placeholder="Filtrar mochila" value={filtro} onChange={e => setFiltro(e.target.value)} />
@@ -4963,6 +5165,7 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
             || Object.keys(CATALOGO_META).find(k => normStr(CATALOGO_META[k].label) === normStr(item.categoria))
             || "";
           const cor = CATALOGO_META[catKey]?.cor ?? "#4a90e2";
+          const isArmadura = catKey === "armaduras";
           const isArmaCC = ["armas_simples", "armas_marciais", "armas"].includes(catKey) || item.hc === "CC";
           const isArmaCD = ["arremesso", "disparo"].includes(catKey) || item.hc === "CD";
           const temDanoNaDesc = /dano/i.test(item.descricao || "");
@@ -5048,25 +5251,61 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
                 <div className="fn-ataque-expandido fn-fn-ataque-expandido">
                   <div className="fn-ataque-expandido-info" style={{ flex: 1, maxHeight: 220, overflowY: "auto", paddingRight: 4 }}>
                     {isArma && (
-                      <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8, padding: "8px 10px", background: "#060d16", border: "1px solid #0f1e33", borderRadius: 6 }}>
                         {danoDesc && (
-                          <span className="fn-ataque-detalhe">
-                            Dano: <strong style={{ color: "#22c55e" }}>{danoDesc}</strong>
-                          </span>
+                          <div style={{ display: "flex", gap: 8, alignItems: "baseline", fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.8rem" }}>
+                            <span style={{ color: "#4a90e2", fontWeight: 700 }}>Dano:</span>
+                            <span style={{ color: "#22c55e", fontWeight: 700 }}>{danoDesc}</span>
+                          </div>
                         )}
                         {criticoCustom && (
-                          <span className="fn-ataque-detalhe">
-                            Crítico: <strong style={{ color: "#f0a020" }}>{criticoCustom}</strong>
-                          </span>
+                          <div style={{ display: "flex", gap: 8, alignItems: "baseline", fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.8rem" }}>
+                            <span style={{ color: "#4a90e2", fontWeight: 700 }}>Crítico:</span>
+                            <span style={{ color: "#f0a020", fontWeight: 700 }}>{criticoCustom}</span>
+                          </div>
                         )}
                         {item.tipo && (
-                          <span className="fn-ataque-detalhe">
-                            Tipo: <strong style={{ color: "#aaa" }}>{item.tipo}</strong>
-                          </span>
+                          <div style={{ display: "flex", gap: 8, alignItems: "baseline", fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.8rem" }}>
+                            <span style={{ color: "#4a90e2", fontWeight: 700 }}>Tipo:</span>
+                            <span style={{ color: "#aaa", fontWeight: 700 }}>{item.tipo}</span>
+                          </div>
+                        )}
+                        {item.alcance && (
+                          <div style={{ display: "flex", gap: 8, alignItems: "baseline", fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.8rem" }}>
+                            <span style={{ color: "#4a90e2", fontWeight: 700 }}>Alcance:</span>
+                            <span style={{ color: "#7898b8", fontWeight: 700 }}>{item.alcance}</span>
+                          </div>
                         )}
                       </div>
                     )}
-                    {item.descricao && <RenderDesc text={item.descricao} />}
+                    {isArmadura && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8, padding: "8px 10px", background: "#060d16", border: "1px solid #0f1e33", borderRadius: 6 }}>
+                        {item.bonus_absorcao != null && (
+                          <div style={{ display: "flex", gap: 8, alignItems: "baseline", fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.8rem" }}>
+                            <span style={{ color: "#4a90e2", fontWeight: 700 }}>Absorção:</span>
+                            <span style={{ color: item.bonus_absorcao > 0 ? "#22c55e" : "#7898b8", fontWeight: 700 }}>
+                              {item.bonus_absorcao > 0 ? `+${item.bonus_absorcao}` : item.bonus_absorcao === 0 ? "—" : item.bonus_absorcao}
+                            </span>
+                          </div>
+                        )}
+                        <div style={{ display: "flex", gap: 8, alignItems: "baseline", fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.8rem" }}>
+                          <span style={{ color: "#4a90e2", fontWeight: 700 }}>Penalidade:</span>
+                          <span style={{ color: item.penalidade_agi > 0 ? "#ef4444" : "#22c55e", fontWeight: 700 }}>
+                            {item.penalidade_agi > 0 ? `−${item.penalidade_agi}` : "—"}
+                          </span>
+                          {item.penalidade_agi > 0 && (
+                            <span style={{ color: "#2a4060", fontSize: "0.7rem" }}>em testes de Agilidade</span>
+                          )}
+                        </div>
+                        {item.comp && (
+                          <div style={{ display: "flex", gap: 8, alignItems: "baseline", fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: "0.8rem" }}>
+                            <span style={{ color: "#4a90e2", fontWeight: 700 }}>Compartimento:</span>
+                            <span style={{ color: "#7898b8", fontWeight: 700 }}>{item.comp}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {!isArmadura && !isArma && item.descricao && <RenderDesc text={item.descricao} />}
                   </div>
                   <div className="fn-item-acoes">
                     <div className="fn-item-acoes-esq">
@@ -5109,49 +5348,91 @@ const AbaMochilaNaruto = ({ itens, setItens, ryos, setRyos, nc, handleRolar, hcC
               <span className="fn-editar-titulo">Editar Item</span>
               <button className="fn-editar-fechar" onClick={() => setEditando(null)}>×</button>
             </div>
-            {[
-              { label: "Nome", key: "nome" },
-              { label: "Dano", key: "dano" },
-              { label: "Crítico", key: "critico" },
-              { label: "Alcance", key: "alcance" },
-              { label: "Tipo", key: "tipo" },
-              { label: "Compartimentos", key: "compartimentos" },
-            ].map(({ label, key }) => (
-              <div key={key} className="fn-editar-field">
-                <label className="fn-editar-label">{label}</label>
-                <input
-                  className="fn-editar-input"
-                  value={editando[key] ?? ""}
-                  onChange={e => setEditando(p => ({ ...p, [key]: e.target.value }))}
-                />
-              </div>
-            ))}
+
+            {/* Nome — sempre visível */}
             <div className="fn-editar-field">
-              <label className="fn-editar-label">Atributo</label>
-              <select
+              <label className="fn-editar-label">Nome</label>
+              <input
                 className="fn-editar-input"
-                value={editando.atributo_dano ?? ""}
-                onChange={e => setEditando(p => ({ ...p, atributo_dano: e.target.value }))}
-              >
-                <option value="">Nenhum</option>
-                <option value="forca">Força</option>
-                <option value="destreza">Destreza</option>
-                <option value="agilidade">Agilidade</option>
-                <option value="percepcao">Percepção</option>
-                <option value="inteligencia">Inteligência</option>
-                <option value="vigor">Vigor</option>
-                <option value="espirito">Espírito</option>
-              </select>
-            </div>
-            <div className="fn-editar-field">
-              <label className="fn-editar-label">Descrição</label>
-              <textarea
-                className="fn-editar-textarea"
-                value={editando.descricao ?? ""}
-                onChange={e => setEditando(p => ({ ...p, descricao: e.target.value }))}
-                rows={4}
+                value={editando.nome ?? ""}
+                onChange={e => setEditando(p => ({ ...p, nome: e.target.value }))}
               />
             </div>
+
+            {/* Campos exclusivos de armadura */}
+            {(editando.catKey === "armaduras" || editando.categoria === "Armaduras") ? (<>
+              <div className="fn-editar-field">
+                <label className="fn-editar-label">Bônus de Absorção</label>
+                <input
+                  className="fn-editar-input"
+                  type="text"
+                  value={editando.bonus_absorcao ?? ""}
+                  onChange={e => setEditando(p => ({ ...p, bonus_absorcao: e.target.value === "" ? null : Number(e.target.value) }))}
+                  placeholder="ex: 15"
+                />
+              </div>
+              <div className="fn-editar-field">
+                <label className="fn-editar-label">Penalidade de Agilidade</label>
+                <input
+                  className="fn-editar-input"
+                  type="text"
+                  value={editando.penalidade_agi ?? ""}
+                  onChange={e => setEditando(p => ({ ...p, penalidade_agi: e.target.value === "" ? null : Number(e.target.value) }))}
+                  placeholder="ex: 2 ou 4"
+                />
+              </div>
+              <div className="fn-editar-field">
+                <label className="fn-editar-label">Compartimento</label>
+                <select
+                  className="fn-editar-input"
+                  value={editando.comp ?? ""}
+                  onChange={e => setEditando(p => ({ ...p, comp: e.target.value }))}
+                >
+                  <option value="">—</option>
+                  <option value="-1 comp.">−1 comp.</option>
+                  <option value="-2 comp.">−2 comp.</option>
+                  <option value="+1 comp.">+1 comp.</option>
+                </select>
+              </div>
+            </>) : (
+              /* Campos de arma */
+              <>
+                <div className="fn-editar-field">
+                  <label className="fn-editar-label">Dano</label>
+                  <input className="fn-editar-input" value={editando.dano ?? ""} onChange={e => setEditando(p => ({ ...p, dano: e.target.value }))} />
+                </div>
+                <div className="fn-editar-field">
+                  <label className="fn-editar-label">Crítico</label>
+                  <input className="fn-editar-input" value={editando.critico ?? ""} onChange={e => setEditando(p => ({ ...p, critico: e.target.value }))} />
+                </div>
+                <div className="fn-editar-field">
+                  <label className="fn-editar-label">Alcance</label>
+                  <input className="fn-editar-input" value={editando.alcance ?? ""} onChange={e => setEditando(p => ({ ...p, alcance: e.target.value }))} />
+                </div>
+                <div className="fn-editar-field">
+                  <label className="fn-editar-label">Tipo</label>
+                  <input className="fn-editar-input" value={editando.tipo ?? ""} onChange={e => setEditando(p => ({ ...p, tipo: e.target.value }))} />
+                </div>
+                <div className="fn-editar-field">
+                  <label className="fn-editar-label">Atributo</label>
+                  <select
+                    className="fn-editar-input"
+                    value={editando.atributo_dano ?? ""}
+                    onChange={e => setEditando(p => ({ ...p, atributo_dano: e.target.value }))}
+                  >
+                    <option value="">Nenhum</option>
+                    <option value="forca">Força</option>
+                    <option value="destreza">Destreza</option>
+                    <option value="agilidade">Agilidade</option>
+                    <option value="percepcao">Percepção</option>
+                    <option value="inteligencia">Inteligência</option>
+                    <option value="vigor">Vigor</option>
+                    <option value="espirito">Espírito</option>
+                  </select>
+                </div>
+              </>
+            )}
+
             <div className="fn-editar-btns">
               <button className="fn-editar-btn-cancelar" onClick={() => setEditando(null)}>CANCELAR</button>
               <button className="fn-editar-btn-salvar" onClick={() => { setItens(p => p.map(i => i.id === editando.id ? { ...editando } : i)); setEditando(null); }}>SALVAR</button>
@@ -5246,6 +5527,11 @@ const FichaPersonagemNaruto = () => {
   const imagemRef = useRef(null);
   const fichaRef = useRef(null);
 
+  // Refs para pontos editáveis manualmente
+  const pontosAtributoRef = useRef(null);
+  const pontosPericiaRef  = useRef(null);
+  const pontosPoderRef    = useRef(null);
+
   // Refs espelho dos estados — sempre atualizados, usados no beforeunload
   const jutsusRef = useRef([]);
   const ataquesRef = useRef([]);
@@ -5275,6 +5561,13 @@ const FichaPersonagemNaruto = () => {
   useEffect(() => { deslocamentoBonusRef.current = deslocamentoBonus; }, [deslocamentoBonus]);
   useEffect(() => { reducaoDanoRef.current = reducaoDano; }, [reducaoDano]);
   useEffect(() => { pontosVisaoRef.current = pontosVisao; }, [pontosVisao]);
+  useEffect(() => {
+    if (ficha) {
+      pontosAtributoRef.current = ficha.pontos_atributo ?? null;
+      pontosPericiaRef.current  = ficha.pontos_pericia  ?? null;
+      pontosPoderRef.current    = ficha.pontos_poder    ?? null;
+    }
+  }, [ficha]);
 
   // ── Fetch ficha ──
   useEffect(() => {
@@ -5283,6 +5576,7 @@ const FichaPersonagemNaruto = () => {
       .then(data => {
         setFicha(data);
         fichaRef.current = data;
+        console.log('[DEBUG] data.poderes raw:', data.poderes);
         imagemRef.current = data.imagem ?? null;
         console.log('[DEBUG ficha]', JSON.stringify(data, null, 2));
         setNomePersonagem(data.nome_personagem ?? "");
@@ -5301,6 +5595,18 @@ const FichaPersonagemNaruto = () => {
               : data.dados_pericias;
             setPericias(dp);
           } catch { }
+        }
+        // Carrega poderes direto da coluna (tem nivel correto) — antes de dados_extras
+        if (data.poderes) {
+          try {
+            const poderesColuna = typeof data.poderes === "string"
+              ? JSON.parse(data.poderes)
+              : data.poderes;
+            if (Array.isArray(poderesColuna) && poderesColuna.length > 0) {
+              setPoderes(poderesColuna);
+              console.log('[DEBUG] poderes da coluna:', poderesColuna);
+            }
+          } catch {}
         }
         if (data.historico_rolagens) {
           try {
@@ -5334,7 +5640,27 @@ const FichaPersonagemNaruto = () => {
             if (extras.aptidoes) setAptidoes(extras.aptidoes);
             if (extras.jutsus) setJutsus(extras.jutsus);
             if (extras.ataques) setAtaques(extras.ataques);
-            if (extras.poderes) setPoderes(extras.poderes);
+            // Usa a coluna `poderes` do banco como fonte principal (tem nivel correto)
+            // extras.poderes serve como fallback apenas se coluna estiver vazia
+            {
+              let poderesColuna = [];
+              try {
+                poderesColuna = data.poderes
+                  ? (typeof data.poderes === "string" ? JSON.parse(data.poderes) : data.poderes)
+                  : [];
+              } catch {}
+
+              // Só usa extras se a coluna não tiver dados válidos
+              if (!(poderesColuna.length > 0 && poderesColuna.some(p => p.nivel > 0)) && extras.poderes) {
+                setPoderes(extras.poderes.map(p => {
+                  const fromColuna = poderesColuna.find(c => c.id === p.id);
+                  const nivelFinal = (fromColuna?.nivel > 0 ? fromColuna.nivel : null)
+                    ?? (p.nivel > 0 ? p.nivel : null)
+                    ?? 1;
+                  return { ...p, nivel: nivelFinal };
+                }));
+              }
+            }
             if (extras.itensMochila) setItensMochila(extras.itensMochila);
           } catch (e) { console.error('[carregar] erro ao parsear dados_extras:', e); }
         } else {
@@ -5385,7 +5711,11 @@ const FichaPersonagemNaruto = () => {
       historico_rolagens: JSON.stringify(historicoRef.current),
       dados_extras: JSON.stringify(extras),
       imagem: imagemRef.current ?? undefined,
+      ...(pontosAtributoRef.current !== null && { pontos_atributo: pontosAtributoRef.current }),
+      ...(pontosPericiaRef.current  !== null && { pontos_pericia:  pontosPericiaRef.current }),
+      ...(pontosPoderRef.current    !== null && { pontos_poder:    pontosPoderRef.current }),
     };
+    console.log('[salvarAgora] pontos no payload:', payload.pontos_atributo, payload.pontos_pericia, payload.pontos_poder);
     fetch(`${API}/api/naruto/fichas/${id}/salvar`, {
       method: "PUT", credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -5600,6 +5930,64 @@ const FichaPersonagemNaruto = () => {
   // ── Efeitos das aptidões ──────────────────────────────────────────────────
   const temApt = (id) => aptidoes.some(a => a.id === id || a.id === `g_${id}` || a.id === id.replace(/^g_/, ""));
 
+  // Penalidade de armadura em testes de Agilidade
+  const penArmadura = itensMochila
+    .filter(i => (i.catKey === "armaduras" || i.categoria === "Armaduras") && i.penalidade_agi > 0)
+    .reduce((acc, i) => acc + Number(i.penalidade_agi), 0);
+
+  // ── Lógica de Compartimentos ─────────────────────────────────────────────
+  // Parseia o campo comp de cada item: "+1 comp." → +1, "-1 comp." → -1, etc.
+  const parseComp = (comp) => {
+    if (!comp) return 0;
+    const s = String(comp).replace(/\s/g, "");
+    // Formato "X itens/Y comp." → pega Y (após a barra)
+    const afterSlash = s.match(/\/([+-]?\d+)comp/i);
+    if (afterSlash) return parseInt(afterSlash[1], 10);
+    // Formato "+Y comp." ou "-Y comp." sem barra
+    const plain = s.match(/^([+-]?\d+)comp/i);
+    if (plain) return parseInt(plain[1], 10);
+    return 0;
+  };
+
+  // Quantos itens cabem por compartimento (ex: "18 itens/1 comp." → 18; "1 item/1 comp." → 1)
+  const capPorComp = (comp) => {
+    if (!comp) return 1;
+    const s = String(comp).replace(/\s/g, "");
+    const m = s.match(/^(\d+)(?:item|itens|par)/i);
+    return m ? parseInt(m[1], 10) : 1;
+  };
+
+  // Total de compartimentos usados — divide quantidade pelo número de itens que cabem por comp
+  const compUsados = itensMochila.reduce((acc, item) => {
+    const v = parseComp(item.comp);
+    if (v <= 0) return acc;
+    const cap = capPorComp(item.comp);
+    const qtd = item.quantidade || 1;
+    return acc + Math.ceil(qtd / cap) * v;
+  }, 0);
+
+  // Limite ajustado:
+  // +comp de bolsas/mochilas aumenta o limite (ex: "+4 comp." da Mochila)
+  // -comp de armaduras reduz o limite (ex: "-1 comp." da Armadura de Batalha)
+  const compAjuste = itensMochila.reduce((acc, item) => {
+    const v = parseComp(item.comp);
+    const raw = String(item.comp || "").replace(/\s/g, "");
+    const ehFornecedor = raw.startsWith("+");
+    const ehPenalidade = raw.startsWith("-");
+    const qtd = item.quantidade || 1;
+    if (ehFornecedor) return acc + v * qtd;  // bolsa/mochila: aumenta limite
+    if (ehPenalidade) return acc + v * qtd;  // armadura: v já é negativo, reduz limite
+    return acc;
+  }, 0);
+
+  const COMP_LIMITE = 3 + compAjuste;
+  const compExcedente = Math.max(0, compUsados - COMP_LIMITE);
+
+  // Penalidades por excesso de compartimentos:
+  // -3m deslocamento por excedente (mín 10m), -1 precisão em todos os testes de mobilidade/FOR/AGI por excedente
+  const penComp = compExcedente;
+
+
   // Acuidade: CC usa Destreza
   const ccAtrBase = temApt("acuidade") ? (atr.destreza ?? 0) : (atr.forca ?? 0);
 
@@ -5635,10 +6023,11 @@ const FichaPersonagemNaruto = () => {
   const prontidaoCalc = Math.ceil((atr.percepcao ?? 0) / 2) + (pericias.prontidao ?? 0);
   const iniciativaCalc = (atr.agilidade ?? 0) + prontidaoCalc + iniciativaBonus + aptIniciativaBonus;
   const reacaoEsqCalc = (hcCalc.ESQ ?? 0) + 9 + reacaoBonus;
-  // Velocista: dobra Agilidade para deslocamento
-  const deslocamentoCalc = temApt("velocista")
+  // Velocista: dobra Agilidade para deslocamento; compartimentos excessivos reduzem 3m por excedente (mín 10m)
+  const deslocamentoBase = temApt("velocista")
     ? 10 + (atr.agilidade ?? 0) + deslocamentoBonus
     : 10 + Math.floor((atr.agilidade ?? 0) / 2) + deslocamentoBonus;
+  const deslocamentoCalc = Math.max(10, deslocamentoBase - compExcedente * 3);
 
 
 
@@ -5818,8 +6207,24 @@ const FichaPersonagemNaruto = () => {
                   />
                   <button
                     className="fn-btn-rolar fn-hc-rolar"
-                    title={`Rolar ${a.nome}`}
-                    onClick={() => handleRolar(a.nome, atr[a.id] ?? 0, 0)}
+                    title={(() => {
+                      const isAgi = a.id === "agilidade";
+                      const isFor = a.id === "forca";
+                      const parts = [];
+                      if (isAgi && penArmadura > 0) parts.push(`−${penArmadura} armadura`);
+                      if ((isAgi || isFor) && penComp > 0) parts.push(`−${penComp} excesso comp.`);
+                      return parts.length ? `Rolar ${a.nome} (${parts.join(", ")})` : `Rolar ${a.nome}`;
+                    })()}
+                    onClick={() => {
+                      const isAgi = a.id === "agilidade";
+                      const isFor = a.id === "forca";
+                      const pen = (isAgi ? penArmadura : 0) + ((isAgi || isFor) ? penComp : 0);
+                      const parts = [];
+                      if (isAgi && penArmadura > 0) parts.push(`−${penArmadura} arm.`);
+                      if ((isAgi || isFor) && penComp > 0) parts.push(`−${penComp} comp.`);
+                      const label = parts.length ? `${a.nome} (${parts.join(", ")})` : a.nome;
+                      handleRolar(label, atr[a.id] ?? 0, -pen);
+                    }}
                   >
                     <i className="fas fa-dice-d20" />
                   </button>
@@ -5852,7 +6257,10 @@ const FichaPersonagemNaruto = () => {
                       min={0}
                       className="fn-hc-val"
                     />
-                    <button className="fn-btn-rolar fn-hc-rolar" onClick={() => handleRolar(h.nome, hcCalc[h.key], 0)} title={`Rolar ${h.nome}`}>
+                    <button className="fn-btn-rolar fn-hc-rolar" onClick={() => {
+                      const pen = (h.key === "ESQ" ? penArmadura : 0) + (h.key !== "LM" ? penComp : 0);
+                      handleRolar(h.nome, hcCalc[h.key], -pen);
+                    }} title={`Rolar ${h.nome}`}>
                       <i className="fas fa-dice-d20" />
                     </button>
                   </div>
@@ -5953,6 +6361,8 @@ const FichaPersonagemNaruto = () => {
                   aptPericiaBonus={aptPericiaBonus}
                   aptidoes={aptidoes}
                   handleRolar={handleRolar}
+                  penArmadura={penArmadura}
+                  penComp={penComp}
                 />
               </div>
 
@@ -5969,6 +6379,9 @@ const FichaPersonagemNaruto = () => {
                   claId={getClaIdFull(ficha)}
                   atr={atr}
                   aptidoes={aptidoes}
+                  compUsados={compUsados}
+                  compExcedente={compExcedente}
+                  compLimite={COMP_LIMITE}
                 />
               </div>
 
@@ -5981,7 +6394,11 @@ const FichaPersonagemNaruto = () => {
         <div className="fn-col-direita">
 
           {/* Painel de Pontos fixo no topo */}
-          <PainelPontos nc={nc} atr={atr} pericias={pericias} poderes={poderes} aptidoes={aptidoes} jutsus={jutsus} ficha={ficha} setFicha={setFicha} salvarAgora={salvarAgora} />
+          <PainelPontos nc={nc} atr={atr} pericias={pericias} poderes={poderes} aptidoes={aptidoes} jutsus={jutsus} ficha={ficha} setFicha={setFicha} salvarAgora={salvarAgora} onPontosChange={(chave, val) => {
+            if (chave === "pontos_atributo") pontosAtributoRef.current = val;
+            if (chave === "pontos_pericia")  pontosPericiaRef.current  = val;
+            if (chave === "pontos_poder")    pontosPoderRef.current    = val;
+          }} />
 
           {/* Barra de abas */}
           <div className="fn-identidade-abas">
@@ -6004,8 +6421,8 @@ const FichaPersonagemNaruto = () => {
               const gastosPoderes = poderes.reduce((total, p) => {
                 if (p.nivel <= 0) return total;
                 const cfg = PODERES_CONFIG.find(c => c.id === p.id) || PODERES_RESTRITOS_CONFIG.find(c => c.id === p.id);
-                const gratis1 = p.gratis || (!!cfg?.cla && !cfg?.restrito);
-                return total + (gratis1 ? Math.max(0, p.nivel - 1) : p.nivel);
+                const gratis = p.gratis || (!!cfg?.cla && !cfg?.restrito);
+                return total + (gratis ? 0 : 1); // sempre 1 ponto por poder
               }, 0);
               const gastosAptidoes = aptidoes.filter(a => a.cat !== "gratuita" && a.cat !== "restrita").length;
               const JUTSUS_BASICOS_IDS2 = new Set(["bunshin_no_jutsu","henge_no_jutsu","kai","kawarimi_no_jutsu","kinobori","shunshin_no_jutsu","tadayou"]);
@@ -6051,7 +6468,7 @@ const FichaPersonagemNaruto = () => {
                       setPoderes={setPoderes}
                       pontosRestantes={ptsPoder}
                       salvarAgora={salvarAgora}
-                      ficha={{ atributos: atr, pericias, aptidoes }}
+                      ficha={{ atributos: atr, pericias, aptidoes, nc }}
                       claId={getClaIdFull(ficha)}
                     />
                   )}

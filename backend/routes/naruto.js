@@ -199,7 +199,10 @@ router.get("/fichas/:id", async (req, res) => {
         CAST(f.historico_rolagens AS CHAR) AS historico_rolagens,
         CAST(f.notas              AS CHAR) AS dados_extras,
         n.nc, n.nivel_shinobi,
-        n.pontos_atributo, n.pontos_pericia, n.pontos_poder, n.atributo_minimo,
+        COALESCE(f.pontos_atributo, n.pontos_atributo) AS pontos_atributo,
+        COALESCE(f.pontos_pericia,  n.pontos_pericia)  AS pontos_pericia,
+        COALESCE(f.pontos_poder,    n.pontos_poder)    AS pontos_poder,
+        n.atributo_minimo,
         cl.nome   AS cla_nome,
         cl.kekkei AS cla_kekkei,
         t.nome    AS tendencia_nome,
@@ -240,6 +243,7 @@ router.put("/fichas/:id/salvar", async (req, res) => {
     dados_pericias,
     historico_rolagens,
     dados_extras,
+    pontos_atributo, pontos_pericia, pontos_poder,
   } = req.body;
 
   try {
@@ -275,6 +279,11 @@ router.put("/fichas/:id/salvar", async (req, res) => {
       );
       if (ncRow.length) { fields.push("nc_id = ?"); values.push(ncRow[0].id); }
     }
+
+    if (pontos_atributo !== undefined) { fields.push('pontos_atributo = ?'); values.push(pontos_atributo); }
+    if (pontos_pericia  !== undefined) { fields.push('pontos_pericia = ?');  values.push(pontos_pericia); }
+    if (pontos_poder    !== undefined) { fields.push('pontos_poder = ?');    values.push(pontos_poder); }
+    console.log('[PUT salvar] pontos recebidos:', { pontos_atributo, pontos_pericia, pontos_poder });
 
     if (dados_extras !== undefined) {
       let extrasObj = {};
@@ -634,7 +643,7 @@ router.post("/campanhas/:id/rolagens", async (req, res) => {
 router.get("/itens", async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, categoria, nome, preco, descricao, comp, dano, hc, critico, tipo, alcance FROM naruto_itens ORDER BY categoria, nome"
+      "SELECT id, categoria, nome, preco, descricao, comp, dano, hc, critico, tipo, alcance, penalidade_agi, bonus_absorcao FROM naruto_itens ORDER BY categoria, nome"
     );
     res.json(rows);
   } catch (err) { res.status(500).json({ error: err.message }); }

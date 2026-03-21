@@ -3,13 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../styles/FichaInvocacao.css";
 import ImageCropModal from "../components/ImageCropModal";
 
-import imgAguia    from "../assets/invocacoes/aguia.png";
-import imgCao      from "../assets/invocacoes/cao.png";
-import imgCobra    from "../assets/invocacoes/cobra.png";
-import imgLesma    from "../assets/invocacoes/lesma.png";
-import imgMacaco   from "../assets/invocacoes/macaco.png";
-import imgSapo     from "../assets/invocacoes/sapo.png";
-import imgElefante from "../assets/invocacoes/elefante.png";
+import imgAguia      from "../assets/invocacoes/aguia.png";
+import imgCao        from "../assets/invocacoes/cao.png";
+import imgCobra      from "../assets/invocacoes/cobra.png";
+import imgLesma      from "../assets/invocacoes/lesma.png";
+import imgMacaco     from "../assets/invocacoes/macaco.png";
+import imgSapo       from "../assets/invocacoes/sapo.png";
+import imgElefante   from "../assets/invocacoes/elefante.png";
+import imgSalamandra from "../assets/invocacoes/salamandra.png";
+import imgMarisco    from "../assets/invocacoes/marisco.png";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:3001";
 
@@ -197,6 +199,28 @@ const INV_BASE = {
     poderes:[],
     obs:"Não falam a língua humana.\nInvocação Unitária: somente um Baku por cena.",
   },
+  salamandra:{
+    nome:"Salamandra", img:imgSalamandra,
+    atributosPrincipais:["inteligencia","forca","destreza"],
+    pericias:[{id:"furtividade",nome:"Furtividade",atr:"agilidade"},{id:"prontidao",nome:"Prontidão",atr:"percepcao"},{id:"atletismo",nome:"Atletismo",atr:"forca"},{id:"acrobacia",nome:"Acrobacia",atr:"agilidade"}],
+    aptidoes:["Acuidade","De Pé","Maestria","Perito","Perícia Inata","Resistência Maior (Vigor)","Lutar às Cegas"],
+    tecnicas:[
+      {id:"dokugiri",nome:"Dokugiri",desc:"*Pré-requisito:* Kuchiyose 6 (Salamandra)\n*Ação:* Padrão\n*Alcance:* Comum do poder\n*Área:* Cone de tamanho comum do poder\n*Duração:* Instantânea\n*Custo de Chakra:* 5\n\nA salamandra armazena 1 compartimento de veneno por categoria de tamanho acima de Médio (máx. Venenos IV; Venenos V com Kuchiyose 10). Expele em cone seguindo as regras do efeito Venenoso do Fuuton. Deve esperar 5 rodadas.\n\nAlternativamente, qualquer criatura engolida falha automaticamente no teste de Vigor contra o veneno a cada rodada dentro."},
+      {id:"imergir",nome:"Imergir (Doton)",desc:"A salamandra pode submergir no solo como se fosse água, movendo-se com deslocamento normal."},
+      {id:"engolimento",nome:"Engolimento",desc:"*Pré-requisito:* Imergir (Doton)\n*Ação:* Completa\n\nQuando imersa e após sucesso em Furtividade, usa Agarrar como ataque furtivo no alvo imediatamente acima. O alvo deve ser uma categoria de tamanho menor.\n\nVítima engolida: ataque debilitado e defesa debilitada. Para escapar: CC resistido, Força resistida, ou Escapar (Dif 4 + CC). Com arma cortante/perfurante ao escapar por Força/CC, causa dano na salamandra. Substitui a Falsa Decapitação do Imergir."},
+    ],
+    ataques:[{nome:"Batida com Cauda",tipo:"esmagamento",desc:"Dano base = Força −3 (mín. 3). Pode derrubar."}],
+    poderes:[], obs:"Invocação Unitária: somente uma salamandra por cena.\nTamanho máximo: Enorme.",
+  },
+  marisco:{
+    nome:"Marisco", img:imgMarisco,
+    atributosPrincipais:["espirito","vigor","inteligencia"],
+    pericias:[{id:"concentracao",nome:"Concentração",atr:"inteligencia"},{id:"prontidao",nome:"Prontidão",atr:"percepcao"}],
+    aptidoes:["Perito","Perícia Inata","Resistência Maior (Vigor)"],
+    tecnicas:[{id:"nevoa_densa",nome:"Névoa Densa",desc:"*Ação:* Padrão\n*Área:* Círculo 30m de diâmetro + 3m/ESP do invocador\n*Duração:* Sustentada\n*Custo de Chakra:* 5\n\nO Marisco produz névoa densa similar ao efeito Névoa Nv 5. O invocador pode usar a aptidão Miragem a partir de toda a área de efeito, sem a restrição de 2m."}],
+    ataques:[{nome:"Batida de Corpo",tipo:"esmagamento",desc:"Dano base = Força −3 (mín. 3)."}],
+    poderes:[], obs:"",
+  },
 };
 
 const TAMANHOS = ["Miúdo","Pequeno","Médio","Grande","Enorme","Imenso"];
@@ -293,35 +317,25 @@ const RenderDesc = ({ text }) => {
 };
 
 // RenderTecDesc — renderiza descrição de técnica com meta-tags visuais
-// Linhas que começam com "Ação:", "Alcance:", "Duração:", "Área:", "Custo:", "Pré-requisito:" viram badges
-const META_KEYS = ["Ação","Alcance","Duração","Área de Efeito","Área","Custo","Pré-requisito","Pré-requisitos"];
+const META_KEYS = ["Ação","Alcance","Duração","Área de Efeito","Área","Custo de Chakra","Custo","Pré-requisito","Pré-requisitos"];
 const RenderTecDesc = ({ text }) => {
   if(!text) return null;
   const lines = text.split("\n");
   const metaLinhas = [];
   const textoLinhas = [];
   let passouMeta = false;
-
   lines.forEach(line => {
     const trimmed = line.trim();
-    const isMeta = META_KEYS.some(k => trimmed.startsWith(`${k}:`)||trimmed.startsWith(`*${k}*:`)||trimmed.startsWith(`*${k}:`));
-    if(isMeta && !passouMeta) {
-      metaLinhas.push(trimmed);
-    } else {
-      passouMeta = true;
-      textoLinhas.push(line);
-    }
+    const norm = trimmed.replace(/\*/g,"");
+    const isMeta = !passouMeta && META_KEYS.some(k => norm.startsWith(`${k}:`));
+    if(isMeta) { metaLinhas.push(trimmed); } else { passouMeta=true; textoLinhas.push(line); }
   });
-
-  // Parse meta: "Ação: Padrão" → { key: "Ação", val: "Padrão" }
   const metas = metaLinhas.map(l => {
-    const idx = l.indexOf(":");
-    if(idx === -1) return null;
-    const key = l.slice(0,idx).replace(/\*/g,"").trim();
-    const val = l.slice(idx+1).trim();
-    return { key, val };
+    const clean = l.replace(/\*/g,"").trim();
+    const idx = clean.indexOf(":");
+    if(idx===-1) return null;
+    return { key: clean.slice(0,idx).trim(), val: clean.slice(idx+1).trim() };
   }).filter(Boolean);
-
   const textoFinal = textoLinhas.join("\n").trim();
 
   return (
@@ -390,62 +404,48 @@ const PainelHistorico = ({ historico, aberto, onFechar }) => {
 };
 
 // Painel de pontos — igual ao da ficha principal
-const PainelPontos = ({ nc, atr, aptAdq, temPoder }) => {
-  const ncNum     = parseInt(nc,10)||4;
-  const totalAtr  = getPontosAtributo(ncNum);
-  const gastosAtr = Object.values(atr).reduce((s,v)=>s+(v||0),0);
-
-  const totalPts   = getPontosPoder(ncNum);
-  const aptExtras  = aptAdq.filter(a=>!a.startsWith("g_")).length;
-  const gastosPts  = aptExtras + (temPoder ? 1 : 0);
-
-  const linhas = [
-    { label:"ATRIBUTOS", total:totalAtr,  gastos:gastosAtr, cor:"#4a90e2" },
-    { label:"PODERES",   total:totalPts,  gastos:gastosPts, cor:"#b060e0" },
+const PainelPontos = ({ nc, atr, aptAdq, temPoder, totalPts, onTotalChange }) => {
+  const ncNum    = parseInt(nc,10)||4;
+  const totalAtr = totalPts?.atr   ?? getPontosAtributo(ncNum);
+  const totalPts2= totalPts?.poder ?? getPontosPoder(ncNum);
+  const gastosAtr= Object.values(atr).reduce((s,v)=>s+(v||0),0);
+  const gastosPts= aptAdq.filter(a=>!a.startsWith("g_")).length+(temPoder?1:0);
+  const linhas=[
+    {label:"ATRIBUTOS",total:totalAtr, gastos:gastosAtr,cor:"#4a90e2",chave:"atr"},
+    {label:"PODERES",  total:totalPts2,gastos:gastosPts,cor:"#b060e0",chave:"poder"},
   ];
-
   return (
     <div className="fn-painel-pontos">
       <div className="fn-painel-pontos-titulo">
         <span>PONTOS</span>
-        <span className="fn-painel-pontos-nc">NC {ncNum} · 3 apt. gratuitas · apt. extra = 1pt · poder = 1pt</span>
+        <span className="fn-painel-pontos-nc">NC {ncNum} · Lim. Pod. {Math.floor(ncNum/2)} · 3 apt. gratuitas</span>
       </div>
-      {linhas.map(({ label, total, gastos, cor }) => {
-        const restante = total - gastos;
-        const pct = total > 0 ? Math.min(100, Math.round((gastos/total)*100)) : 0;
-        const corBar = restante < 0 ? "#ef4444" : restante === 0 ? "#22c55e" : cor;
+      {linhas.map(({label,total,gastos,cor,chave})=>{
+        const restante=total-gastos;
+        const pct=total>0?Math.min(100,Math.round((gastos/total)*100)):0;
+        const corBar=restante<0?"#ef4444":restante===0?"#22c55e":cor;
         return (
           <div key={label} className="fn-ponto-linha">
             <div className="fn-ponto-linha-top">
               <span className="fn-ponto-label" style={{color:cor}}>{label}</span>
               <div className="fn-ponto-counters">
-                <div className="fn-ponto-counter-group">
-                  <span className="fn-ponto-counter-sub">TOTAL</span>
-                  <span className="fn-ponto-counter-val">{total}</span>
-                </div>
+                <div className="fn-ponto-counter-group"><span className="fn-ponto-counter-sub">TOTAL</span><span className="fn-ponto-counter-val" style={{color:"#aaa"}}>{total}</span></div>
                 <div className="fn-ponto-sep">|</div>
-                <div className="fn-ponto-counter-group">
-                  <span className="fn-ponto-counter-sub">GASTOS</span>
-                  <span className="fn-ponto-counter-val" style={{color:"#aaa"}}>{gastos}</span>
-                </div>
+                <div className="fn-ponto-counter-group"><span className="fn-ponto-counter-sub">GASTOS</span><span className="fn-ponto-counter-val" style={{color:"#aaa"}}>{gastos}</span></div>
                 <div className="fn-ponto-sep">|</div>
                 <div className="fn-ponto-counter-group">
                   <span className="fn-ponto-counter-sub">RESTANTE</span>
-                  <span className="fn-ponto-counter-val" style={{color:restante<0?"#ef4444":restante>0?"#22c55e":"#555",fontWeight:800}}>
-                    {restante>0?`+${restante}`:restante}
-                  </span>
+                  <CampoNumerico valor={restante} onChange={v=>onTotalChange?.(chave,Math.max(0,gastos+v))} min={-999} className={`fn-ponto-counter-val fn-ponto-total-editavel${restante<0?" fn-ponto-neg":""}`}/>
                 </div>
               </div>
             </div>
-            <div className="fn-ponto-barra-bg">
-              <div className="fn-ponto-barra-fill" style={{width:`${pct}%`,background:corBar}}/>
-            </div>
+            <div className="fn-ponto-barra-bg"><div className="fn-ponto-barra-fill" style={{width:`${pct}%`,background:corBar}}/></div>
           </div>
         );
       })}
     </div>
   );
-};
+}
 
 // Tabela de perícias — igual à AbaPericiasNova (somente atributo da espécie, sem pontos distribuídos)
 const TabelaPericias = ({ periciasConfig, atr, handleRolar }) => (
@@ -487,140 +487,142 @@ const TabelaPericias = ({ periciasConfig, atr, handleRolar }) => (
   </div>
 );
 
-// Aba técnicas — expansível igual à aba de poderes
-const AbaTecnicas = ({ invBase, aptAdq, setAptAdq, salvarAgora, aba, temPoder, setTemPoder }) => {
-  const [expandidos, setExpandidos] = useState({});
-  const [filtro, setFiltro] = useState("");
-  const toggle = id => setExpandidos(p=>({...p,[id]:!p[id]}));
+const APT_DESC_INV = {
+  "acuidade":"*Pré-requisito:* Destreza 3.\n\n*Benefício:* Pode usar Destreza no lugar de Força para CC e dano.",
+  "ataque em movimento":"*Pré-requisito:* Agilidade 4.\n\n*Benefício:* Divide o deslocamento em duas partes, antes e depois de um ataque.",
+  "especialista":"*Benefício:* Escolha um tipo de arma ou estilo. +1 de precisão nos ataques com esse tipo.",
+  "intuição":"*Benefício:* +1 de precisão em Ler Movimento.",
+  "reflexos":"*Benefício:* +1 de bônus de precisão em Esquiva.",
+  "velocista":"*Benefício:* Sem armadura leve, dobra Agilidade para deslocamento. Quando acelerado, +10m.",
+  "perito":"*Benefício:* Escolha uma perícia. +2 em todos os testes dela.",
+  "perícia inata":"*Benefício:* Escolha uma perícia. Pode usá-la sem treinamento e +1 nos testes.",
+  "lutador":"*Benefício:* Sem –2 de precisão ao usar manobras desarmado ou com armas naturais.",
+  "ponto cego":"*Pré-requisito:* Agilidade ou Prestidigitação 6.\n\n*Benefício:* Pode fintar com ação de movimento.",
+  "ataque atordoante":"*Pré-requisito:* Força 12.\n\n*Benefício:* Ataca desarmado sem dano; se acertar, alvo testa Vigor (dif=seu CC) ou fica atordoado.",
+  "ataque poderoso":"*Pré-requisito:* CC 7.\n\n*Benefício:* Declare antes de atacar. –1 precisão, +1 dano.",
+  "derrubar agressivo":"*Pré-requisito:* Lutador ou Guerreiro.\n\n*Benefício:* Ao usar Derrubar, pode causar dano e derrubar ao mesmo tempo.",
+  "de pé":"*Benefício:* Levanta-se com ação livre. Uma vez por cena como reação após ser derrubado.",
+  "desarme agressivo":"*Pré-requisito:* Lutador ou Guerreiro.\n\n*Benefício:* Ao usar Desarmar, além de desarmar, causa dano.",
+  "rasteira":"*Benefício:* Realiza a manobra Derrubar com +1 de precisão.",
+  "sensor (via olfato; requer per 1; duração contínua)":"*Pré-requisito:* Percepção 1.\n\n*Benefício:* Detecta criaturas com chakra dentro do alcance via olfato. Duração contínua.",
+  "arremessar":"*Pré-requisito:* Força 6.\n\n*Benefício:* Ao usar Derrubar, arremessa o inimigo a até FOR metros.",
+  "ataque múltiplo":"*Pré-requisito:* CC ou CD 11.\n\n*Benefício:* Divide o ataque em 2 ou 3 golpes (–1 ou –2 de precisão).",
+  "lutar às cegas":"*Benefício:* Sob camuflagem ou visão prejudicada, não fica desprevenido e pode relançar a chance de acerto.",
+  "ninja médico":"*Benefício:* Pode usar o poder Iryou Ninjutsu.",
+  "maestria":"*Benefício:* Escolha um poder ou técnica. +1 de precisão em CC e CD com ela.",
+  "resistência maior (vigor)":"*Benefício:* +2 em todos os testes de Vigor.",
+  "duro de matar":"*Benefício:* Quando sofreria dano fatal, mantém-se com Vit = nível de Vigor (mín. 1). Uma vez por dia.",
+  "usar arma":"*Benefício:* Proficiência em uma arma marcial ou especial, sem penalidades.",
+  "guerreiro":"*Pré-requisito:* Força ou Destreza 10.\n\n*Benefício:* Pode usar manobras com armas pesadas e longas sem penalidade.",
+  "soco agarrado":"*Pré-requisito:* Lutador.\n\n*Benefício:* Ao atacar desarmado, oponente não pode usar Bloqueio (só se desarmado ou com arma leve).",
+  "chute inverso":"*Pré-requisito:* CC 14.\n\n*Benefício:* Finta seguida de ataque. Alvo não pode usar Bloqueio.",
+  "voadora":"*Pré-requisito:* Derrubar Agressivo; Ataque Poderoso.\n\n*Benefício:* Investida + Derrubar Agressivo. –1 precisão, +2 dano, +3 dificuldade para não cair.",
+};
+const getAptDescInv=nome=>{
+  const k=(nome||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+  for(const [key,val] of Object.entries(APT_DESC_INV)){if(k===key||k.startsWith(key.slice(0,20))) return val;}
+  return null;
+};
 
-  if (aba==="técnicas") return (
-    <div className="fn-aba-content fn-aba-conteudo-inner">
-      <div className="fn-aba-lista">
-        {invBase.tecnicas.map(t=>(
-          <div key={t.id} className="fn-loja-item">
-            <div className="fn-fn-loja-item-header" style={{cursor:"pointer"}} onClick={()=>toggle(t.id)}>
-              <button className="fn-fn-loja-item-chevron"><i className={`fas fa-chevron-${expandidos[t.id]?"up":"down"}`}/></button>
-              <div className="fn-fn-loja-item-info">
-                <div className="fn-fn-loja-item-nome-row">
-                  <span className="fn-fn-loja-item-nome" style={{color:"#4a90e2"}}>{t.nome}</span>
-                </div>
-              </div>
+const AbaTecnicas = ({ invBase, aptAdq, setAptAdq, salvarAgora, aba, temPoder, setTemPoder, nivelKuchi, atr, handleRolar, salvarTimer }) => {
+  const [expandidos,setExpandidos]=useState({});
+  const [filtro,setFiltro]=useState("");
+  const toggle=id=>setExpandidos(p=>({...p,[id]:!p[id]}));
+  const getReqKuchi=desc=>{const m=(desc||"").match(/Kuchiyose\s*(\d+)/i);return m?parseInt(m[1],10):0;};
+
+  if(aba==="técnicas") return (
+    <div className="fn-aba-content fn-aba-conteudo-inner"><div className="fn-aba-lista">
+      {invBase.tecnicas.map(t=>{
+        const reqK=getReqKuchi(t.desc),bloqueada=reqK>0&&nivelKuchi<reqK;
+        return (
+          <div key={t.id} className="fn-loja-item" style={{opacity:bloqueada?0.5:1}}>
+            <div className="fn-fn-loja-item-header" style={{cursor:bloqueada?"default":"pointer"}} onClick={()=>!bloqueada&&toggle(t.id)}>
+              <button className="fn-fn-loja-item-chevron" disabled={bloqueada}><i className={`fas fa-chevron-${expandidos[t.id]?"up":"down"}`}/></button>
+              <div className="fn-fn-loja-item-info"><div className="fn-fn-loja-item-nome-row">
+                <span className="fn-fn-loja-item-nome" style={{color:bloqueada?"#3a5a7a":"#4a90e2"}}>{t.nome}</span>
+                {bloqueada&&<span style={{fontSize:"0.55rem",color:"#5a3a3a",border:"1px solid #2a1818",borderRadius:3,padding:"1px 6px"}}>🔒 KUCHIYOSE {reqK}</span>}
+                {!bloqueada&&reqK>0&&<span style={{fontSize:"0.55rem",color:"#4a90e2",border:"1px solid #1a3050",borderRadius:3,padding:"1px 6px"}}>KUCHIYOSE {reqK}</span>}
+              </div></div>
             </div>
-            {expandidos[t.id]&&(
-              <div className="fn-fn-loja-item-corpo">
-                <RenderTecDesc text={t.desc}/>
+            {expandidos[t.id]&&!bloqueada&&<div className="fn-fn-loja-item-corpo"><RenderTecDesc text={t.desc}/></div>}
+          </div>
+        );
+      })}
+      {invBase.ataques.length>0&&(<>
+        <div style={{marginTop:8,marginBottom:4,fontSize:"0.62rem",color:"#3a5a7a",letterSpacing:"2px",fontWeight:800,textTransform:"uppercase",padding:"0 4px"}}>ATAQUES</div>
+        {invBase.ataques.map((a,i)=>{
+          const danoBase=Math.max(3,(atr?.forca||0)-3);
+          return (
+            <div key={i} className="fn-loja-item">
+              <div className="fn-fn-loja-item-header" style={{cursor:"pointer"}} onClick={()=>toggle(`atk_${i}`)}>
+                <button className="fn-fn-loja-item-chevron"><i className={`fas fa-chevron-${expandidos[`atk_${i}`]?"up":"down"}`}/></button>
+                <div className="fn-fn-loja-item-info"><div className="fn-fn-loja-item-nome-row">
+                  <span className="fn-fn-loja-item-nome" style={{color:"#8aaccc"}}>{a.nome}</span>
+                  <span style={{fontSize:"0.55rem",color:"#3a6080",border:"1px solid #1a3050",borderRadius:3,padding:"1px 5px",textTransform:"uppercase"}}>{a.tipo}</span>
+                  <span style={{fontSize:"0.7rem",color:"#22c55e",marginLeft:"auto"}}>Dano {danoBase}</span>
+                </div></div>
+                <button className="fn-aba-icon-btn" onClick={e=>{e.stopPropagation();handleRolar(a.nome,danoBase,0);}}><i className="fas fa-dice-d20"/></button>
               </div>
-            )}
+              {expandidos[`atk_${i}`]&&<div className="fn-fn-loja-item-corpo"><RenderDesc text={a.desc}/></div>}
+            </div>
+          );
+        })}
+      </>)}
+      {invBase.poderes.length>0&&(<>
+        <div style={{marginTop:8,marginBottom:4,fontSize:"0.62rem",color:"#3a5a7a",letterSpacing:"2px",fontWeight:800,textTransform:"uppercase",padding:"0 4px"}}>PODER DA ESPÉCIE <span style={{color:"#4a90e2",fontWeight:400}}>(1 pt de poder)</span></div>
+        {invBase.poderes.map((p,i)=>(
+          <div key={i} className={`fn-loja-item ${temPoder?"fn-fn-loja-item-max":""}`} style={{cursor:"pointer"}} onClick={()=>{setTemPoder(prev=>!prev);clearTimeout(salvarTimer.current);salvarTimer.current=setTimeout(salvarAgora,100);}}>
+            <div className="fn-fn-loja-item-header">
+              <div style={{width:18,height:18,borderRadius:4,border:`1px solid ${temPoder?"#4a90e2":"#1a3050"}`,background:temPoder?"#071828":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.6rem",color:"#4a90e2",flexShrink:0}}>{temPoder&&<i className="fas fa-check"/>}</div>
+              <div className="fn-fn-loja-item-info"><div className="fn-fn-loja-item-nome-row">
+                <span className="fn-fn-loja-item-nome" style={{color:temPoder?"#4a90e2":"#8aaccc"}}>{p}</span>
+                {temPoder&&<span className="fn-loja-badge-max">1 PT</span>}
+              </div><div style={{fontSize:"0.65rem",color:"#3a5a7a",marginTop:2}}>Efeitos: Canhão, Orbe, Flechas, Coluna, Sopro Destrutivo, Raio, Míssil, Ricochete</div></div>
+            </div>
           </div>
         ))}
-        {invBase.ataques.length>0&&(
-          <>
-            <div style={{marginTop:8,marginBottom:4,fontSize:"0.62rem",color:"#3a5a7a",letterSpacing:"2px",fontWeight:800,textTransform:"uppercase",padding:"0 4px"}}>ATAQUES</div>
-            {invBase.ataques.map((a,i)=>(
-              <div key={i} className="fn-loja-item">
-                <div className="fn-fn-loja-item-header" style={{cursor:"pointer"}} onClick={()=>toggle(`atk_${i}`)}>
-                  <button className="fn-fn-loja-item-chevron"><i className={`fas fa-chevron-${expandidos[`atk_${i}`]?"up":"down"}`}/></button>
-                  <div className="fn-fn-loja-item-info">
-                    <div className="fn-fn-loja-item-nome-row">
-                      <span className="fn-fn-loja-item-nome" style={{color:"#8aaccc"}}>{a.nome}</span>
-                      <span style={{fontSize:"0.55rem",color:"#3a6080",border:"1px solid #1a3050",borderRadius:3,padding:"1px 5px",textTransform:"uppercase",letterSpacing:1}}>{a.tipo}</span>
-                    </div>
-                  </div>
-                </div>
-                {expandidos[`atk_${i}`]&&(
-                  <div className="fn-fn-loja-item-corpo">
-                    <RenderDesc text={a.desc}/>
-                  </div>
-                )}
-              </div>
-            ))}
-          </>
-        )}
-        {invBase.poderes.length>0&&(
-          <>
-            <div style={{marginTop:8,marginBottom:4,fontSize:"0.62rem",color:"#3a5a7a",letterSpacing:"2px",fontWeight:800,textTransform:"uppercase",padding:"0 4px"}}>
-              PODER DA ESPÉCIE <span style={{color:"#4a90e2",fontWeight:400}}>(1 pt de poder)</span>
-            </div>
-            {invBase.poderes.map((p,i)=>(
-              <div key={i} className={`fn-loja-item ${temPoder?"fn-fn-loja-item-max":""}`} style={{cursor:"pointer"}}
-                onClick={()=>{ setTemPoder(prev=>!prev); setTimeout(salvarAgora,100); }}>
-                <div className="fn-fn-loja-item-header">
-                  <div style={{width:18,height:18,borderRadius:4,border:`1px solid ${temPoder?"#4a90e2":"#1a3050"}`,background:temPoder?"#071828":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.6rem",color:"#4a90e2",flexShrink:0}}>
-                    {temPoder&&<i className="fas fa-check"/>}
-                  </div>
-                  <div className="fn-fn-loja-item-info">
-                    <div className="fn-fn-loja-item-nome-row">
-                      <span className="fn-fn-loja-item-nome" style={{color:temPoder?"#4a90e2":"#8aaccc"}}>{p}</span>
-                      {temPoder&&<span className="fn-loja-badge-max">1 PT</span>}
-                    </div>
-                    <div style={{fontSize:"0.65rem",color:"#3a5a7a",marginTop:2}}>Efeitos: Canhão, Orbe, Flechas, Coluna, Sopro Destrutivo, Raio, Míssil, Ricochete</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {invBase.obs&&<div style={{margin:"6px 4px",padding:"8px 12px",background:"#060d16",border:"1px solid #0f1e33",borderRadius:4}}><RenderDesc text={invBase.obs}/></div>}
-          </>
-        )}
-      </div>
-    </div>
+      </>)}
+    </div></div>
   );
 
-  // Aba aptidões — 3 gratuitas (g_key) + extras que custam 1pt cada
-  const aptFiltradas = invBase.aptidoes.filter(a=>filtro===""||normStr(a).includes(normStr(filtro)));
-  const gratuitasUsadas = aptAdq.filter(a=>a.startsWith("g_")).length;
-  const extrasUsadas    = aptAdq.filter(a=>!a.startsWith("g_")).length;
-
-  const toggleApt = (a) => {
-    const key  = normStr(a).replace(/\s+/g,"_").slice(0,40);
-    const gKey = `g_${key}`;
-    const temGratis = aptAdq.includes(gKey);
-    const temExtra  = aptAdq.includes(key);
-    if (temGratis)            setAptAdq(prev=>prev.filter(x=>x!==gKey));
-    else if (temExtra)        setAptAdq(prev=>prev.filter(x=>x!==key));
-    else if (gratuitasUsadas<3) setAptAdq(prev=>[...prev,gKey]);
-    else                      setAptAdq(prev=>[...prev,key]);
-    setTimeout(salvarAgora,100);
+  const aptFiltradas=invBase.aptidoes.filter(a=>filtro===""||a.toLowerCase().includes(filtro.toLowerCase()));
+  const gratuitasUsadas=aptAdq.filter(a=>a.startsWith("g_")).length;
+  const extrasUsadas=aptAdq.filter(a=>!a.startsWith("g_")).length;
+  const toggleApt=(a)=>{
+    const key=normStr(a).replace(/\s+/g,"_").slice(0,40),gKey=`g_${key}`;
+    const tG=aptAdq.includes(gKey),tE=aptAdq.includes(key);
+    if(tG) setAptAdq(prev=>prev.filter(x=>x!==gKey));
+    else if(tE) setAptAdq(prev=>prev.filter(x=>x!==key));
+    else if(gratuitasUsadas<3) setAptAdq(prev=>[...prev,gKey]);
+    else setAptAdq(prev=>[...prev,key]);
+    clearTimeout(salvarTimer.current);salvarTimer.current=setTimeout(salvarAgora,100);
   };
-
   return (
     <div className="fn-aba-content fn-aba-conteudo-inner">
-      <div className="fn-aba-filtro-row">
-        <input className="fn-fn-aba-filtro-input" placeholder="Filtrar aptidões" value={filtro} onChange={e=>setFiltro(e.target.value)}/>
-      </div>
-      {/* Legenda */}
+      <div className="fn-aba-filtro-row"><input className="fn-fn-aba-filtro-input" placeholder="Filtrar aptidões" value={filtro} onChange={e=>setFiltro(e.target.value)}/></div>
       <div style={{display:"flex",gap:12,padding:"4px 6px 6px",fontSize:"0.62rem"}}>
-        <span style={{display:"flex",alignItems:"center",gap:4}}>
-          <span style={{width:8,height:8,borderRadius:2,background:"#22c55e",display:"inline-block"}}/>
-          <span style={{color:"#22c55e"}}>Gratuita ({gratuitasUsadas}/3)</span>
-        </span>
-        <span style={{display:"flex",alignItems:"center",gap:4}}>
-          <span style={{width:8,height:8,borderRadius:2,background:"#4a90e2",display:"inline-block"}}/>
-          <span style={{color:"#4a90e2"}}>Comprada ({extrasUsadas} pt)</span>
-        </span>
+        <span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,borderRadius:2,background:"#22c55e",display:"inline-block"}}/><span style={{color:"#22c55e"}}>Gratuita ({gratuitasUsadas}/3)</span></span>
+        <span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,borderRadius:2,background:"#4a90e2",display:"inline-block"}}/><span style={{color:"#4a90e2"}}>Comprada ({extrasUsadas} pt)</span></span>
       </div>
       <div className="fn-aba-lista">
         {aptFiltradas.map((a,i)=>{
-          const key  = normStr(a).replace(/\s+/g,"_").slice(0,40);
-          const gKey = `g_${key}`;
-          const isGratis = aptAdq.includes(gKey);
-          const isExtra  = aptAdq.includes(key);
-          const adq = isGratis||isExtra;
-          const corBadge = isGratis?"#22c55e":"#4a90e2";
+          const key=normStr(a).replace(/\s+/g,"_").slice(0,40),gKey=`g_${key}`;
+          const isGratis=aptAdq.includes(gKey),isExtra=aptAdq.includes(key),adq=isGratis||isExtra;
+          const corBadge=isGratis?"#22c55e":"#4a90e2",desc=getAptDescInv(a);
           return (
-            <div key={i} className={`fn-loja-item ${adq?"fn-fn-loja-item-max":""}`} style={{cursor:"pointer"}}
-              onClick={()=>toggleApt(a)}>
-              <div className="fn-fn-loja-item-header">
-                <div style={{width:18,height:18,borderRadius:4,border:`1px solid ${adq?corBadge:"#1a3050"}`,background:adq?`${corBadge}22`:"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.6rem",color:corBadge,flexShrink:0}}>
-                  {adq&&<i className="fas fa-check"/>}
-                </div>
-                <div className="fn-fn-loja-item-info">
-                  <div className="fn-fn-loja-item-nome-row">
-                    <span className="fn-fn-loja-item-nome" style={{color:adq?corBadge:"#8aaccc"}}>{a}</span>
+            <div key={i} className="fn-aba-item fn-fn-aba-item" style={{borderLeft:`3px solid ${adq?corBadge+"44":"#1a3050"}`}}>
+              <div className="fn-fn-aba-item-header" onClick={()=>toggle(`apt_${i}`)}>
+                <button className="fn-aba-chevron fn-fn-aba-chevron"><i className={`fas fa-chevron-${expandidos[`apt_${i}`]?"up":"down"}`}/></button>
+                <div className="fn-fn-aba-item-info" style={{flex:1}}>
+                  <span className="fn-fn-aba-item-nome fn-fn-fn-aba-item-nome" style={{color:adq?corBadge:"#8aaccc"}}>{a}</span>
+                  <div style={{display:"flex",gap:6,marginTop:2}}>
                     {isGratis&&<span className="fn-loja-badge-max" style={{color:"#22c55e",borderColor:"#22c55e44",background:"#051a0d"}}>GRATUITA</span>}
-                    {isExtra &&<span className="fn-loja-badge-max">1 PT</span>}
+                    {isExtra&&<span className="fn-loja-badge-max">1 PT</span>}
                   </div>
                 </div>
+                <button className="fn-aba-icon-btn" onClick={e=>{e.stopPropagation();toggleApt(a);}}><i className={`fas fa-${adq?"times":"plus"}`}/></button>
               </div>
+              {expandidos[`apt_${i}`]&&<div className="fn-ataque-expandido fn-fn-ataque-expandido" style={{padding:"8px 12px"}}>{desc?<RenderTecDesc text={desc}/>:<span style={{color:"#3a5a7a",fontSize:"0.8rem"}}>Consulte o manual.</span>}</div>}
             </div>
           );
         })}
@@ -628,7 +630,7 @@ const AbaTecnicas = ({ invBase, aptAdq, setAptAdq, salvarAgora, aba, temPoder, s
       </div>
     </div>
   );
-};
+}
 
 // ── Componente Principal ──────────────────────────────────────────────────────
 const FichaInvocacao = () => {
@@ -655,28 +657,71 @@ const FichaInvocacao = () => {
   const [chakAtual, setChakAtual] = useState(10);
   const [chakMax,   setChakMax]   = useState(10);
 
+  const [anotacoes, setAnotacoes] = useState("");
   const [aptAdq,   setAptAdq]   = useState([]);
-  const [temPoder, setTemPoder] = useState(false); // se comprou o poder da espécie (1pt)
+  const [temPoder, setTemPoder] = useState(false);
+  const [nivelKuchi, setNivelKuchi] = useState(0);
+  const [totalPts, setTotalPts] = useState({atr:0,poder:0});
   const [abaAtiva, setAbaAtiva] = useState("técnicas");
 
   const [resultado,    setResultado]    = useState(null);
   const [historico,    setHistorico]    = useState([]);
   const [painelAberto, setPainelAberto] = useState(false);
 
-  const salvarTimer = useRef(null);
-  const fichaRef    = useRef(ficha);
-  useEffect(()=>{ fichaRef.current=ficha; },[ficha]);
+  const salvarTimer       = useRef(null);
+  const fichaRef          = useRef(ficha);
+  const fichaCarregada    = useRef(false);
+  // Refs espelho — sempre atualizados, usados no beforeunload
+  const nomeInvRef        = useRef("");
+  const ncRef             = useRef(4);
+  const tamanhoRef        = useRef("Médio");
+  const imagemRef         = useRef(null);
+  const atrRef            = useRef({forca:0,destreza:0,agilidade:0,percepcao:0,inteligencia:0,vigor:0,espirito:0});
+  const hcBaseRef         = useRef({CC:3,CD:3,ESQ:3,LM:3});
+  const vitAtualRef       = useRef(5);
+  const vitMaxRef         = useRef(5);
+  const chakAtualRef      = useRef(10);
+  const chakMaxRef        = useRef(10);
+  const aptAdqRef         = useRef([]);
+  const temPoderRef       = useRef(false);
+  const historicoRef      = useRef([]);
+  const totalPtsRef       = useRef({atr:0,poder:0});
+  const anotacoesRef      = useRef("");
+  const extrasExistentesRef = useRef({});
 
-  // Recalcula barras quando atributos ou NC mudam
+  useEffect(()=>{ fichaRef.current=ficha; },[ficha]);
+  useEffect(()=>{ nomeInvRef.current=nomeInv; },[nomeInv]);
+  useEffect(()=>{ ncRef.current=nc; },[nc]);
+  useEffect(()=>{ tamanhoRef.current=tamanho; },[tamanho]);
+  useEffect(()=>{ imagemRef.current=imagem; },[imagem]);
+  useEffect(()=>{ atrRef.current=atr; },[atr]);
+  useEffect(()=>{ hcBaseRef.current=hcBase; },[hcBase]);
+  useEffect(()=>{ vitAtualRef.current=vitAtual; },[vitAtual]);
+  useEffect(()=>{ vitMaxRef.current=vitMax; },[vitMax]);
+  useEffect(()=>{ chakAtualRef.current=chakAtual; },[chakAtual]);
+  useEffect(()=>{ chakMaxRef.current=chakMax; },[chakMax]);
+  useEffect(()=>{ aptAdqRef.current=aptAdq; },[aptAdq]);
+  useEffect(()=>{ temPoderRef.current=temPoder; },[temPoder]);
+  useEffect(()=>{ historicoRef.current=historico; },[historico]);
+  useEffect(()=>{ totalPtsRef.current=totalPts; },[totalPts]);
+  useEffect(()=>{ anotacoesRef.current=anotacoes; },[anotacoes]);
+
+  // Ctrl+V para colar imagem
   useEffect(()=>{
-    const ncNum=parseInt(nc,10)||4;
-    const novoVitMax = Math.floor((10 + 3*(atr.vigor||0) + 5*ncNum)/2);
-    const novoChakMax= 10 + 3*(atr.espirito||0);
-    setVitMax(novoVitMax);
-    if(vitAtual>novoVitMax) setVitAtual(novoVitMax);
-    setChakMax(novoChakMax);
-    if(chakAtual>novoChakMax) setChakAtual(novoChakMax);
-  },[atr.vigor, atr.espirito, nc]); // eslint-disable-line
+    const onPaste = e => {
+      for(const item of (e.clipboardData?.items||[])){
+        if(item.type.startsWith('image/')){
+          const reader = new FileReader();
+          reader.onload = ev => setImagem(ev.target.result);
+          reader.readAsDataURL(item.getAsFile());
+          break;
+        }
+      }
+    };
+    window.addEventListener('paste', onPaste);
+    return ()=>window.removeEventListener('paste', onPaste);
+  },[]);
+
 
   useEffect(()=>{
     fetch(`${API}/api/naruto/fichas/${id}`,{credentials:"include"})
@@ -686,46 +731,133 @@ const FichaInvocacao = () => {
         setFicha(data);
         const base=INV_BASE[data.invocacao_id];
         setInvBase(base||null);
+        // Lê dados da invocação: novo local (dados_extras.invocacao) com fallback para legado (invocacao_dados)
         let inv={};
-        try{ inv=JSON.parse(data.invocacao_dados||"{}"); }catch{}
+        let extrasBase={};
+        try {
+          extrasBase = typeof data.dados_extras==='string'?JSON.parse(data.dados_extras):(data.dados_extras||{});
+          if(extrasBase.invocacao && Object.keys(extrasBase.invocacao).length > 0) {
+            inv = extrasBase.invocacao;
+          } else {
+            // fallback legado
+            inv = JSON.parse(data.invocacao_dados||"{}");
+          }
+        } catch {
+          try { inv=JSON.parse(data.invocacao_dados||"{}"); } catch {}
+        }
+        extrasExistentesRef.current = extrasBase;
         setNomeInv(inv.nome||(base?.nome||"Invocação"));
         setNc(inv.nc||4);
         setTamanho(inv.tamanho||"Médio");
         setImagem(inv.imagem||null);
-        setAtr(inv.atr||{forca:0,destreza:0,agilidade:0,percepcao:0,inteligencia:0,vigor:0,espirito:0});
+        const invAtr = inv.atr||{forca:0,destreza:0,agilidade:0,percepcao:0,inteligencia:0,vigor:0,espirito:0};
+        setAtr(invAtr);
         setHcBase(inv.hcBase||{CC:3,CD:3,ESQ:3,LM:3});
-        setVitAtual(inv.vitAtual??5);
-        setVitMax(inv.vitMax??5);
-        setChakAtual(inv.chakAtual??10);
-        setChakMax(inv.chakMax??10);
+        // Vitalidade = metade da fórmula da ficha principal, usando atributos da INVOCAÇÃO
+        // (10 + 3×VIG_inv + 5×NC) / 2   |   Chakra = 10 + 3×ESP_inv
+        const ncNum     = parseInt(inv.nc||4, 10)||4;
+        const invVigor  = invAtr.vigor   || 0;
+        const invEsp    = invAtr.espirito|| 0;
+        const vitCalc   = Math.floor((10 + 3*invVigor + 5*ncNum) / 2);
+        const chakCalc  = 10 + 3*invEsp;
+        setVitAtual(inv.vitAtual ?? vitCalc);
+        setVitMax(  inv.vitMax   ?? vitCalc);
+        setChakAtual(inv.chakAtual ?? chakCalc);
+        setChakMax(  inv.chakMax   ?? chakCalc);
+        const getPtsAtr=n=>{const t=[{nc:4,a:12},{nc:5,a:18},{nc:6,a:24},{nc:7,a:30},{nc:8,a:36},{nc:9,a:42},{nc:10,a:48},{nc:11,a:54},{nc:12,a:60},{nc:13,a:66},{nc:14,a:72}].find(r=>r.nc===n);return t?t.a:(n>14?72+(n-14)*6:12);};
+        const ncNum2=parseInt(inv.nc||4,10)||4;
+        setTotalPts({atr:inv.totalPts?.atr??getPtsAtr(ncNum2),poder:inv.totalPts?.poder??Math.floor(ncNum2/2)});
         setAptAdq(inv.aptAdq||[]);
         setTemPoder(inv.temPoder||false);
+        if(inv.anotacoes) setAnotacoes(inv.anotacoes);
         if(inv.historico) setHistorico(inv.historico);
+        // nivel kuchiyose do dono (lê do extrasBase já carregado)
+        try {
+          const kuchi = (extrasBase.poderes||[]).find(p=>(p.id||'').includes('kuchiyose')||(p.nome||'').toLowerCase().includes('kuchiyose'));
+          setNivelKuchi(kuchi?(parseInt(kuchi.nivel,10)||0):0);
+        } catch { setNivelKuchi(0); }
+        setTimeout(()=>{ fichaCarregada.current=true; }, 600);
       })
       .catch(console.error)
       .finally(()=>setCarregando(false));
   },[id]);
 
   const salvarAgora = useCallback(()=>{
-    fetch(`${API}/api/naruto/fichas/${id}`,{
-      method:"PATCH",credentials:"include",
+    if(!fichaCarregada.current) { console.warn('[inv:salvarAgora] fichaCarregada=false, abortando'); return; }
+    // Monta payload de invocação
+    const invocacaoDados = {
+      nome:     nomeInvRef.current,
+      nc:       ncRef.current,
+      tamanho:  tamanhoRef.current,
+      imagem:   imagemRef.current,
+      atr:      atrRef.current,
+      hcBase:   hcBaseRef.current,
+      vitAtual: vitAtualRef.current,
+      vitMax:   vitMaxRef.current,
+      chakAtual:chakAtualRef.current,
+      chakMax:  chakMaxRef.current,
+      aptAdq:   aptAdqRef.current,
+      temPoder: temPoderRef.current,
+      historico:historicoRef.current,
+      totalPts: totalPtsRef.current,
+      anotacoes:anotacoesRef.current,
+    };
+    // Preserva todos os dados_extras existentes da ficha principal, apenas injeta/atualiza invocacao
+    const extras = {
+      ...extrasExistentesRef.current,
+      invocacao: invocacaoDados,
+    };
+    fetch(`${API}/api/naruto/fichas/${id}/salvar`,{
+      method:"PUT", credentials:"include",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        invocacao_dados:JSON.stringify({
-          nome:nomeInv, nc, tamanho, imagem,
-          atr, hcBase, vitAtual, vitMax, chakAtual, chakMax,
-          aptAdq, temPoder, historico,
-        })
-      }),
-    }).catch(console.error);
-  },[id,nomeInv,nc,tamanho,imagem,atr,hcBase,vitAtual,vitMax,chakAtual,chakMax,aptAdq,temPoder,historico]);
+      body:JSON.stringify({ dados_extras: JSON.stringify(extras) }),
+    })
+      .then(r=>r.json())
+      .then(d=>console.log('[inv:salvarAgora] resposta:', d))
+      .catch(e=>console.error('[inv:salvarAgora] erro:', e));
+  },[id]);
 
   useEffect(()=>{
     if(!ficha) return;
+    if(!fichaCarregada.current) return;
     clearTimeout(salvarTimer.current);
     salvarTimer.current=setTimeout(salvarAgora,1500);
     return ()=>clearTimeout(salvarTimer.current);
-  },[nomeInv,nc,tamanho,imagem,atr,hcBase,vitAtual,vitMax,chakAtual,chakMax,aptAdq,temPoder]); // eslint-disable-line
+  },[nomeInv,nc,tamanho,imagem,atr,hcBase,vitAtual,vitMax,chakAtual,chakMax,aptAdq,temPoder,anotacoes]); // eslint-disable-line
+
+  // ── Save on unload — garante que dados frescos sejam salvos ao fechar a aba ──
+  useEffect(()=>{
+    const handler = ()=>{
+      if(!fichaCarregada.current) return;
+      clearTimeout(salvarTimer.current);
+      const invocacaoDados = {
+        nome:     nomeInvRef.current,
+        nc:       ncRef.current,
+        tamanho:  tamanhoRef.current,
+        imagem:   imagemRef.current,
+        atr:      atrRef.current,
+        hcBase:   hcBaseRef.current,
+        vitAtual: vitAtualRef.current,
+        vitMax:   vitMaxRef.current,
+        chakAtual:chakAtualRef.current,
+        chakMax:  chakMaxRef.current,
+        aptAdq:   aptAdqRef.current,
+        temPoder: temPoderRef.current,
+        historico:historicoRef.current,
+        totalPts: totalPtsRef.current,
+        anotacoes:anotacoesRef.current,
+      };
+      const extras = { ...extrasExistentesRef.current, invocacao: invocacaoDados };
+      fetch(`${API}/api/naruto/fichas/${id}/salvar`,{
+        method:"PUT", credentials:"include",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ dados_extras: JSON.stringify(extras) }),
+        keepalive: true,
+      }).catch(()=>{});
+    };
+    window.addEventListener("beforeunload", handler);
+    return ()=>window.removeEventListener("beforeunload", handler);
+  },[id]); // eslint-disable-line
 
   const handleRolar = useCallback((label,precisaoVal=0,bonus=0)=>{
     const {d1,d2}=rolar2d8();
@@ -745,10 +877,19 @@ const FichaInvocacao = () => {
   };
 
   if(carregando) return <div className="fn-loading-page"><p className="fn-loading-text">Carregando ficha...</p></div>;
-  if(!ficha||!invBase) return (
+  if(!ficha) return (
     <div className="fn-loading-page">
-      <p className="fn-loading-text">Invocação não encontrada.</p>
+      <p className="fn-loading-text">Ficha não encontrada.</p>
       <button className="fn-voltar-btn" onClick={()=>navigate(`/personagem-naruto/${id}`)}>← VOLTAR</button>
+    </div>
+  );
+  if(!invBase) return (
+    <div className="fn-loading-page">
+      <p className="fn-loading-text" style={{marginBottom:16}}>
+        {ficha.invocacao_id ? `Invocação "${ficha.invocacao_id}" não reconhecida.` : "Nenhuma invocação selecionada."}
+      </p>
+      <button className="fn-voltar-btn" onClick={()=>navigate(`/personagem-naruto/${id}/escolher-invocacao`)}>Escolher Invocação</button>
+      <button className="fn-voltar-btn" style={{marginLeft:8}} onClick={()=>navigate(`/personagem-naruto/${id}`)}>← VOLTAR</button>
     </div>
   );
 
@@ -821,17 +962,14 @@ const FichaInvocacao = () => {
             </div>
 
             {/* Barras */}
-            <BarraEnergia label="VITALIDADE (÷2)" cor="#e05050"
+            <BarraEnergia label="VITALIDADE (10+3VIG+5NC)÷2" cor="#e05050"
               valor={vitAtual} max={vitMax}
               onChange={v=>setVitAtual(Math.max(0,v))}
               onChangeMax={v=>{setVitMax(v);if(vitAtual>v)setVitAtual(v);}}/>
-            <BarraEnergia label="CHAKRA" cor="#4a90e2"
+            <BarraEnergia label="CHAKRA (10+3ESP)" cor="#4a90e2"
               valor={chakAtual} max={chakMax}
               onChange={v=>setChakAtual(Math.max(0,v))}
               onChangeMax={v=>{setChakMax(v);if(chakAtual>v)setChakAtual(v);}}/>
-
-            {/* Pontos */}
-            <PainelPontos nc={nc} atr={atr} aptAdq={aptAdq} temPoder={temPoder}/>
 
             {/* ATRIBUTOS — igual à ficha principal */}
             <div className="fn-secao-titulo">ATRIBUTOS</div>
@@ -891,17 +1029,12 @@ const FichaInvocacao = () => {
                 <div className="fn-meio-col-titulo">ANOTAÇÕES</div>
                 <div style={{flex:1,padding:"8px"}}>
                   <textarea
+                    value={anotacoes}
                     style={{width:"100%",height:"100%",minHeight:200,background:"#050b14",border:"1px solid #0f1e33",borderRadius:4,color:"#90aac8",fontSize:"0.82rem",fontFamily:"Outfit,sans-serif",padding:10,resize:"none",outline:"none",lineHeight:1.6,boxSizing:"border-box"}}
                     placeholder="Anotações sobre a invocação, contratos, comportamento…"
-                    onChange={()=>{ clearTimeout(salvarTimer.current); salvarTimer.current=setTimeout(salvarAgora,1500); }}
+                    onChange={e=>setAnotacoes(e.target.value)}
                   />
                 </div>
-                {invBase.obs&&(
-                  <div style={{margin:"0 8px 8px",padding:"8px 12px",background:"#060d16",border:"1px solid #1a3050",borderRadius:4}}>
-                    <div style={{fontSize:"0.6rem",color:"#4a6080",letterSpacing:"2px",textTransform:"uppercase",marginBottom:4}}>REGRAS ESPECIAIS</div>
-                    <RenderDesc text={invBase.obs}/>
-                  </div>
-                )}
               </div>
 
             </div>
@@ -911,6 +1044,12 @@ const FichaInvocacao = () => {
 
         {/* COL DIREITA */}
         <div className="fn-col-direita">
+
+          <PainelPontos nc={nc} atr={atr} aptAdq={aptAdq} temPoder={temPoder}
+            totalPts={totalPts}
+            onTotalChange={(chave,v)=>{setTotalPts(prev=>({...prev,[chave]:v}));clearTimeout(salvarTimer.current);salvarTimer.current=setTimeout(salvarAgora,500);}}
+          />
+
           <div className="fn-identidade-abas">
             <div className="fn-abas-centro">
               {["técnicas","aptidões"].map(aba=>(
@@ -922,7 +1061,7 @@ const FichaInvocacao = () => {
             </div>
           </div>
           <div className="fn-aba-conteudo">
-            <AbaTecnicas invBase={invBase} aptAdq={aptAdq} setAptAdq={setAptAdq} salvarAgora={salvarAgora} aba={abaAtiva} temPoder={temPoder} setTemPoder={setTemPoder}/>
+            <AbaTecnicas invBase={invBase} aptAdq={aptAdq} setAptAdq={setAptAdq} salvarAgora={salvarAgora} aba={abaAtiva} temPoder={temPoder} setTemPoder={setTemPoder} nivelKuchi={nivelKuchi} atr={atr} handleRolar={handleRolar} salvarTimer={salvarTimer}/>
           </div>
         </div>
 
@@ -932,7 +1071,7 @@ const FichaInvocacao = () => {
         <ImageCropModal
           title="Imagem da Invocação"
           src={imagem||null}
-          onConfirm={img=>{ setImagem(img); setShowCrop(false); setTimeout(salvarAgora,100); }}
+          onConfirm={img=>{ setImagem(img); setShowCrop(false); clearTimeout(salvarTimer.current); salvarTimer.current=setTimeout(salvarAgora,100); }}
           onClose={()=>setShowCrop(false)}
         />
       )}

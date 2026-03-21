@@ -9,6 +9,8 @@ import imgLesma    from "../assets/invocacoes/lesma.png";
 import imgMacaco   from "../assets/invocacoes/macaco.png";
 import imgSapo     from "../assets/invocacoes/sapo.png";
 import imgElefante from "../assets/invocacoes/elefante.png";
+import imgSalamandra from "../assets/invocacoes/salamandra.png";
+import imgMarisco    from "../assets/invocacoes/marisco.png";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:3001";
 
@@ -244,6 +246,54 @@ const INVOCACOES = [
       "Kinobori",
     ],
     ataques: ["Atropelar (esmagamento)", "Garras (perfuração)"],
+  },
+  {
+    id: "salamandra",
+    nome: "Salamandra",
+    subtitulo: "Disponível para todos os clãs",
+    img: imgSalamandra,
+    exclusivo: null,
+    descricao:
+      "Uma salamandra gigante capaz de guardar veneno dentro de si e expeli-lo em cone, seguindo as regras do efeito Venenoso do Fuuton. Também pode engolir inimigos quando está imersa no solo.\n\nInvocação Unitária: somente uma única salamandra por cena.\n\nTamanho Único: limitada até o tamanho Enorme.",
+    atributos: ["Inteligência", "Força", "Destreza"],
+    pericias: ["Furtividade", "Prontidão", "Atletismo", "Acrobacia"],
+    poderes: "Nenhum.",
+    aptidoes: [
+      "Acuidade",
+      "De Pé",
+      "Maestria",
+      "Perito",
+      "Perícia Inata",
+      "Resistência Maior (Vigor)",
+      "Lutar às Cegas",
+    ],
+    tecnicas: [
+      "Dokugiri (req. Kuchiyose 6): expele cone de veneno, segue regras do efeito Venenoso Fuuton. Pode guardar 1 comp. de veneno por categoria de tamanho acima de Médio (máx. Venenos IV; Venenos V com Kuchiyose 10). Quem for engolido falha automaticamente no teste de Vigor contra o veneno.",
+      "Imergir (Doton)",
+      "Engolimento (req. Imergir Doton): quando imersa, pode agarrar alvo imediatamente acima como ataque furtivo (ação completa). Alvo deve ser uma categoria de tamanho menor. Para escapar: teste resistido de CC ou Força, ou Escapar (Dif 4 + CC). Substitui a Falsa Decapitação do Imergir.",
+    ],
+    ataques: ["Batida com Cauda (esmagamento)"],
+  },
+  {
+    id: "marisco",
+    nome: "Marisco",
+    subtitulo: "Disponível para todos os clãs",
+    img: imgMarisco,
+    exclusivo: null,
+    descricao:
+      "Um marisco gigante capaz de produzir grandes quantidades de névoa a partir do próprio corpo, criando uma névoa densa similar ao efeito Névoa Nv 5. A névoa cobre uma área de 30m de diâmetro + 3m por Espírito do invocador, com altura comum do poder, e serve como base para o uso da aptidão Miragem sem a restrição de alcance de 2m.\n\nTamanho: segue as regras padrão de invocação.",
+    atributos: ["Espírito", "Vigor", "Inteligência"],
+    pericias: ["Concentração", "Prontidão"],
+    poderes: "Nenhum.",
+    aptidoes: [
+      "Perito",
+      "Perícia Inata",
+      "Resistência Maior (Vigor)",
+    ],
+    tecnicas: [
+      "Névoa Densa (custo 5 chakra do Marisco; área 30m de diâmetro + 3m/ESP; altura comum do poder; duração sustentada): similar ao efeito Névoa Nv 5. A partir de toda a área de efeito, o invocador pode usar a aptidão Miragem sem ficar restrito pelo alcance de 2m.",
+    ],
+    ataques: ["Batida de Corpo (esmagamento)"],
   },
 ];
 
