@@ -16,10 +16,15 @@ const DICE_FLOOR_BY_GOOGLE_ID = {
 };
 
 // Aplica o piso ao valor_dado recebido do cliente.
-// Se o valor vier abaixo do mínimo configurado, substitui; senão mantém original.
-function applyDiceFloor(googleId, valorDado) {
+// Se o floor for >= número de faces do dado, o piso é ignorado — o dado já rolou
+// livremente no cliente e não deve ser alterado. Ex: floor 6 num D4 → valor mantido.
+function applyDiceFloor(googleId, valorDado, dadoStr) {
   const floor = DICE_FLOOR_BY_GOOGLE_ID[googleId] ?? 0;
   if (!floor || floor <= 0 || !valorDado) return valorDado;
+  // Extrai faces do tipo de dado enviado (ex: "D4" → 4). Se não informado, aplica normalmente.
+  const faces = dadoStr ? parseInt(String(dadoStr).replace(/[Dd]/, ""), 10) : Infinity;
+  // Só aplica piso se o floor for menor que o máximo do dado
+  if (faces && floor >= faces) return valorDado;
   return Math.max(Number(valorDado), floor);
 }
 
@@ -452,7 +457,7 @@ router.post("/campanhas/:id/rolagens", async (req, res) => {
     personagem, label,
     valor_dado, bonus, total, ataque_total,
     is_dano, critico_max, critico_min, hora,
-    ficha_id,
+    ficha_id, dado_tipo,
   } = req.body;
 
   if (!label || total === undefined)
@@ -471,8 +476,9 @@ router.post("/campanhas/:id/rolagens", async (req, res) => {
     if (acesso.length === 0)
       return res.status(403).json({ error: "Sem acesso a esta campanha" });
 
-    // Aplica piso de dado se o usuário tiver vantagem configurada
-    const valorDadoFinal = applyDiceFloor(req.session.google_id, valor_dado ?? 0);
+    // Aplica piso de dado se o usuário tiver vantagem configurada.
+    // dado_tipo (ex: "D4") é usado para ignorar o piso em dados menores que o floor.
+    const valorDadoFinal = applyDiceFloor(req.session.google_id, valor_dado ?? 0, dado_tipo);
     // Recalcula total se o dado foi corrigido para cima
     const diferencaDado  = valorDadoFinal - (valor_dado ?? 0);
     const totalFinal     = (total ?? 0) + diferencaDado;

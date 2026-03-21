@@ -52,6 +52,8 @@ const calcularBonusDeHabilidades = (comprados) => {
 
 // Gerador criptograficamente seguro — elimina repetições/vieses do Math.random()
 // floor: resultado mínimo (0 = sem restrição). Gerado pela função applyDiceFloor.
+// Se o floor for >= número de faces do dado, o piso é ignorado e o dado rola livremente.
+// Ex: floor 6 num D4 → sem piso, rola 1–4 normalmente.
 const rolarDado = (dadoStr, floor = 0) => {
     const faces = parseInt(dadoStr.replace("D", ""), 10);
     if (!faces || faces < 2) return 1;
@@ -59,7 +61,8 @@ const rolarDado = (dadoStr, floor = 0) => {
     const array = new Uint32Array(1);
     crypto.getRandomValues(array);
     const resultado = (array[0] % faces) + 1;
-    return floor > 0 ? Math.max(resultado, floor) : resultado;
+    // Só aplica piso se ele for menor que o máximo do dado; senão rola livre
+    return (floor > 0 && floor < faces) ? Math.max(resultado, floor) : resultado;
 };
 
 // ── RECURSOS DE FABRICAÇÃO ──
@@ -2641,6 +2644,7 @@ const FichaPersonagemTlou = () => {
                     ficha_id: parseInt(id, 10),
                     personagem: entradaComData.personagem,
                     label: entradaComData.label,
+                    dado_tipo: (entradaComData.dadoPericia || entradaComData.dado || "").replace(/.*?(D\d+).*/i, "$1").toUpperCase() || null,
                     valor_dado: entradaComData.valorDado ?? entradaComData.rolagemAtaque ?? 0,
                     bonus: entradaComData.bonus ?? entradaComData.bonusPericia ?? 0,
                     total: entradaComData.total,
